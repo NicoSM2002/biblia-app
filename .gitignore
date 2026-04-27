@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# bible data — generated; only commit the small structured JSON + quantized binary
+data/biblia-raw.txt
+data/biblia-preview.txt
+data/biblia.embeddings.json
+# (data/biblia.json and data/biblia.embeddings.{bin,meta.json} are committed
+#  — they fit in git/Vercel size limits.)
+
+# Source PDF — copyrighted by Conferencia Episcopal Española / BAC.
+# Not redistributable. Keep out of public repos.
+Contexto/
+
