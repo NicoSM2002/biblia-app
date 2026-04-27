@@ -50,6 +50,15 @@ html, body {
   font-family: var(--font-sans), ui-sans-serif, system-ui;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Lock the page itself — only the chat scroll container should scroll. */
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  /* Prevent the iOS rubber-band effect and any horizontal panning. */
+  -webkit-overflow-scrolling: auto;
+  touch-action: pan-y;
+  /* Prevent iOS Safari double-tap-to-zoom on text. */
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Subtle paper-grain noise overlay — gives the page tactility (lower opacity) */
