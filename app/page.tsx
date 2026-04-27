@@ -179,11 +179,12 @@ export default function Page() {
   const empty = turns.length === 0;
 
   return (
-    <div className="relative h-[100dvh] flex flex-col bg-[var(--paper)] overflow-hidden">
+    <div className="relative h-[100dvh] flex flex-col overflow-hidden">
+      <div className="missal-page">
       <Header onReset={reset} />
 
       <main className="relative z-10 flex-1 flex flex-col min-h-0">
-        <div ref={conversationRef} className="flex-1 overflow-y-auto px-4 sm:px-8 min-h-0">
+        <div ref={conversationRef} className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-10 min-h-0">
           <div className="max-w-2xl mx-auto py-4 sm:py-6">
             {empty ? (
               <EmptyState onPick={ask} />
@@ -224,7 +225,7 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="relative z-10 px-4 sm:px-8 pt-3 pb-5 sm:pb-7 border-t border-[var(--rule)] bg-[var(--paper)]">
+        <div className="relative z-10 px-4 sm:px-8 lg:px-10 pt-3 pb-5 sm:pb-7 border-t border-[var(--rule)] bg-[var(--paper)]">
           <div className="max-w-2xl mx-auto">
             <ChatInput
               onSubmit={ask}
@@ -235,6 +236,7 @@ export default function Page() {
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 }
@@ -249,19 +251,26 @@ const EXAMPLES = [
 
 function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
-    <div className="anim-fade-rise space-y-4 pb-4">
-      <div className="card-welcome">
-        <h2 className="font-serif italic text-[1.2rem] sm:text-[1.4rem] text-[var(--ink)] leading-[1.35] mb-2">
+    <div className="anim-fade-rise space-y-4 lg:space-y-6 pb-4 lg:pt-4">
+      {/* Decorative ornament — only on desktop */}
+      <div className="hidden lg:flex items-center justify-center gap-3 pb-1">
+        <span aria-hidden="true" className="h-px w-12 bg-[var(--gold)] opacity-50" />
+        <Quatrefoil className="text-[var(--gold)] opacity-70" />
+        <span aria-hidden="true" className="h-px w-12 bg-[var(--gold)] opacity-50" />
+      </div>
+
+      <div className="card-welcome lg:py-7 lg:px-8">
+        <h2 className="font-serif italic text-[1.2rem] sm:text-[1.4rem] lg:text-[1.7rem] text-[var(--ink)] leading-[1.35] mb-2 lg:mb-3 lg:text-center">
           Pregúntale a la Sagrada Escritura.
         </h2>
-        <p className="font-sans text-[0.9rem] sm:text-[0.96rem] text-[var(--ink-soft)] leading-[1.55]">
+        <p className="font-sans text-[0.9rem] sm:text-[0.96rem] lg:text-[1rem] text-[var(--ink-soft)] leading-[1.6] lg:text-center lg:max-w-[44ch] lg:mx-auto">
           Una duda, un dolor, una alegría. La Palabra responde con un versículo y una explicación cercana.
         </p>
       </div>
 
-      <div>
-        <p className="label-section">Prueba con</p>
-        <div className="flex flex-wrap gap-2">
+      <div className="lg:pt-2">
+        <p className="label-section lg:justify-center lg:flex">Prueba con</p>
+        <div className="flex flex-wrap gap-2 lg:justify-center">
           {EXAMPLES.map((q) => (
             <button
               key={q}
@@ -283,5 +292,27 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
         <span aria-hidden="true" className="h-px w-6 bg-[var(--rule)]" />
       </div>
     </div>
+  );
+}
+
+/** Quatrefoil — a four-lobed Gothic motif used in stained glass and missals. */
+function Quatrefoil({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.2"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M20 6 C26 6 26 14 20 14 C14 14 14 6 20 6 Z" />
+      <path d="M20 26 C26 26 26 34 20 34 C14 34 14 26 20 26 Z" />
+      <path d="M6 20 C6 14 14 14 14 20 C14 26 6 26 6 20 Z" />
+      <path d="M26 20 C26 14 34 14 34 20 C34 26 26 26 26 20 Z" />
+      <circle cx="20" cy="20" r="1.5" fill="currentColor" />
+    </svg>
   );
 }

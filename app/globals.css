@@ -65,11 +65,83 @@ body::before {
   background-size: 240px 240px;
 }
 
+/* Desktop-only ambient: warm "candlelight from above" radial glow + subtle
+   stained-glass quatrefoil pattern faded into the page. Gives the desktop
+   layout depth without overwhelming the content. */
+@media (min-width: 1024px) {
+  body {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(184, 146, 74, 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(27, 58, 107, 0.05) 0%, transparent 65%),
+      var(--paper);
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.12;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'><g fill='none' stroke='%23B8924A' stroke-width='0.6'><path d='M110 30 Q140 60 110 90 Q80 60 110 30 Z'/><path d='M110 130 Q140 160 110 190 Q80 160 110 130 Z'/><path d='M30 110 Q60 80 90 110 Q60 140 30 110 Z'/><path d='M130 110 Q160 80 190 110 Q160 140 130 110 Z'/><circle cx='110' cy='110' r='3'/></g></svg>");
+    background-size: 360px 360px;
+    background-position: center center;
+  }
+}
+
 /* -----------------------------------------------------------------------------
    Card primitives — wrapped in @layer so Tailwind v4 picks them up reliably
    --------------------------------------------------------------------------- */
 
 @layer components {
+  /* The "missal page" — on desktop, the conversation lives inside a card-like
+     container that evokes a printed missal resting on a podium. On mobile, no
+     visual change (full-bleed). */
+  .missal-page {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media (min-width: 1024px) {
+    .missal-page {
+      max-width: 760px;
+      margin: 1.5rem auto 1.25rem;
+      height: calc(100dvh - 2.75rem);
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 10px;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 18px 40px -22px rgba(31, 27, 22, 0.18),
+        0 4px 12px -4px rgba(31, 27, 22, 0.06);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Gilt edges on the left and right of the missal page */
+    .missal-page::before,
+    .missal-page::after {
+      content: "";
+      position: absolute;
+      top: 6%;
+      bottom: 6%;
+      width: 1px;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(184, 146, 74, 0.35) 12%,
+        rgba(184, 146, 74, 0.55) 50%,
+        rgba(184, 146, 74, 0.35) 88%,
+        transparent 100%
+      );
+      pointer-events: none;
+    }
+    .missal-page::before { left: 1.25rem; }
+    .missal-page::after  { right: 1.25rem; }
+  }
+
   .card-verse {
     background: var(--vellum);
     border: 1px solid var(--rule);
