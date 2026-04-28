@@ -21,12 +21,22 @@ export default function Page() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [pending, setPending] = useState(false);
   const conversationRef = useRef<HTMLDivElement>(null);
+  const lastTurnRef = useRef<HTMLElement | null>(null);
+  const prevTurnCountRef = useRef(0);
 
+  // Scroll only when a NEW turn is added — bring its top edge into view so
+  // the user sees their question and can read the verse + response as they
+  // stream in. Do NOT auto-scroll while the response text grows; that lets
+  // the user read at their own pace without the page jumping.
   useEffect(() => {
-    const el = conversationRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [turns]);
+    if (turns.length > prevTurnCountRef.current) {
+      const el = lastTurnRef.current;
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      prevTurnCountRef.current = turns.length;
+    }
+  }, [turns.length]);
 
   function reset() {
     if (pending) return;
@@ -189,8 +199,12 @@ export default function Page() {
             {empty ? (
               <EmptyState onPick={ask} />
             ) : (
-              turns.map((t) => (
-                <article key={t.id} className="mb-8">
+              turns.map((t, i) => (
+                <article
+                  key={t.id}
+                  ref={i === turns.length - 1 ? lastTurnRef : undefined}
+                  className="mb-8 scroll-mt-4"
+                >
                   <QuestionLine text={t.question} />
                   {t.status === "loading" && <Loading />}
                   {(t.status === "streaming" || t.status === "done") && (
