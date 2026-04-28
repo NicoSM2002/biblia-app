@@ -1,17 +1,29 @@
 import { LatinCross } from "./Cross";
+import { ExportMenu } from "./ExportMenu";
+import type { ExportableTurn } from "@/lib/export";
 
-export function Header({ onReset }: { onReset?: () => void }) {
+export function Header({
+  onReset,
+  exportableTurns = [],
+}: {
+  onReset?: () => void;
+  exportableTurns?: ExportableTurn[];
+}) {
+  const hasContent = exportableTurns.length > 0;
   return (
-    <header className="relative z-10 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)]">
-      <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <LatinCross className="text-[var(--gold)] lg:hidden" size={14} />
-          <LatinCross className="text-[var(--gold)] hidden lg:block" size={18} />
-          <h1 className="font-sans text-[1rem] sm:text-[1.05rem] lg:text-[1.15rem] font-medium text-[var(--ink)] tracking-[0.005em]">
+    <header className="relative z-10 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)] no-print">
+      <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <LatinCross className="text-[var(--gold)] lg:hidden shrink-0" size={14} />
+          <LatinCross className="text-[var(--gold)] hidden lg:block shrink-0" size={18} />
+          <h1 className="font-sans text-[1rem] sm:text-[1.05rem] lg:text-[1.15rem] font-medium text-[var(--ink)] tracking-[0.005em] truncate">
             Habla con la Palabra
           </h1>
         </div>
-        {onReset && <NewConversationButton onClick={onReset} />}
+        <div className="flex items-center gap-2 shrink-0">
+          {hasContent && <ExportMenu turns={exportableTurns} />}
+          {onReset && <NewConversationButton onClick={onReset} />}
+        </div>
       </div>
     </header>
   );

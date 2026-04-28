@@ -344,3 +344,94 @@ body::before {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 8px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* -----------------------------------------------------------------------------
+   Print stylesheet — used when the user picks "Guardar PDF" from the export
+   menu. We hide the chrome (header buttons, input, decorative gradients) and
+   render the conversation as a clean printed missal page.
+   --------------------------------------------------------------------------- */
+
+@media print {
+  @page {
+    margin: 18mm 16mm;
+  }
+
+  /* Hide ambient and chrome */
+  body::before,
+  body::after,
+  .no-print {
+    display: none !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: var(--ink) !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Strip the missal-page card so content flows naturally onto paper */
+  .missal-page {
+    max-width: none !important;
+    margin: 0 !important;
+    height: auto !important;
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+  .missal-page::before,
+  .missal-page::after { display: none !important; }
+
+  main { display: block !important; }
+
+  /* The conversation column expands to full page width */
+  main > div:first-child,
+  main > div:first-child > div:first-child {
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  /* Print-only document header */
+  .print-only { display: block !important; }
+
+  /* Card styles: remove backgrounds/borders, keep typographic structure */
+  .card-question,
+  .card-response {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+  .card-verse {
+    background: transparent !important;
+    border: none !important;
+    border-left: 2px solid var(--gold) !important;
+    padding: 4pt 0 4pt 12pt !important;
+    page-break-inside: avoid;
+  }
+
+  .label-section {
+    color: #888 !important;
+    font-size: 8pt !important;
+  }
+  .label-section::before {
+    background: #888 !important;
+  }
+
+  article {
+    page-break-inside: avoid;
+    margin-bottom: 18pt !important;
+  }
+
+  /* Subtle hairline between conversation turns when printed */
+  article + article {
+    border-top: 1px solid #ddd;
+    padding-top: 12pt;
+  }
+}
+
+.print-only { display: none; }

@@ -201,11 +201,21 @@ export default function Page() {
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden">
       <div className="missal-page">
-      <Header onReset={reset} />
+      <Header
+        onReset={reset}
+        exportableTurns={turns
+          .filter((t) => t.status === "done" && (t.response || t.verse))
+          .map((t) => ({
+            question: t.question,
+            verse: t.verse ?? null,
+            response: t.response,
+          }))}
+      />
 
       <main className="relative z-10 flex-1 flex flex-col min-h-0">
         <div ref={conversationRef} className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-10 min-h-0">
           <div className="max-w-2xl mx-auto py-4 sm:py-6">
+            <PrintHeader />
             {empty ? (
               <EmptyState onPick={ask} />
             ) : (
@@ -272,6 +282,26 @@ const EXAMPLES = [
   "Acabo de perder a un ser querido",
   "Necesito esperanza hoy",
 ];
+
+function PrintHeader() {
+  const date = new Date().toLocaleDateString("es-ES", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  return (
+    <div className="print-only mb-8 text-center">
+      <h1 className="font-serif italic text-2xl text-[var(--ink)]">
+        Habla con la Palabra
+      </h1>
+      <p className="font-sans text-xs uppercase tracking-[0.18em] text-[var(--gold)] mt-1">
+        {date}
+      </p>
+      <hr className="hairline-gold mt-3 mx-auto max-w-[10rem]" />
+    </div>
+  );
+}
 
 function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
