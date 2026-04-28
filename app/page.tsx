@@ -23,20 +23,30 @@ export default function Page() {
   const conversationRef = useRef<HTMLDivElement>(null);
   const lastTurnRef = useRef<HTMLElement | null>(null);
   const prevTurnCountRef = useRef(0);
+  const scrolledForVerseRef = useRef<Set<string>>(new Set());
 
-  // Scroll only when a NEW turn is added — bring its top edge into view so
-  // the user sees their question and can read the verse + response as they
-  // stream in. Do NOT auto-scroll while the response text grows; that lets
-  // the user read at their own pace without the page jumping.
+  // Scroll precisely twice per turn:
+  //   1. When the new turn is added (immediate feedback that the question
+  //      went through — the loading dots become visible at the top).
+  //   2. When the verse first appears (corrects for any mobile viewport
+  //      shift caused by the keyboard dismissing, and brings the verse
+  //      itself into view rather than leaving it hidden below the fold).
+  // Once the response starts streaming, we never auto-scroll again — the
+  // user reads at their own pace.
   useEffect(() => {
     if (turns.length > prevTurnCountRef.current) {
-      const el = lastTurnRef.current;
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      lastTurnRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       prevTurnCountRef.current = turns.length;
     }
-  }, [turns.length]);
+    const last = turns[turns.length - 1];
+    if (last?.verse && !scrolledForVerseRef.current.has(last.id)) {
+      scrolledForVerseRef.current.add(last.id);
+      // One frame later so the verse element is in the DOM before we scroll.
+      requestAnimationFrame(() => {
+        lastTurnRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, [turns]);
 
   function reset() {
     if (pending) return;
