@@ -50,8 +50,12 @@ export function ExportMenu({ turns }: { turns: ExportableTurn[] }) {
   }
 
   function handlePrint() {
-    setOpen(false);
+    // Trigger print FIRST so we stay inside the user-gesture context. On
+    // iOS Safari, calling window.print() after a React state update has
+    // already unbatched can lose the gesture and the share/print sheet
+    // never opens.
     printConversation();
+    setOpen(false);
   }
 
   const showShare = canNativeShare();
@@ -78,8 +82,13 @@ export function ExportMenu({ turns }: { turns: ExportableTurn[] }) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-2 w-56 bg-white border border-[var(--rule)] rounded-lg overflow-hidden z-50"
-          style={{ boxShadow: "0 8px 24px -8px rgba(31, 27, 22, 0.15)" }}
+          className="absolute right-0 top-full mt-2 w-56 border border-[var(--rule)] rounded-lg overflow-hidden z-50"
+          style={{
+            backgroundColor: "#ffffff",
+            isolation: "isolate",
+            boxShadow:
+              "0 12px 28px -8px rgba(31, 27, 22, 0.22), 0 4px 10px -2px rgba(31, 27, 22, 0.08)",
+          }}
         >
           {showShare && (
             <MenuItem onClick={handleShare}>

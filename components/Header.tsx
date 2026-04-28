@@ -11,7 +11,7 @@ export function Header({
 }) {
   const hasContent = exportableTurns.length > 0;
   return (
-    <header className="relative z-10 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)] no-print">
+    <header className="relative z-30 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)] bg-[var(--paper)] no-print">
       <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
         <div className="flex items-center gap-3 min-w-0">
           <LatinCross className="text-[var(--gold)] lg:hidden shrink-0" size={14} />
