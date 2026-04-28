@@ -227,7 +227,9 @@ export async function streamPastoralResponse(args: {
 
   return client.messages.stream({
     model: MODEL,
-    max_tokens: 600,
+    // Generous ceiling — emotional or doctrinal answers can run long, and
+    // truncation mid-JSON used to cause the "moment of silence" fallback.
+    max_tokens: 1500,
     system: [
       {
         type: "text",

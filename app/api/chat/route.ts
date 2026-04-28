@@ -121,6 +121,34 @@ export async function POST(req: NextRequest) {
         // Parse the final JSON
         const parsed = parseResponseJSON(accumulated);
         if (!parsed) {
+          // Salvage path — if Claude's response got truncated mid-JSON (usually
+          // because max_tokens was hit on a long answer), we still want to
+          // surface whatever we streamed to the user instead of wiping it
+          // with a generic apology that would erase the text they were reading.
+          const haveStreamed =
+            (lastEmittedResponse && lastEmittedResponse.trim().length > 30) ||
+            !!lastEmittedVerse;
+          if (haveStreamed) {
+            let verseToShow: { reference: string; text: string } | null = null;
+            if (lastEmittedVerse) {
+              const v = validateQuote(
+                lastEmittedVerse.reference,
+                lastEmittedVerse.text,
+              );
+              if (v.ok) {
+                verseToShow = { reference: v.reference, text: v.text };
+              }
+            }
+            send("result", {
+              verse: verseToShow,
+              response:
+                lastEmittedResponse?.trim() ||
+                "Sigamos hablando, cuéntame más.",
+            });
+            controller.close();
+            return;
+          }
+
           send("result", {
             verse: null,
             response:
