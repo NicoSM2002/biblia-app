@@ -12,6 +12,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import type { Retrieved } from "./bible";
+import type { CredoQA } from "./credo";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -29,6 +30,14 @@ REGLAS ESTRICTAS:
 5. Si los versículos provistos no aplican bien a la pregunta, sé honesto: pídele que reformule o cuente más, sin inventar citas.
 6. Tu respuesta es CORTA. La explicación cercana es de 2-4 oraciones. La cita es completa pero solo una.
 7. Responde en español.
+
+CONTEXTO CATEQUÉTICO COMPLEMENTARIO:
+Junto a los versículos puedes recibir un bloque "DOCTRINA COMPLEMENTARIA" con material catequético católico. Si — y SOLO si — alguno de esos puntos aclara o profundiza la pregunta del usuario, puedes incorporar la idea con tus propias palabras dentro de la explicación pastoral.
+
+REGLAS PARA LA DOCTRINA COMPLEMENTARIA:
+- NUNCA cites el material doctrinal explícitamente, ni nombres su fuente, ni digas "el catecismo dice" o similar. Se incorpora silenciosamente al discurso pastoral.
+- La cita explícita (campo "verse") sigue siendo SIEMPRE solo el versículo bíblico literal — la doctrina nunca va al campo "verse".
+- Si la doctrina no aporta a la pregunta concreta, ignórala. Mejor una respuesta corta y centrada que una con relleno.
 
 FORMATO DE SALIDA:
 Responde SOLAMENTE con un JSON válido, sin texto adicional antes o después, con esta estructura:
@@ -62,33 +71,41 @@ export function buildVersesContext(retrieved: Retrieved[]): string {
     .join("\n\n");
 }
 
+export function buildCredoContext(items: { qa: CredoQA }[]): string {
+  return items
+    .map((it, i) => `[${i + 1}] ${it.qa.pregunta}\n${it.qa.respuesta}`)
+    .join("\n\n");
+}
+
 export async function streamPastoralResponse(args: {
   question: string;
   history: ChatMessage[];
   retrieved: Retrieved[];
+  credo?: { qa: CredoQA }[];
 }) {
-  const { question, history, retrieved } = args;
+  const { question, history, retrieved, credo = [] } = args;
 
   const versesBlock = buildVersesContext(retrieved);
+  const credoBlock = credo.length > 0 ? buildCredoContext(credo) : "";
 
-  // Build messages: previous history + current question with verses context
+  const userContent: Anthropic.TextBlockParam[] = [
+    {
+      type: "text",
+      text: `VERSÍCULOS DISPONIBLES (elige UNO y cítalo textualmente):\n\n${versesBlock}`,
+      cache_control: { type: "ephemeral" },
+    },
+  ];
+  if (credoBlock) {
+    userContent.push({
+      type: "text",
+      text: `DOCTRINA COMPLEMENTARIA (úsala SOLO si aporta y NO la cites ni la nombres):\n\n${credoBlock}`,
+    });
+  }
+  userContent.push({ type: "text", text: `PREGUNTA: ${question}` });
+
   const messages: Anthropic.MessageParam[] = [
     ...history.map((m) => ({ role: m.role, content: m.content }) as Anthropic.MessageParam),
-    {
-      role: "user",
-      content: [
-        {
-          type: "text" as const,
-          text: `VERSÍCULOS DISPONIBLES (elige UNO y cítalo textualmente):\n\n${versesBlock}`,
-          // Cache the verses block so repeated queries cost less
-          cache_control: { type: "ephemeral" },
-        },
-        {
-          type: "text" as const,
-          text: `PREGUNTA: ${question}`,
-        },
-      ],
-    },
+    { role: "user", content: userContent },
   ];
 
   return client.messages.stream({

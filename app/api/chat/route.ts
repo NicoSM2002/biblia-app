@@ -17,6 +17,7 @@
 
 import { NextRequest } from "next/server";
 import { search } from "@/lib/bible";
+import { searchCredo } from "@/lib/credo";
 import { streamPastoralResponse, type ChatMessage } from "@/lib/claude";
 import { validateQuote } from "@/lib/validate";
 
@@ -63,7 +64,10 @@ export async function POST(req: NextRequest) {
             .map((m) => m.content),
           question,
         ].join(" ");
-        const retrieved = await search(expandedQuery, 8);
+        const [retrieved, credo] = await Promise.all([
+          search(expandedQuery, 8),
+          searchCredo(expandedQuery, 2),
+        ]);
         if (retrieved.length === 0) {
           send("result", {
             verse: null,
@@ -74,10 +78,15 @@ export async function POST(req: NextRequest) {
           return;
         }
 
+        // Drop low-relevance credo matches (cosine < 0.50). They get bundled
+        // as supplementary context only when actually relevant.
+        const credoFiltered = credo.filter((c) => c.score >= 0.5);
+
         const claudeStream = await streamPastoralResponse({
           question,
           history,
           retrieved,
+          credo: credoFiltered,
         });
 
         let accumulated = "";
