@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Cream paper background, matching the app palette (#FAF7F2) -->
+  <rect width="64" height="64" rx="10" fill="#FAF7F2"/>
+  <!-- Latin cross in dorado mate (#B8924A), thicker than the on-page cross -->
+  <path fill="#B8924A" d="
+    M 26 7
+    L 38 7
+    L 38 21
+    L 53 21
+    L 53 31
+    L 38 31
+    L 38 57
+    L 26 57
+    L 26 31
+    L 11 31
+    L 11 21
+    L 26 21
+    Z
+  "/>
+  <!-- Subtle calvary base -->
+  <rect x="22" y="55" width="20" height="3" fill="#B8924A"/>
+</svg>
