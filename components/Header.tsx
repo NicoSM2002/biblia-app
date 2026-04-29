@@ -1,5 +1,6 @@
 import { LatinCross } from "./Cross";
 import { ExportMenu } from "./ExportMenu";
+import { AuthButton } from "./AuthButton";
 import type { ExportableTurn } from "@/lib/export";
 
 export function Header({
@@ -23,6 +24,7 @@ export function Header({
         <div className="flex items-center gap-2 shrink-0">
           {hasContent && <ExportMenu turns={exportableTurns} />}
           {onReset && <NewConversationButton onClick={onReset} />}
+          <AuthButton />
         </div>
       </div>
     </header>

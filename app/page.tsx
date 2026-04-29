@@ -7,6 +7,7 @@ import { ResponseText } from "@/components/ResponseText";
 import { QuestionLine } from "@/components/QuestionLine";
 import { Loading } from "@/components/Loading";
 import { ChatInput } from "@/components/ChatInput";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type Turn = {
   id: string;
@@ -24,6 +25,23 @@ export default function Page() {
   const lastTurnRef = useRef<HTMLElement | null>(null);
   const prevTurnCountRef = useRef(0);
   const scrolledForVerseRef = useRef<Set<string>>(new Set());
+
+  // Tracks the server-side conversation row for the signed-in user. Created
+  // lazily on the first turn and reused for subsequent turns. null means the
+  // user is not signed in or the conversation hasn't been created yet.
+  const conversationIdRef = useRef<string | null>(null);
+  const savedTurnIdsRef = useRef<Set<string>>(new Set());
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setSignedIn(!!session?.user);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   // Scroll precisely twice per turn:
   //   1. When the new turn is added (immediate feedback that the question
@@ -51,6 +69,56 @@ export default function Page() {
   function reset() {
     if (pending) return;
     setTurns([]);
+    conversationIdRef.current = null;
+    savedTurnIdsRef.current.clear();
+  }
+
+  // When a turn finishes, persist it to Supabase if the user is signed in.
+  useEffect(() => {
+    if (!signedIn) return;
+    const done = turns.find(
+      (t) =>
+        t.status === "done" &&
+        t.response &&
+        !savedTurnIdsRef.current.has(t.id),
+    );
+    if (!done) return;
+    savedTurnIdsRef.current.add(done.id);
+    void persistTurn(done, turns.findIndex((t) => t.id === done.id));
+  }, [turns, signedIn]);
+
+  async function persistTurn(turn: Turn, ord: number) {
+    try {
+      // Lazily create the conversation on the first turn.
+      if (!conversationIdRef.current) {
+        const res = await fetch("/api/conversations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+        if (!res.ok) throw new Error(`create conversation ${res.status}`);
+        const data = (await res.json()) as { conversation: { id: string } };
+        conversationIdRef.current = data.conversation.id;
+      }
+      await fetch(
+        `/api/conversations/${conversationIdRef.current}/turns`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ord,
+            question: turn.question,
+            verse_reference: turn.verse?.reference ?? null,
+            verse_text: turn.verse?.text ?? null,
+            response: turn.response,
+          }),
+        },
+      );
+    } catch (err) {
+      // Saving is best-effort — we don't surface the failure to the user.
+      // The chat UX continues working in-memory.
+      console.warn("Failed to persist turn:", err);
+    }
   }
 
   async function ask(question: string) {
