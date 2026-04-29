@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+// (Mi historial moved out of this menu to a dedicated icon in the header.)
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
-export function AuthButton({ onOpenHistory }: { onOpenHistory?: () => void }) {
+export function AuthButton() {
   const router = useRouter();
   const [email, setEmail] = useState<string | null | undefined>(undefined);
   const [open, setOpen] = useState(false);
@@ -105,18 +106,6 @@ export function AuthButton({ onOpenHistory }: { onOpenHistory?: () => void }) {
               {email}
             </p>
           </div>
-          {onOpenHistory && (
-            <button
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                onOpenHistory();
-              }}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[0.88rem] text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--ink)] transition-colors"
-            >
-              <ListIcon /> Mi historial
-            </button>
-          )}
           <button
             role="menuitem"
             onClick={logout}

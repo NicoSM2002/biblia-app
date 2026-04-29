@@ -16,7 +16,8 @@ export function Header({
   return (
     <header className="relative z-30 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)] bg-[var(--paper)] no-print">
       <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {onOpenHistory && <HistoryButton onClick={onOpenHistory} />}
           <LatinCross className="text-[var(--gold)] lg:hidden shrink-0" size={14} />
           <LatinCross className="text-[var(--gold)] hidden lg:block shrink-0" size={18} />
           <h1 className="font-sans text-[1rem] sm:text-[1.05rem] lg:text-[1.15rem] font-medium text-[var(--ink)] tracking-[0.005em] truncate">
@@ -26,10 +27,36 @@ export function Header({
         <div className="flex items-center gap-2 shrink-0">
           {hasContent && <ExportMenu turns={exportableTurns} />}
           {onReset && <NewConversationButton onClick={onReset} />}
-          <AuthButton onOpenHistory={onOpenHistory} />
+          <AuthButton />
         </div>
       </div>
     </header>
+  );
+}
+
+function HistoryButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Abrir historial"
+      className="grid place-items-center w-9 h-9 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold)] transition-colors shrink-0"
+    >
+      <svg
+        width="17"
+        height="17"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="15" y2="12" />
+        <line x1="3" y1="18" x2="18" y2="18" />
+      </svg>
+    </button>
   );
 }
 

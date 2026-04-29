@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence } from "motion/react";
 import { Header } from "@/components/Header";
 import { VerseCard } from "@/components/VerseCard";
 import { ResponseText } from "@/components/ResponseText";
@@ -8,6 +9,7 @@ import { QuestionLine } from "@/components/QuestionLine";
 import { Loading } from "@/components/Loading";
 import { ChatInput } from "@/components/ChatInput";
 import { HistorySheet } from "@/components/HistorySheet";
+import { DailyVerse } from "@/components/DailyVerse";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type Turn = {
@@ -37,6 +39,29 @@ export default function Page() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     null,
   );
+
+  // Daily verse welcome — shown once per session per day. Stored in
+  // sessionStorage so the user only sees it on their first visit and
+  // doesn't get reminded on every reload.
+  const [showDailyVerse, setShowDailyVerse] = useState<boolean | null>(null);
+  useEffect(() => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const seen = sessionStorage.getItem("dailyVerseSeen");
+      setShowDailyVerse(seen !== today);
+    } catch {
+      setShowDailyVerse(false);
+    }
+  }, []);
+  function dismissDailyVerse() {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      sessionStorage.setItem("dailyVerseSeen", today);
+    } catch {
+      // ignore
+    }
+    setShowDailyVerse(false);
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -335,6 +360,9 @@ export default function Page() {
         onSelect={loadConversation}
         activeId={activeConversationId}
       />
+      <AnimatePresence>
+        {showDailyVerse && <DailyVerse onContinue={dismissDailyVerse} />}
+      </AnimatePresence>
 
       <main className="relative z-10 flex-1 flex flex-col min-h-0">
         <div ref={conversationRef} className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-10 min-h-0">
