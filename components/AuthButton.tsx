@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
-export function AuthButton() {
+export function AuthButton({ onOpenHistory }: { onOpenHistory?: () => void }) {
   const router = useRouter();
   const [email, setEmail] = useState<string | null | undefined>(undefined);
   const [open, setOpen] = useState(false);
@@ -105,14 +105,18 @@ export function AuthButton() {
               {email}
             </p>
           </div>
-          <Link
-            href="/historial"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[0.88rem] text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--ink)] transition-colors"
-          >
-            <ListIcon /> Mi historial
-          </Link>
+          {onOpenHistory && (
+            <button
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onOpenHistory();
+              }}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[0.88rem] text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--ink)] transition-colors"
+            >
+              <ListIcon /> Mi historial
+            </button>
+          )}
           <button
             role="menuitem"
             onClick={logout}

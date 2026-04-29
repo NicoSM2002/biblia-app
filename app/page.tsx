@@ -7,6 +7,7 @@ import { ResponseText } from "@/components/ResponseText";
 import { QuestionLine } from "@/components/QuestionLine";
 import { Loading } from "@/components/Loading";
 import { ChatInput } from "@/components/ChatInput";
+import { HistorySheet } from "@/components/HistorySheet";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type Turn = {
@@ -32,6 +33,10 @@ export default function Page() {
   const conversationIdRef = useRef<string | null>(null);
   const savedTurnIdsRef = useRef<Set<string>>(new Set());
   const [signedIn, setSignedIn] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -71,6 +76,50 @@ export default function Page() {
     setTurns([]);
     conversationIdRef.current = null;
     savedTurnIdsRef.current.clear();
+    setActiveConversationId(null);
+  }
+
+  // Load a past conversation back into the chat so the user can continue it.
+  async function loadConversation(id: string) {
+    if (pending) return;
+    try {
+      const res = await fetch(`/api/conversations/${id}`);
+      if (!res.ok) throw new Error(`status ${res.status}`);
+      const data = (await res.json()) as {
+        conversation: { id: string };
+        turns: Array<{
+          ord: number;
+          question: string;
+          verse_reference: string | null;
+          verse_text: string | null;
+          response: string;
+        }>;
+      };
+
+      const loadedTurns: Turn[] = data.turns.map((t) => ({
+        id: crypto.randomUUID(),
+        question: t.question,
+        verse:
+          t.verse_reference && t.verse_text
+            ? { reference: t.verse_reference, text: t.verse_text }
+            : null,
+        response: t.response,
+        status: "done" as const,
+      }));
+
+      // Mark all loaded turns as already saved so the persistTurn effect
+      // doesn't try to re-write them. Also pre-mark them as already
+      // scrolled-for-verse so we don't scroll-jump to old turns.
+      savedTurnIdsRef.current = new Set(loadedTurns.map((t) => t.id));
+      scrolledForVerseRef.current = new Set(loadedTurns.map((t) => t.id));
+      prevTurnCountRef.current = loadedTurns.length;
+      conversationIdRef.current = data.conversation.id;
+      setActiveConversationId(data.conversation.id);
+      setTurns(loadedTurns);
+      setHistoryOpen(false);
+    } catch (err) {
+      console.warn("Failed to load conversation:", err);
+    }
   }
 
   // When a turn finishes, persist it to Supabase if the user is signed in.
@@ -271,6 +320,7 @@ export default function Page() {
       <div className="missal-page">
       <Header
         onReset={reset}
+        onOpenHistory={signedIn ? () => setHistoryOpen(true) : undefined}
         exportableTurns={turns
           .filter((t) => t.status === "done" && (t.response || t.verse))
           .map((t) => ({
@@ -278,6 +328,12 @@ export default function Page() {
             verse: t.verse ?? null,
             response: t.response,
           }))}
+      />
+      <HistorySheet
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        onSelect={loadConversation}
+        activeId={activeConversationId}
       />
 
       <main className="relative z-10 flex-1 flex flex-col min-h-0">

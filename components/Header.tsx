@@ -5,9 +5,11 @@ import type { ExportableTurn } from "@/lib/export";
 
 export function Header({
   onReset,
+  onOpenHistory,
   exportableTurns = [],
 }: {
   onReset?: () => void;
+  onOpenHistory?: () => void;
   exportableTurns?: ExportableTurn[];
 }) {
   const hasContent = exportableTurns.length > 0;
@@ -24,7 +26,7 @@ export function Header({
         <div className="flex items-center gap-2 shrink-0">
           {hasContent && <ExportMenu turns={exportableTurns} />}
           {onReset && <NewConversationButton onClick={onReset} />}
-          <AuthButton />
+          <AuthButton onOpenHistory={onOpenHistory} />
         </div>
       </div>
     </header>
