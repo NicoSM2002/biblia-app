@@ -26,14 +26,14 @@ export function Header({
             className="flex items-center gap-2 sm:gap-3 min-w-0 group ml-1"
           >
             <LatinCross
-              className="text-[var(--gold)] lg:hidden shrink-0 transition-opacity group-hover:opacity-80"
+              className="text-[var(--gold-text)] lg:hidden shrink-0 transition-opacity group-hover:opacity-80"
               size={14}
             />
             <LatinCross
-              className="text-[var(--gold)] hidden lg:block shrink-0 transition-opacity group-hover:opacity-80"
+              className="text-[var(--gold-text)] hidden lg:block shrink-0 transition-opacity group-hover:opacity-80"
               size={18}
             />
-            <h1 className="font-sans text-[1rem] sm:text-[1.05rem] lg:text-[1.15rem] font-medium text-[var(--ink)] tracking-[0.005em] truncate transition-colors group-hover:text-[var(--gold)]">
+            <h1 className="font-sans text-[1rem] sm:text-[1.05rem] lg:text-[1.15rem] font-medium text-[var(--ink)] tracking-[0.005em] truncate transition-colors group-hover:text-[var(--gold-text)]">
               Habla con la Palabra
             </h1>
           </Link>
@@ -57,7 +57,7 @@ function BackButton() {
       href="/"
       aria-label="Volver al inicio"
       title="Volver al inicio"
-      className="grid place-items-center w-9 h-9 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold)] transition-colors shrink-0"
+      className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold-text)] transition-colors shrink-0"
     >
       <svg
         width="18"
@@ -82,7 +82,7 @@ function HistoryButton({ onClick }: { onClick: () => void }) {
     <button
       onClick={onClick}
       aria-label="Abrir historial"
-      className="grid place-items-center w-9 h-9 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold)] transition-colors shrink-0"
+      className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold-text)] transition-colors shrink-0"
     >
       <svg
         width="17"
@@ -113,7 +113,7 @@ function NewConversationButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       aria-label="Empezar una nueva conversación"
       title="Nueva conversación"
-      className="group grid place-items-center w-9 h-9 rounded-full border border-[var(--rule)] bg-white text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold)] hover:bg-[var(--vellum)] transition-all duration-200 shrink-0"
+      className="group grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-white text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 shrink-0"
     >
       <svg
         width="15"

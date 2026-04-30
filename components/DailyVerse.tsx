@@ -65,7 +65,7 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
           className="mb-7"
         >
           <LatinCross
-            className="mx-auto text-[var(--gold)]"
+            className="mx-auto text-[var(--gold-text)]"
             size={32}
           />
         </motion.div>
@@ -79,7 +79,7 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
           }}
           transition={{ delay: 1.0, duration: 0.7, ease: [0.2, 0.7, 0.2, 1] }}
         >
-          <p className="font-sans text-[0.7rem] tracking-[0.22em] uppercase text-[var(--gold)] mb-5">
+          <p className="font-sans text-[0.7rem] tracking-[0.22em] uppercase text-[var(--gold-text)] mb-5">
             Hoy · {today}
           </p>
 
@@ -96,7 +96,7 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
               >
                 {display}
               </blockquote>
-              <p className="mt-5 font-sans text-[0.78rem] tracking-[0.16em] uppercase text-[var(--gold)]">
+              <p className="mt-5 font-sans text-[0.78rem] tracking-[0.16em] uppercase text-[var(--gold-text)]">
                 {verse.reference}
               </p>
             </>

@@ -76,7 +76,7 @@ export function ChatInput({
           disabled={!active}
           aria-label="Enviar pregunta"
           className={cn(
-            "shrink-0 grid place-items-center w-10 h-10 rounded-full",
+            "shrink-0 grid place-items-center w-11 h-11 rounded-full",
             "transition-all duration-200",
             active
               ? "bg-[var(--gold)] text-white hover:bg-[var(--gold-soft)] shadow-sm"

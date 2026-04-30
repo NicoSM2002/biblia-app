@@ -85,7 +85,7 @@ export function HistorySheet({
           >
             <header className="px-5 pt-5 pb-3 border-b border-[var(--rule)] flex items-center justify-between">
               <div>
-                <p className="font-sans text-[0.66rem] tracking-[0.18em] uppercase text-[var(--gold)]">
+                <p className="font-sans text-[0.66rem] tracking-[0.18em] uppercase text-[var(--gold-text)]">
                   Mi historial
                 </p>
                 <h2 className="font-serif italic text-[1.2rem] text-[var(--ink)] mt-0.5">
@@ -95,7 +95,7 @@ export function HistorySheet({
               <button
                 onClick={onClose}
                 aria-label="Cerrar historial"
-                className="grid place-items-center w-9 h-9 rounded-full hover:bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--ink)] transition-colors"
+                className="grid place-items-center w-11 h-11 rounded-full hover:bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--ink)] transition-colors"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18" />

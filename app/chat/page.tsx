@@ -406,7 +406,7 @@ function PrintHeader() {
       <h1 className="font-serif italic text-2xl text-[var(--ink)]">
         Habla con la Palabra
       </h1>
-      <p className="font-sans text-xs uppercase tracking-[0.18em] text-[var(--gold)] mt-1">
+      <p className="font-sans text-xs uppercase tracking-[0.18em] text-[var(--gold-text)] mt-1">
         {date}
       </p>
       <hr className="hairline-gold mt-3 mx-auto max-w-[10rem]" />

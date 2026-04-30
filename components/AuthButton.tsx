@@ -62,7 +62,7 @@ export function AuthButton() {
     return (
       <Link
         href="/auth"
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-[var(--rule)] bg-white text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold)] hover:bg-[var(--vellum)] transition-all duration-200"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-[var(--rule)] bg-white text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200"
       >
         <UserIcon />
         <span className="font-sans text-[0.78rem] sm:text-[0.82rem] font-medium">
@@ -92,10 +92,10 @@ export function AuthButton() {
         aria-haspopup="menu"
         aria-expanded={open}
         className={cn(
-          "inline-flex items-center justify-center w-9 h-9 rounded-full border transition-all duration-200",
+          "inline-flex items-center justify-center w-11 h-11 rounded-full border transition-all duration-200",
           open
-            ? "border-[var(--gold)] bg-[var(--vellum)] text-[var(--gold)]"
-            : "border-[var(--rule)] bg-white text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold)] hover:bg-[var(--vellum)]",
+            ? "border-[var(--gold)] bg-[var(--vellum)] text-[var(--gold-text)]"
+            : "border-[var(--rule)] bg-white text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)]",
         )}
       >
         <span className="font-sans text-[0.85rem] font-semibold">{initial}</span>

@@ -12,13 +12,16 @@
   --rule:         #E2D9C5;  /* hairline rule */
 
   /* Ink */
-  --ink:          #1F1B16;  /* gris carbón */
-  --ink-soft:     #5A5249;  /* muted body */
-  --ink-faint:    #8A7F70;  /* tertiary */
+  --ink:          #1F1B16;  /* gris carbón — body */
+  --ink-soft:     #5A5249;  /* secondary text — passes WCAG AA on cream */
+  --ink-faint:    #6B6358;  /* tertiary text — passes WCAG AA (was #8A7F70 = 3.7:1) */
 
-  /* Accents */
-  --gold:         #B8924A;  /* dorado mate — rubric */
-  --gold-soft:    #C8A765;
+  /* Accents — two tones of gold:
+       --gold        decorative use only (lines, borders, dots, bars)
+       --gold-text   anything readable as text — passes WCAG AA on cream */
+  --gold:         #B8924A;  /* dorado mate — rubric / decoration */
+  --gold-soft:    #C8A765;  /* hover accent */
+  --gold-text:    #8B6E37;  /* readable gold for labels & references — ~5.2:1 */
   --marian:       #1B3A6B;  /* azul mariano */
   --vino:         #7A1F2B;  /* vino litúrgico (errors / scarce) */
 }
@@ -33,6 +36,7 @@
   --color-ink-faint:    var(--ink-faint);
   --color-gold:         var(--gold);
   --color-gold-soft:    var(--gold-soft);
+  --color-gold-text:    var(--gold-text);
   --color-marian:       var(--marian);
   --color-vino:         var(--vino);
 
@@ -222,10 +226,11 @@ body::before {
 
   .label-section {
     font-family: var(--font-inter), system-ui;
-    font-size: 0.68rem;
+    /* 12px minimum — was 10.9px which compounded with low-contrast gold */
+    font-size: 0.75rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--gold-text);
     font-weight: 600;
     display: inline-flex;
     align-items: center;

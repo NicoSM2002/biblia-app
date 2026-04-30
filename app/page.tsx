@@ -69,7 +69,7 @@ function Welcome() {
       transition={{ duration: 0.45, ease: [0.2, 0.7, 0.2, 1] }}
       className="text-center mb-8 sm:mb-10"
     >
-      <p className="font-sans text-[0.7rem] tracking-[0.22em] uppercase text-[var(--gold)] mb-3">
+      <p className="font-sans text-[0.7rem] tracking-[0.22em] uppercase text-[var(--gold-text)] mb-3">
         Bienvenido
       </p>
       <h2 className="font-serif italic text-[1.55rem] sm:text-[1.95rem] lg:text-[2.2rem] text-[var(--ink)] leading-[1.2] mb-3">
@@ -150,9 +150,9 @@ function ActionCard({
           </div>
           <div className="flex-1 min-w-0">
             <p
-              className="font-sans text-[0.66rem] tracking-[0.18em] uppercase mb-1"
+              className="font-sans text-[0.75rem] tracking-[0.18em] uppercase font-semibold mb-1"
               style={{
-                color: accent === "gold" ? "var(--gold)" : "var(--marian)",
+                color: accent === "gold" ? "var(--gold-text)" : "var(--marian)",
               }}
             >
               {eyebrow}
@@ -166,7 +166,7 @@ function ActionCard({
           </div>
           <div
             aria-hidden="true"
-            className="self-center shrink-0 text-[var(--ink-faint)] group-hover:text-[var(--gold)] group-hover:translate-x-1 transition-all duration-200"
+            className="self-center shrink-0 text-[var(--ink-faint)] group-hover:text-[var(--gold-text)] group-hover:translate-x-1 transition-all duration-200"
           >
             <svg
               width="18"
@@ -197,7 +197,7 @@ function Footer() {
       className="mt-10 flex items-center justify-center gap-2"
     >
       <span aria-hidden="true" className="h-px w-6 bg-[var(--rule)]" />
-      <p className="font-sans text-[0.7rem] tracking-[0.04em] text-[var(--ink-faint)] text-center">
+      <p className="font-sans text-[0.78rem] tracking-[0.04em] text-[var(--ink-soft)] text-center">
         Sagrada Biblia · Versión oficial de la Conferencia Episcopal Española
       </p>
       <span aria-hidden="true" className="h-px w-6 bg-[var(--rule)]" />

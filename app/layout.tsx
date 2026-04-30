@@ -28,14 +28,12 @@ export const metadata: Metadata = {
   },
 };
 
-// Lock the layout: device-width, no user-zoom, fixed initial scale.
-// Prevents pinch-to-zoom and accidental layout shifts on mobile.
+// Allow user zoom (WCAG 2.1 — never block pinch-to-zoom; older / low-vision
+// users need it). Just lock the initial scale so layout doesn't shift on
+// page load.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  minimumScale: 1,
-  userScalable: false,
   themeColor: "#FAF7F2",
 };
 

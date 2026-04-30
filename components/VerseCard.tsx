@@ -20,7 +20,7 @@ export function VerseCard({
     <figure className="anim-fade-rise mb-4">
       <span className="label-section">La Palabra</span>
       <div className="card-verse">
-        <cite className="not-italic block font-sans text-[0.78rem] tracking-[0.14em] uppercase text-[var(--gold)] mb-3">
+        <cite className="not-italic block font-sans text-[0.78rem] tracking-[0.14em] uppercase text-[var(--gold-text)] mb-3">
           {reference}
         </cite>
         <blockquote

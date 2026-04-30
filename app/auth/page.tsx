@@ -161,7 +161,7 @@ function AuthForm() {
                     setError(null);
                     setInfo(null);
                   }}
-                  className="text-[var(--gold)] hover:underline font-medium"
+                  className="text-[var(--gold-text)] hover:underline font-medium"
                 >
                   Créala aquí
                 </button>
@@ -176,7 +176,7 @@ function AuthForm() {
                     setError(null);
                     setInfo(null);
                   }}
-                  className="text-[var(--gold)] hover:underline font-medium"
+                  className="text-[var(--gold-text)] hover:underline font-medium"
                 >
                   Inicia sesión
                 </button>
@@ -187,7 +187,7 @@ function AuthForm() {
           <div className="mt-8 text-center">
             <Link
               href="/"
-              className="font-sans text-[0.78rem] text-[var(--ink-faint)] hover:text-[var(--gold)]"
+              className="font-sans text-[0.78rem] text-[var(--ink-faint)] hover:text-[var(--gold-text)]"
             >
               ← Volver al inicio
             </Link>
