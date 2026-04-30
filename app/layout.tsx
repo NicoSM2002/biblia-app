@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { EB_Garamond, Inter } from "next/font/google";
+import { RouteTransition } from "@/components/RouteTransition";
 import "./globals.css";
 
 const garamond = EB_Garamond({
@@ -46,7 +47,9 @@ export default function RootLayout({
       lang="es"
       className={`${garamond.variable} ${inter.variable} h-full`}
     >
-      <body className="relative min-h-full antialiased">{children}</body>
+      <body className="relative min-h-full antialiased">
+        <RouteTransition>{children}</RouteTransition>
+      </body>
     </html>
   );
 }
