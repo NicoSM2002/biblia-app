@@ -182,7 +182,7 @@ function Misas() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-32">
+      <main className="flex-1 overflow-y-auto pb-36">
         <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-7">
           <h2 className="font-serif italic text-[1.55rem] sm:text-[1.75rem] text-[var(--ink)] leading-[1.25] text-center mb-2">
             Misa cerca de ti

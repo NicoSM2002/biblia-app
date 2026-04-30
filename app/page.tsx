@@ -105,7 +105,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-32">
+      <main className="flex-1 overflow-y-auto pb-36">
         <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-7">
           <Greeting name={name} />
 

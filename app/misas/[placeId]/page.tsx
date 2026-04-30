@@ -157,7 +157,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
     <div className="relative h-[100dvh] flex flex-col bg-[var(--paper)] overflow-hidden">
       <DetailHeader title={church.name} />
 
-      <main className="flex-1 overflow-y-auto pb-32">
+      <main className="flex-1 overflow-y-auto pb-36">
         <div className="max-w-2xl mx-auto">
           {/* Photo carousel — swipe (touch) + prev/next chevrons + dots */}
           <PhotoCarousel

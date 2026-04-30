@@ -177,12 +177,18 @@ html, body {
 }
 
 /* Bottom nav: it's the same element in the same fixed position on every
-   screen, so it shouldn't animate at all during transitions. We just want
-   it in the top layer so it stays ABOVE the morphing church photo. */
+   screen, so it shouldn't animate at all during transitions. We give it
+   an explicit higher z-index inside the view-transition top layer so it
+   stays firmly above any morphing element (e.g. the church photo). DOM
+   source order alone wasn't enough on every browser. */
 ::view-transition-group(bottom-nav),
 ::view-transition-old(bottom-nav),
 ::view-transition-new(bottom-nav) {
   animation: none;
+  z-index: 100;
+}
+::view-transition-group(church-photo-shared) {
+  z-index: 1;
 }
 
 /* Make the entire view-transition pseudo-element tree click-through, not
