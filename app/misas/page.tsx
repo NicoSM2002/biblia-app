@@ -1,9 +1,16 @@
 "use client";
 
-import { Suspense, useEffect, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useLayoutEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/BottomNav";
+
+// useLayoutEffect on the client (runs sync before paint), useEffect on the
+// server (silences the SSR warning). Used here to restore the cached search
+// from sessionStorage BEFORE the first paint — without this, /misas paints
+// the empty state for one frame, then the cards "pop" in.
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 type Church = {
   id: string;
@@ -66,9 +73,11 @@ function Misas() {
   const [searchOrigin, setSearchOrigin] = useState<SearchOrigin>(null);
   // Restore the previous search on mount so coming back from a detail page
   // (or any other in-app navigation) keeps the list and the address the
-  // user typed. Without this, every time you tap a parish and tap back you
-  // have to retype your location — tedious if you're browsing several.
-  useEffect(() => {
+  // user typed. We use useLayoutEffect (synchronous, before paint) so the
+  // restored cards land in the very first paint — using plain useEffect
+  // caused a visible "mini refresh" where the empty state painted first
+  // and the cards popped in a frame later.
+  useIsomorphicLayoutEffect(() => {
     const cached = loadCache();
     if (cached) {
       setAddress(cached.address);
