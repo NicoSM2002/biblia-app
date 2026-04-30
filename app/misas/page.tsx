@@ -170,7 +170,7 @@ function Misas() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-24">
+      <main className="flex-1 overflow-y-auto pb-28">
         <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-7">
           <h2 className="font-serif italic text-[1.55rem] sm:text-[1.75rem] text-[var(--ink)] leading-[1.25] text-center mb-2">
             Misa cerca de ti
@@ -286,6 +286,21 @@ function ChurchCard({
     ? `/misas/${church.id}?lat=${origin.lat}&lng=${origin.lng}`
     : `/misas/${church.id}`;
 
+  // Hand off the data we already have so the detail page can render the
+  // photo + name + address immediately on first paint — without waiting
+  // for /api/iglesias/[placeId] to come back. This is what makes the
+  // shared-element view transition feel like a real morph instead of
+  // landing on an empty skeleton and snapping in. The detail page reads
+  // this on mount and clears it after.
+  function stashChurch() {
+    try {
+      sessionStorage.setItem("selectedChurch", JSON.stringify(church));
+    } catch {
+      // ignore — without this hand-off the detail just shows a tiny
+      // loading state for ~200ms, no big deal.
+    }
+  }
+
   return (
     <motion.li
       initial={{ opacity: 0 }}
@@ -297,6 +312,7 @@ function ChurchCard({
         {/* Photo column — square. Falls back to a soft placeholder. */}
         <Link
           href={detailHref}
+          onClick={stashChurch}
           className="block w-[110px] sm:w-[124px] shrink-0 bg-[var(--vellum)] relative"
           aria-hidden="true"
           tabIndex={-1}
@@ -304,15 +320,15 @@ function ChurchCard({
           {church.photoName ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={`/api/places-photo?name=${encodeURIComponent(church.photoName)}&w=320`}
+              src={`/api/places-photo?name=${encodeURIComponent(church.photoName)}&w=800`}
               alt=""
-              loading="lazy"
               draggable={false}
               className="absolute inset-0 w-full h-full object-cover"
               // Shared element transition: when the user taps this card, the
               // browser sees an element with the same view-transition-name
               // on the destination page (the hero photo) and morphs from
-              // here to there. The id makes the name unique per church.
+              // here to there. We use the same `w=800` URL on both pages so
+              // the browser cache hits and the morph has an image to draw.
               style={{ viewTransitionName: `church-photo-${church.id}` }}
             />
           ) : (
@@ -330,7 +346,7 @@ function ChurchCard({
 
         {/* Content column */}
         <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col">
-          <Link href={detailHref} className="group min-w-0">
+          <Link href={detailHref} onClick={stashChurch} className="group min-w-0">
             <div className="flex items-start justify-between gap-2">
               <h3 className="font-serif text-[1rem] sm:text-[1.05rem] text-[var(--ink)] leading-[1.25] line-clamp-2 group-hover:text-[var(--gold-text)] transition-colors">
                 {church.name}

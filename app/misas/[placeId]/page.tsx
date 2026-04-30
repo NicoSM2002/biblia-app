@@ -40,14 +40,47 @@ function ChurchDetail({ placeId }: { placeId: string }) {
   const lat = searchParams.get("lat");
   const lng = searchParams.get("lng");
 
-  const [church, setChurch] = useState<ChurchDetail | null>(null);
+  // Try to read the basic data the user just clicked on (photo, name,
+  // address, phone, etc.) from sessionStorage so the page can paint
+  // immediately. The shared-element view-transition needs a real <img>
+  // on the destination DOM at snapshot time — without this hand-off,
+  // the page mounts as a loading state and the morphing fails (which
+  // is what reads as "todo se mueve y luego entra de un totazo").
+  const [church, setChurch] = useState<ChurchDetail | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = sessionStorage.getItem("selectedChurch");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Partial<ChurchDetail> & { id?: string };
+      if (parsed.id !== placeId) return null;
+      // Coerce to the detail shape — most fields are present, photoNames
+      // and description will be filled in by the fetch below.
+      return {
+        id: parsed.id!,
+        name: parsed.name ?? "",
+        address: parsed.address ?? "",
+        location: parsed.location ?? { lat: 0, lng: 0 },
+        distanceMeters: parsed.distanceMeters ?? 0,
+        phone: parsed.phone ?? null,
+        website: parsed.website ?? null,
+        rating: parsed.rating ?? null,
+        userRatingCount: parsed.userRatingCount ?? null,
+        openingHours: parsed.openingHours ?? null,
+        mapsUrl: parsed.mapsUrl ?? "",
+        photoName: parsed.photoName ?? null,
+        photoNames: parsed.photoName ? [parsed.photoName] : [],
+        description: null,
+      };
+    } catch {
+      return null;
+    }
+  });
   const [error, setError] = useState<string | null>(null);
   const [photoIdx, setPhotoIdx] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     setError(null);
-    setChurch(null);
 
     const params = new URLSearchParams();
     if (lat) params.set("lat", lat);
@@ -124,7 +157,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
     <div className="relative h-[100dvh] flex flex-col bg-[var(--paper)] overflow-hidden">
       <DetailHeader title={church.name} />
 
-      <main className="flex-1 overflow-y-auto pb-24">
+      <main className="flex-1 overflow-y-auto pb-28">
         <div className="max-w-2xl mx-auto">
           {/* Photo carousel — swipe (touch) + prev/next chevrons + dots */}
           <PhotoCarousel
@@ -322,12 +355,13 @@ function PhotoCarousel({
     <div
       ref={containerRef}
       className="relative bg-[var(--vellum)] aspect-[4/3] sm:aspect-[16/10] overflow-hidden select-none"
+      style={{ touchAction: "pan-x" }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`/api/places-photo?name=${encodeURIComponent(photos[index])}&w=1200`}
+        src={`/api/places-photo?name=${encodeURIComponent(photos[index])}&w=800`}
         alt={churchName}
         draggable={false}
         className="absolute inset-0 w-full h-full object-cover"
@@ -336,14 +370,14 @@ function PhotoCarousel({
 
       {photos.length > 1 && (
         <>
-          {/* Prev / next chevrons — semi-translucent so they don't fight the
-              photo. Hidden on small screens where swipe is the primary
-              interaction; shown from sm+ where mouse users need them. */}
+          {/* Prev / next chevrons — always visible (mobile and desktop) so
+              users have a clear way to navigate without depending on swipe
+              alone. Semi-translucent so they don't fight the photo. */}
           <button
             type="button"
             onClick={() => go(-1)}
             aria-label="Foto anterior"
-            className="hidden sm:grid place-items-center absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/35 text-white hover:bg-black/55 transition-colors"
+            className="grid place-items-center absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/45 text-white hover:bg-black/60 transition-colors active:scale-95"
           >
             <ChevronLeft />
           </button>
@@ -351,7 +385,7 @@ function PhotoCarousel({
             type="button"
             onClick={() => go(1)}
             aria-label="Foto siguiente"
-            className="hidden sm:grid place-items-center absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/35 text-white hover:bg-black/55 transition-colors"
+            className="grid place-items-center absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/45 text-white hover:bg-black/60 transition-colors active:scale-95"
           >
             <ChevronRight />
           </button>
