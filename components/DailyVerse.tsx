@@ -92,11 +92,15 @@ export function DailyVerse({
           role="dialog"
           aria-modal="true"
           aria-labelledby="daily-verse-title"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: ready ? 1 : 0 }}
+          // The overlay (paper background) appears INSTANTLY on mount so
+          // it covers the home page from frame one — if it faded in, the
+          // home would be visible through it during the fade. Only the
+          // exit gets an animation, so dismissing still feels gentle.
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{
-            duration: reduce ? 0 : 0.75,
+            duration: reduce ? 0 : 0.5,
             ease: [0.2, 0.7, 0.2, 1],
           }}
           className="fixed inset-0 z-[80] flex flex-col items-center justify-center px-6 bg-[var(--paper)] no-print overflow-hidden cursor-pointer"
@@ -116,7 +120,22 @@ export function DailyVerse({
             }}
           />
 
-          <div className="relative w-full max-w-md text-center cursor-default">
+          {/* The content materializes onto the already-opaque paper. The
+              ease-out-expo curve (cubic-bezier(0.16, 1, 0.3, 1)) starts
+              fast and decelerates dramatically toward the end — feels
+              like the words are surfacing from beneath the paper rather
+              than snapping in. 1.3s is long for a fade, but that length
+              is what gives it the "materializing" character. CSS, not
+              framer-motion, so it doesn't multiply against the outer. */}
+          <div
+            className="relative w-full max-w-md text-center cursor-default"
+            style={{
+              opacity: ready ? 1 : 0,
+              transition: reduce
+                ? undefined
+                : "opacity 1300ms cubic-bezier(0.16, 1, 0.3, 1)",
+            }}
+          >
             <div className="mb-7">
               <LatinCross className="mx-auto text-[var(--gold)]" size={32} />
             </div>
