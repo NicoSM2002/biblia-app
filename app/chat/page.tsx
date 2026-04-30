@@ -393,7 +393,6 @@ export default function ChatPage() {
               <ChatInput
                 onSubmit={ask}
                 disabled={pending}
-                autoFocus
                 placeholder={
                   empty ? "¿Qué quieres preguntar?" : "Sigue hablando…"
                 }

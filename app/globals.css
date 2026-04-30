@@ -192,6 +192,11 @@ body::before {
     border-color: var(--gold);
     box-shadow: 0 2px 10px rgba(184, 146, 74, 0.18);
   }
+  /* Inner controls already get the wrapper focus signal — suppress the
+     global outline so we don't stack three rings on the same input. */
+  .card-input :focus-visible {
+    outline: none;
+  }
 
   .card-welcome {
     background: #ffffff;
