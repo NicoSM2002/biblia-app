@@ -8,6 +8,7 @@ import { QuestionLine } from "@/components/QuestionLine";
 import { Loading } from "@/components/Loading";
 import { ChatInput } from "@/components/ChatInput";
 import { HistorySheet } from "@/components/HistorySheet";
+import { BottomNav } from "@/components/BottomNav";
 import {
   createClient,
   hasSessionCookie,
@@ -53,6 +54,25 @@ export default function ChatPage() {
       setSignedIn(!!session?.user);
     });
     return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // If the user typed a question on the home and pressed Enter (or tapped a
+  // suggestion chip), it's stashed in sessionStorage. Pick it up on mount
+  // and send it as the first turn so they land directly inside the answer.
+  const pendingHandledRef = useRef(false);
+  useEffect(() => {
+    if (pendingHandledRef.current) return;
+    pendingHandledRef.current = true;
+    try {
+      const pending = sessionStorage.getItem("pendingQuestion");
+      if (pending) {
+        sessionStorage.removeItem("pendingQuestion");
+        void ask(pending);
+      }
+    } catch {
+      // ignore
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -303,7 +323,7 @@ export default function ChatPage() {
   const empty = turns.length === 0;
 
   return (
-    <div className="relative h-[100dvh] flex flex-col overflow-hidden">
+    <div className="relative h-[100dvh] flex flex-col overflow-hidden pb-[68px]">
       <div className="missal-page">
         <Header
           onReset={reset}
@@ -388,7 +408,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="relative z-10 px-4 sm:px-8 lg:px-10 pt-3 pb-5 sm:pb-7 border-t border-[var(--rule)] bg-[var(--paper)]">
+          <div className="relative z-10 px-4 sm:px-8 lg:px-10 pt-3 pb-3 border-t border-[var(--rule)] bg-[var(--paper)]">
             <div className="max-w-2xl mx-auto">
               <ChatInput
                 onSubmit={ask}
@@ -401,6 +421,7 @@ export default function ChatPage() {
           </div>
         </main>
       </div>
+      <BottomNav />
     </div>
   );
 }

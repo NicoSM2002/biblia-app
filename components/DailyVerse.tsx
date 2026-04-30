@@ -9,36 +9,18 @@ const ACROSTIC =
   /\((?:Alef|Bet|Guímel|Guimel|Dálet|Dalet|He|Vau|Zain|Jet|Tet|Yod|Kaf|Lámed|Lamed|Mem|Nun|Sámec|Samec|Ain|Pe|Sade|Kof|Cof|Res|Sin|Sín|Shin|Tau)\)\s*/gi;
 
 const EXIT_DURATION_MS = 450;
+const SWIPE_THRESHOLD = 60; // px upward to dismiss
 
 /**
- * The daily-verse overlay.
+ * The daily-verse welcome (mockup pantalla 1).
  *
- * Implementation notes (after a long debugging journey):
+ * Full-screen scripture moment. The user can dismiss by tapping the
+ * "Comenzar" button, tapping anywhere outside it, swiping up, or pressing
+ * Esc/Enter/Space.
  *
- * - NO framer-motion. AnimatePresence + motion.div + SSR don't give us the
- *   first-paint guarantee we need — the inline `style="opacity:1"` is added
- *   during hydration, so the home flashes underneath. Plain divs + CSS keep
- *   the overlay visible from the very first paint.
- *
- * - The overlay is rendered into the SSR HTML always (parent passes
- *   `open=true` by default). The inline script in app/layout.tsx sets
- *   `data-daily-verse-seen="1"` on <html> if today's verse was already
- *   dismissed, and a CSS rule (in globals.css) hides `[data-daily-overlay]`
- *   in that case — so repeat visitors never see a flash either.
- *
- * - Cross is ALWAYS visible with the breathing pulse — not gated on
- *   `ready`. The pulse stops via prefers-reduced-motion only.
- *
- * - The verse + button block uses a CSS `@keyframes` animation triggered
- *   by toggling a class when `ready` flips to true. CSS animations fire
- *   on class application reliably, even when React batches the state
- *   change with the initial render — unlike CSS transitions on inline
- *   styles, which the browser may "skip" if the value never visibly
- *   changes between paints.
- *
- * - Exit animation: when the user dismisses, we set `exiting=true`, which
- *   adds a CSS animation to the overlay. After the animation completes
- *   (~450ms), we call `onContinue`, which causes the parent to unmount us.
+ * The overlay is rendered into the SSR HTML always; the inline init script
+ * in app/layout.tsx hides it via a CSS rule for repeat visitors today, so
+ * there's no flicker.
  */
 export function DailyVerse({
   open,
@@ -51,6 +33,7 @@ export function DailyVerse({
   const [error, setError] = useState(false);
   const [exiting, setExiting] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const touchStartYRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -65,7 +48,6 @@ export function DailyVerse({
 
   const ready = !!verse || error;
 
-  // Esc / Enter / Space dismiss the overlay.
   useEffect(() => {
     if (!open || exiting) return;
     function onKey(e: KeyboardEvent) {
@@ -79,7 +61,6 @@ export function DailyVerse({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, exiting]);
 
-  // Move focus to the action button when the verse arrives.
   useEffect(() => {
     if (open && !exiting && (verse || error)) {
       const t = setTimeout(() => buttonRef.current?.focus(), 200);
@@ -91,6 +72,17 @@ export function DailyVerse({
     if (exiting) return;
     setExiting(true);
     setTimeout(onContinue, EXIT_DURATION_MS);
+  }
+
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartYRef.current = e.touches[0]?.clientY ?? null;
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    const startY = touchStartYRef.current;
+    touchStartYRef.current = null;
+    if (startY == null) return;
+    const endY = e.changedTouches[0]?.clientY ?? startY;
+    if (startY - endY >= SWIPE_THRESHOLD) startDismiss();
   }
 
   if (!open) return null;
@@ -113,71 +105,72 @@ export function DailyVerse({
       aria-labelledby="daily-verse-title"
       className={`daily-verse-overlay ${exiting ? "daily-verse-exiting" : ""}`}
       onClick={(e) => {
-        // Click on the overlay (or any non-button element) dismisses.
         if ((e.target as HTMLElement).closest("button")) return;
         startDismiss();
       }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
-      {/* Soft radial halo behind the content */}
+      {/* Decorative botanical shadow — a soft, blurred branch silhouette in
+          the top-left corner. Evokes leaves catching the morning light next
+          to a missal. Pure SVG, no asset needed. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 50% 38%, rgba(184,146,74,0.10) 0%, transparent 60%)",
-        }}
-      />
+        className="pointer-events-none absolute top-0 left-0 w-[260px] h-[260px] sm:w-[320px] sm:h-[320px]"
+        style={{ filter: "blur(3px)", opacity: 0.18 }}
+      >
+        <svg viewBox="0 0 260 260" fill="none" stroke="rgb(80, 65, 40)" strokeWidth="1.4" strokeLinecap="round">
+          <path d="M-20 30 Q 60 60, 130 110 Q 180 145, 220 220" />
+          <path d="M5 40 Q 35 50, 50 80 L 25 70 Z" fill="rgba(80,65,40,0.4)" />
+          <path d="M40 60 Q 70 65, 88 92 L 60 88 Z" fill="rgba(80,65,40,0.4)" />
+          <path d="M75 80 Q 105 88, 122 118 L 92 110 Z" fill="rgba(80,65,40,0.4)" />
+          <path d="M115 105 Q 145 115, 165 145 L 132 137 Z" fill="rgba(80,65,40,0.4)" />
+          <path d="M155 135 Q 180 148, 195 178 L 168 168 Z" fill="rgba(80,65,40,0.4)" />
+          <path d="M30 25 Q 55 30, 70 55 L 45 48 Z" fill="rgba(80,65,40,0.4)" />
+          <path d="M70 45 Q 95 52, 110 78 L 80 72 Z" fill="rgba(80,65,40,0.4)" />
+        </svg>
+      </div>
 
-      <div className="relative w-full max-w-md text-center cursor-default">
-        {/* Cross — always breathing while the overlay is open. The pulse
-            is independent of ready state so users always see the gentle
-            motion immediately. Reduced-motion users get a still cross. */}
-        <div className="mb-7 cross-breathing">
-          <LatinCross className="mx-auto text-[var(--gold)]" size={32} />
+      <div className="relative w-full max-w-md text-center cursor-default px-6">
+        {/* Cross — visible from frame 1 with breathing pulse */}
+        <div className="mb-6 cross-breathing">
+          <LatinCross className="mx-auto text-[var(--gold)]" size={36} />
         </div>
 
-        {/* Content — hidden until the verse arrives, then revealed via a
-            CSS keyframe animation triggered by class change. We use a
-            @keyframes animation rather than a transition because animations
-            run reliably on class application; transitions on inline styles
-            can be skipped when React batches the render. */}
+        {/* Date + verse + reference + button + hint — fade in once verse arrives */}
         <div
           className={`daily-verse-content ${ready ? "is-ready" : ""}`}
         >
           <p
             id="daily-verse-title"
-            className="font-sans text-[0.78rem] tracking-[0.22em] uppercase text-[var(--gold-text)] mb-5"
+            className="font-sans text-[0.78rem] tracking-[0.22em] uppercase text-[var(--gold-text)] mb-7"
           >
-            Hoy · {today}
+            {today}
           </p>
 
           {error ? (
-            <p className="font-sans text-[1rem] text-[var(--ink-soft)]">
+            <p className="font-sans text-[1rem] text-[var(--ink-soft)] mb-8">
               La Palabra te espera. Continúa cuando quieras.
             </p>
           ) : verse ? (
             <>
               <blockquote
                 cite={verse.reference}
-                className="font-serif italic text-[1.4rem] sm:text-[1.55rem] leading-[1.45] text-[var(--ink)]"
-                style={{
-                  textWrap: "pretty" as React.CSSProperties["textWrap"],
-                }}
+                className="font-serif italic text-[1.55rem] sm:text-[1.75rem] leading-[1.42] text-[var(--ink)] mb-7"
+                style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
               >
                 {display}
               </blockquote>
-              <p className="mt-5 font-sans text-[0.82rem] tracking-[0.16em] uppercase text-[var(--gold-text)]">
+              <p className="font-sans text-[0.82rem] tracking-[0.18em] uppercase text-[var(--gold-text)] mb-9">
                 {verse.reference}
               </p>
             </>
           ) : null}
 
-          <hr className="hairline-gold mt-8 mx-auto max-w-[8rem]" />
-
           <button
             ref={buttonRef}
             onClick={startDismiss}
-            className="mt-7 inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] font-sans text-[0.95rem] font-medium hover:bg-[var(--gold-soft)] transition-colors min-h-[44px]"
+            className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] font-sans text-[0.95rem] font-medium hover:bg-[var(--gold-soft)] transition-colors min-h-[44px]"
           >
             Comenzar
             <svg
@@ -196,11 +189,17 @@ export function DailyVerse({
             </svg>
           </button>
 
-          <p className="mt-4 font-sans text-[0.7rem] text-[var(--ink-faint)]">
-            {ready ? "Toca cualquier parte para continuar" : ""}
+          <p className="mt-5 font-sans text-[0.78rem] text-[var(--ink-faint)]">
+            {ready ? "Desliza hacia arriba" : ""}
           </p>
         </div>
       </div>
+
+      {/* iOS-style home-indicator hint at the bottom */}
+      <div
+        aria-hidden="true"
+        className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 rounded-full bg-[var(--ink-faint)] opacity-30"
+      />
     </div>
   );
 }

@@ -1,21 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LatinCross } from "@/components/Cross";
-import { AuthButton } from "@/components/AuthButton";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { HomeAvatar } from "@/components/HomeAvatar";
+import { BottomNav } from "@/components/BottomNav";
 import { DailyVerse } from "@/components/DailyVerse";
+import {
+  createClient,
+  hasSessionCookie,
+  isSupabaseConfigured,
+} from "@/lib/supabase/client";
+
+const SUGGESTIONS = [
+  { id: "paz", label: "Necesito paz", icon: <LeafIcon /> },
+  { id: "solo", label: "Me siento solo", icon: <UserIcon /> },
+  { id: "direccion", label: "Busco dirección", icon: <CompassIcon /> },
+  { id: "gracias", label: "Quiero dar gracias", icon: <HeartIcon /> },
+];
 
 export default function HomePage() {
-  // The DailyVerse is rendered into the SSR HTML always — the inline
-  // script in app/layout.tsx sets `data-daily-verse-seen="1"` on <html>
-  // BEFORE any paint if sessionStorage says today's verse was already
-  // seen, and a CSS rule (in globals.css) hides the overlay in that
-  // case. So repeat visitors never see a flash of the home behind. Here
-  // we just start with `open: true` and dismiss it in useEffect for
-  // repeat visitors so the React tree matches.
+  const router = useRouter();
   const [showDailyVerse, setShowDailyVerse] = useState<boolean>(true);
+  const [name, setName] = useState<string | null>(null);
+  const [question, setQuestion] = useState("");
+
   useEffect(() => {
     try {
       const today = new Date().toISOString().slice(0, 10);
@@ -23,219 +33,235 @@ export default function HomePage() {
         setShowDailyVerse(false);
       }
     } catch {
-      // sessionStorage unavailable (private mode, etc.) — leave the
-      // overlay showing. Dismissing it would create a 0.2s flash on
-      // every visit because the SSR HTML includes the overlay by design.
+      // sessionStorage unavailable — leave the overlay showing
     }
   }, []);
+
+  // Read user name (if signed in) for the personalized greeting.
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !hasSessionCookie()) return;
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      const meta = data.user?.user_metadata as
+        | { full_name?: string; name?: string }
+        | undefined;
+      const n = meta?.full_name ?? meta?.name ?? null;
+      if (n) setName(firstName(n));
+    });
+  }, []);
+
   function dismissDailyVerse() {
     try {
       const today = new Date().toISOString().slice(0, 10);
       sessionStorage.setItem("dailyVerseSeen", today);
+      document.documentElement.setAttribute("data-daily-verse-seen", "1");
     } catch {
       // ignore
     }
     setShowDailyVerse(false);
   }
 
+  function goToChat(q: string) {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    try {
+      sessionStorage.setItem("pendingQuestion", trimmed);
+    } catch {
+      // ignore
+    }
+    router.push("/chat");
+  }
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    goToChat(question);
+  }
+
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden">
-      <div className="missal-page">
-        <header className="relative z-30 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)] bg-[var(--paper)] no-print">
-          <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3 min-w-0">
-              <LatinCross className="text-[var(--gold)] lg:hidden shrink-0" size={14} />
-              <LatinCross className="text-[var(--gold)] hidden lg:block shrink-0" size={18} />
-              <h1 className="font-sans text-[1rem] sm:text-[1.05rem] lg:text-[1.15rem] font-medium text-[var(--ink)] tracking-[0.005em] truncate">
-                Habla con la Palabra
-              </h1>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              <ThemeToggle />
-              <AuthButton />
-            </div>
+      <header className="px-5 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <LatinCross className="text-[var(--gold)] shrink-0" size={16} />
+            <h1 className="font-sans text-[0.98rem] font-medium text-[var(--ink)] truncate">
+              Habla con la Palabra
+            </h1>
           </div>
-        </header>
-
-        <main className="relative z-10 flex-1 overflow-y-auto min-h-0 px-5 sm:px-8 lg:px-10">
-          <div className="max-w-xl mx-auto py-8 sm:py-12 lg:py-14 flex flex-col">
-            <Welcome />
-            <ActionCards />
-            <Footer />
-          </div>
-        </main>
-
-        <DailyVerse open={showDailyVerse} onContinue={dismissDailyVerse} />
-      </div>
-    </div>
-  );
-}
-
-function Welcome() {
-  return (
-    <div className="text-center mb-8 sm:mb-10">
-      <p className="font-sans text-[0.75rem] tracking-[0.22em] uppercase text-[var(--gold-text)] font-semibold mb-3">
-        Bienvenido
-      </p>
-      <h2 className="font-serif italic text-[1.55rem] sm:text-[1.95rem] lg:text-[2.2rem] text-[var(--ink)] leading-[1.2] mb-3">
-        Acércate a la Palabra hoy.
-      </h2>
-      <p className="font-sans text-[0.95rem] sm:text-[1rem] text-[var(--ink-soft)] leading-relaxed max-w-[36ch] mx-auto">
-        Una conversación con la Sagrada Escritura, o una parroquia
-        cerca de ti. Tú eliges por dónde empezar.
-      </p>
-    </div>
-  );
-}
-
-function ActionCards() {
-  return (
-    <div className="space-y-4 sm:space-y-5">
-      <ActionCard
-        href="/chat"
-        eyebrow="Conversación"
-        title="Habla con la Palabra"
-        description="Pregúntale algo — una duda, un dolor, una alegría — y recibe un versículo con una respuesta cercana."
-        accent="gold"
-        icon={<BookIcon />}
-      />
-      <ActionCard
-        href="/misas"
-        eyebrow="Tu parroquia"
-        title="Misa cerca de ti"
-        description="Encuentra iglesias católicas cercanas, con su sitio web y teléfono para confirmar el horario de Misa."
-        accent="marian"
-        icon={<ChapelIcon />}
-      />
-    </div>
-  );
-}
-
-function ActionCard({
-  href,
-  eyebrow,
-  title,
-  description,
-  accent,
-  icon,
-}: {
-  href: string;
-  eyebrow: string;
-  title: string;
-  description: string;
-  accent: "gold" | "marian";
-  icon: React.ReactNode;
-}) {
-  return (
-    <div>
-      <Link
-        href={href}
-        className="group block bg-[var(--surface)] border border-[var(--rule)] rounded-xl p-5 sm:p-6 transition-all duration-200 hover:border-[var(--gold)] hover:shadow-[0_8px_24px_-12px_rgba(var(--shadow-color),0.30)] hover:-translate-y-0.5 active:scale-[0.99] active:bg-[var(--vellum)]"
-      >
-        <div className="flex items-start gap-4">
-          <div
-            className="shrink-0 grid place-items-center w-11 h-11 sm:w-12 sm:h-12 rounded-full transition-colors"
-            style={{
-              backgroundColor:
-                accent === "gold"
-                  ? "rgba(184, 146, 74, 0.10)"
-                  : "rgba(27, 58, 107, 0.08)",
-              color: accent === "gold" ? "var(--gold)" : "var(--marian)",
-            }}
-          >
-            {icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p
-              className="font-sans text-[0.75rem] tracking-[0.18em] uppercase font-semibold mb-1"
-              style={{
-                color: accent === "gold" ? "var(--gold-text)" : "var(--marian)",
-              }}
-            >
-              {eyebrow}
-            </p>
-            <h3 className="font-serif italic text-[1.18rem] sm:text-[1.3rem] text-[var(--ink)] leading-snug mb-1.5">
-              {title}
-            </h3>
-            <p className="font-sans text-[0.88rem] sm:text-[0.92rem] text-[var(--ink-soft)] leading-[1.55]">
-              {description}
-            </p>
-          </div>
-          <div
-            aria-hidden="true"
-            className="self-center shrink-0 text-[var(--ink-faint)] group-hover:text-[var(--gold-text)] group-hover:translate-x-1 transition-all duration-200"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </div>
+          <HomeAvatar />
         </div>
-      </Link>
+      </header>
+
+      <main className="flex-1 overflow-y-auto pb-24">
+        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-7">
+          <Greeting name={name} />
+
+          <h2 className="mt-2 font-serif italic text-[1.5rem] sm:text-[1.7rem] leading-[1.25] text-[var(--ink)] mb-5">
+            ¿Qué quieres preguntarle a Dios hoy?
+          </h2>
+
+          <form onSubmit={onSubmit}>
+            <div className="flex items-center gap-2 bg-[var(--surface)] border border-[var(--rule)] rounded-full pl-5 pr-1.5 py-1.5 transition-colors focus-within:border-[var(--gold)]">
+              <input
+                type="text"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Escribe tu pregunta…"
+                className="flex-1 bg-transparent outline-none font-sans text-[0.98rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
+                aria-label="Escribe tu pregunta"
+              />
+              <button
+                type="submit"
+                aria-label="Enviar pregunta"
+                className="grid place-items-center w-10 h-10 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] transition-colors"
+              >
+                <MicIcon />
+              </button>
+            </div>
+          </form>
+
+          <section className="mt-9">
+            <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
+              Sugerencias para ti
+            </p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => goToChat(s.label)}
+                  className="flex items-center gap-2.5 bg-[var(--surface)] border border-[var(--rule)] rounded-full px-4 py-3 text-left hover:border-[var(--gold)] hover:bg-[var(--vellum)] transition-colors"
+                >
+                  <span aria-hidden="true" className="text-[var(--gold-text)] shrink-0">
+                    {s.icon}
+                  </span>
+                  <span className="font-sans text-[0.9rem] text-[var(--ink)] truncate">
+                    {s.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="mt-9">
+            <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
+              Misa cerca de ti
+            </p>
+            <Link
+              href="/misas"
+              className="flex items-start gap-3 bg-[var(--surface)] border border-[var(--rule)] rounded-xl p-4 hover:border-[var(--gold)] hover:bg-[var(--vellum)] transition-colors"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="font-serif italic text-[1.05rem] text-[var(--ink)] leading-snug">
+                  Encuentra una iglesia cerca de ti
+                </p>
+                <p className="mt-1 font-sans text-[0.85rem] text-[var(--ink-soft)]">
+                  Horarios de misa y cómo llegar.
+                </p>
+              </div>
+              <div
+                className="grid place-items-center w-10 h-10 rounded-full shrink-0"
+                style={{
+                  backgroundColor: "rgba(184, 146, 74, 0.10)",
+                  color: "var(--gold-text)",
+                }}
+              >
+                <PinIcon />
+              </div>
+            </Link>
+          </section>
+        </div>
+      </main>
+
+      <BottomNav />
+
+      <DailyVerse open={showDailyVerse} onContinue={dismissDailyVerse} />
     </div>
   );
 }
 
-function Footer() {
+function Greeting({ name }: { name: string | null }) {
+  const period = useGreetingPeriod();
+  const text =
+    period === "morning"
+      ? "¡Buenos días"
+      : period === "afternoon"
+        ? "¡Buenas tardes"
+        : "¡Buenas noches";
   return (
-    <div className="mt-10 flex items-center justify-center gap-2">
-      <span aria-hidden="true" className="h-px w-6 bg-[var(--rule)]" />
-      <p className="font-sans text-[0.78rem] tracking-[0.04em] text-[var(--ink-soft)] text-center">
-        Sagrada Biblia · Versión oficial de la Conferencia Episcopal Española
-      </p>
-      <span aria-hidden="true" className="h-px w-6 bg-[var(--rule)]" />
-    </div>
+    <p className="font-sans text-[1rem] text-[var(--ink-soft)]">
+      {text}
+      {name ? `, ${name}` : ""}!
+    </p>
   );
 }
 
-function BookIcon() {
+function useGreetingPeriod(): "morning" | "afternoon" | "night" {
+  const [period, setPeriod] = useState<"morning" | "afternoon" | "night">(
+    "morning",
+  );
+  useEffect(() => {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 12) setPeriod("morning");
+    else if (h >= 12 && h < 19) setPeriod("afternoon");
+    else setPeriod("night");
+  }, []);
+  return period;
+}
+
+function firstName(full: string): string {
+  return full.trim().split(/\s+/)[0] ?? full;
+}
+
+function LeafIcon() {
   return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M4 4.5C4 3.67 4.67 3 5.5 3H19a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H5.5A2.5 2.5 0 0 1 3 17.5V5.5z" />
-      <path d="M3 17.5A2.5 2.5 0 0 1 5.5 15H20" />
-      <line x1="9" y1="8" x2="14" y2="8" />
-      <line x1="11.5" y1="6" x2="11.5" y2="10" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2c1 1.5 2 4.79 1.5 7-1 3.5-3 5-3 5l-3 3" />
+      <path d="M2 22 17 7" />
     </svg>
   );
 }
 
-function ChapelIcon() {
+function UserIcon() {
   return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <line x1="12" y1="2" x2="12" y2="5" />
-      <line x1="10.5" y1="3.5" x2="13.5" y2="3.5" />
-      <path d="M5 21V11l7-4 7 4v10" />
-      <line x1="3" y1="21" x2="21" y2="21" />
-      <rect x="10" y="14" width="4" height="7" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+function CompassIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    </svg>
+  );
+}
+
+function HeartIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+}
+
+function MicIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0" />
+      <line x1="12" y1="18" x2="12" y2="22" />
+      <line x1="9" y1="22" x2="15" y2="22" />
+    </svg>
+  );
+}
+
+function PinIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
     </svg>
   );
 }

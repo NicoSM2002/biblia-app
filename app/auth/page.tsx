@@ -24,6 +24,7 @@ function AuthForm() {
   const next = params.get("next") || "/";
 
   const [mode, setMode] = useState<Mode>(initialMode);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -31,6 +32,7 @@ function AuthForm() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
+  const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -40,6 +42,11 @@ function AuthForm() {
     setError(null);
     setInfo(null);
 
+    if (mode === "signup" && !name.trim()) {
+      setError("¿Cómo te llamas? Necesitamos tu nombre para saludarte.");
+      nameRef.current?.focus();
+      return;
+    }
     if (!email.trim()) {
       setError("Necesitas un correo.");
       emailRef.current?.focus();
@@ -71,6 +78,9 @@ function AuthForm() {
         const { data, error: e1 } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: { full_name: name.trim() },
+          },
         });
         if (e1) throw e1;
         if (data.user && !data.session) {
@@ -124,6 +134,18 @@ function AuthForm() {
             className="space-y-3 bg-[var(--surface)] border border-[var(--rule)] rounded-xl p-5 shadow-sm"
             noValidate
           >
+            {mode === "signup" && (
+              <Field
+                ref={nameRef}
+                label="Nombre"
+                type="text"
+                autoComplete="given-name"
+                value={name}
+                onChange={setName}
+                disabled={pending}
+                hint="Cómo quieres que te saludemos."
+              />
+            )}
             <Field
               ref={emailRef}
               label="Correo"

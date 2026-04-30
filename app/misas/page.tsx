@@ -4,6 +4,7 @@ import { Suspense, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { LatinCross } from "@/components/Cross";
+import { BottomNav } from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
 
 type Church = {
@@ -101,7 +102,7 @@ function Misas() {
   }
 
   return (
-    <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--paper)]">
+    <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--paper)] pb-[68px]">
       <div className="missal-page">
       <header className="relative z-30 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)] bg-[var(--paper)]">
         <div className="max-w-2xl mx-auto flex items-center gap-2 sm:gap-3">
@@ -255,6 +256,7 @@ function Misas() {
         </div>
       </main>
       </div>
+      <BottomNav />
     </div>
   );
 }
