@@ -104,11 +104,32 @@ function Misas() {
     <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--paper)]">
       <div className="missal-page">
       <header className="relative z-30 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)] bg-[var(--paper)]">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-2xl mx-auto flex items-center gap-2 sm:gap-3">
           <Link
             href="/"
             aria-label="Volver al inicio"
-            className="flex items-center gap-2 sm:gap-3 group"
+            title="Volver al inicio"
+            className="grid place-items-center w-9 h-9 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold)] transition-colors shrink-0"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+          </Link>
+          <Link
+            href="/"
+            aria-label="Volver al inicio"
+            className="flex items-center gap-2 sm:gap-3 min-w-0 group ml-1"
           >
             <LatinCross
               className="text-[var(--gold)] shrink-0 transition-opacity group-hover:opacity-80"
@@ -117,12 +138,6 @@ function Misas() {
             <h1 className="font-sans text-[1rem] sm:text-[1.05rem] font-medium text-[var(--ink)] truncate transition-colors group-hover:text-[var(--gold)]">
               Habla con la Palabra
             </h1>
-          </Link>
-          <Link
-            href="/"
-            className="font-sans text-[0.78rem] tracking-[0.12em] uppercase text-[var(--ink-faint)] hover:text-[var(--gold)] transition-colors"
-          >
-            Volver
           </Link>
         </div>
       </header>

@@ -17,13 +17,14 @@ export function Header({
   return (
     <header className="relative z-30 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)] bg-[var(--paper)] no-print">
       <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <BackButton />
           {onOpenHistory && <HistoryButton onClick={onOpenHistory} />}
-          {/* Title — clickable, takes the user back to the home. */}
+          {/* Title — also clickable as a backup way back to the home. */}
           <Link
             href="/"
             aria-label="Volver al inicio"
-            className="flex items-center gap-2 sm:gap-3 min-w-0 group"
+            className="flex items-center gap-2 sm:gap-3 min-w-0 group ml-1"
           >
             <LatinCross
               className="text-[var(--gold)] lg:hidden shrink-0 transition-opacity group-hover:opacity-80"
@@ -45,6 +46,36 @@ export function Header({
         </div>
       </div>
     </header>
+  );
+}
+
+/**
+ * Back arrow that returns the user to the home (`/`). Visually obvious so
+ * a first-time visitor on /chat understands they can leave the conversation.
+ */
+function BackButton() {
+  return (
+    <Link
+      href="/"
+      aria-label="Volver al inicio"
+      title="Volver al inicio"
+      className="grid place-items-center w-9 h-9 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold)] transition-colors shrink-0"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <line x1="19" y1="12" x2="5" y2="12" />
+        <polyline points="12 19 5 12 12 5" />
+      </svg>
+    </Link>
   );
 }
 
