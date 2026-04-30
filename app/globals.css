@@ -437,16 +437,26 @@ body::before {
   border: 0;
 }
 
-/* Route-transition wrapper — sits between <body> and the page tree. Must
-   take up the full body height without injecting a layout (no flex
-   centering, no padding) because each page already has its own
-   h-[100dvh] container. We use block + 100% height so opacity animations
-   actually apply (display:contents would remove the box from the render
-   tree and silently break the fade). */
-.route-transition-wrapper {
-  display: block;
+/* Route-transition stage — a relative box that fills the viewport and
+   houses the absolutely-positioned page panes. Two panes can coexist
+   here briefly during a navigation: the outgoing one fading out while
+   the incoming one fades in. Without the absolute positioning the
+   panes would stack vertically and the page would visually scroll
+   during the crossfade. */
+.route-stage {
+  position: relative;
   height: 100%;
   width: 100%;
+  /* Avoid a flash of body color during the crossfade — the stage paints
+     the same paper background that lives behind every page anyway. */
+  background: var(--paper);
+}
+
+.route-page {
+  position: absolute;
+  inset: 0;
+  /* Each route's root container is h-[100dvh]; the absolute pane gives it
+     a parent box of identical size. */
 }
 
 /* Animations — fade only. We deliberately do NOT translate content on mount;
