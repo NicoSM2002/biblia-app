@@ -133,7 +133,7 @@ function ActionCard({
     >
       <Link
         href={href}
-        className="group block bg-white border border-[var(--rule)] rounded-xl p-5 sm:p-6 transition-all duration-200 hover:border-[var(--gold)] hover:shadow-[0_8px_24px_-12px_rgba(31,27,22,0.18)] hover:-translate-y-0.5"
+        className="group block bg-white border border-[var(--rule)] rounded-xl p-5 sm:p-6 transition-all duration-200 hover:border-[var(--gold)] hover:shadow-[0_8px_24px_-12px_rgba(31,27,22,0.18)] hover:-translate-y-0.5 active:scale-[0.99] active:bg-[var(--vellum)]"
       >
         <div className="flex items-start gap-4">
           <div
