@@ -12,7 +12,9 @@ import {
 
 export function ExportMenu({ turns }: { turns: ExportableTurn[] }) {
   const [open, setOpen] = useState(false);
-  const [feedback, setFeedback] = useState<"copied" | null>(null);
+  const [feedback, setFeedback] = useState<
+    "copying" | "copied" | "sharing" | null
+  >(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,11 +36,19 @@ export function ExportMenu({ turns }: { turns: ExportableTurn[] }) {
   if (turns.length === 0) return null;
 
   async function handleShare() {
-    setOpen(false);
-    await shareConversation(turns);
+    if (feedback) return;
+    setFeedback("sharing");
+    try {
+      await shareConversation(turns);
+    } finally {
+      setFeedback(null);
+      setOpen(false);
+    }
   }
 
   async function handleCopy() {
+    if (feedback) return;
+    setFeedback("copying");
     const ok = await copyConversation(turns);
     if (ok) {
       setFeedback("copied");
@@ -46,6 +56,8 @@ export function ExportMenu({ turns }: { turns: ExportableTurn[] }) {
         setFeedback(null);
         setOpen(false);
       }, 1200);
+    } else {
+      setFeedback(null);
     }
   }
 
@@ -91,15 +103,20 @@ export function ExportMenu({ turns }: { turns: ExportableTurn[] }) {
           }}
         >
           {showShare && (
-            <MenuItem onClick={handleShare}>
-              <ShareIcon /> Compartir
+            <MenuItem onClick={handleShare} disabled={!!feedback}>
+              <ShareIcon />
+              {feedback === "sharing" ? "Abriendo…" : "Compartir"}
             </MenuItem>
           )}
-          <MenuItem onClick={handleCopy}>
+          <MenuItem onClick={handleCopy} disabled={!!feedback}>
             <CopyIcon />
-            {feedback === "copied" ? "¡Copiado!" : "Copiar texto"}
+            {feedback === "copying"
+              ? "Copiando…"
+              : feedback === "copied"
+                ? "¡Copiado!"
+                : "Copiar texto"}
           </MenuItem>
-          <MenuItem onClick={handlePrint}>
+          <MenuItem onClick={handlePrint} disabled={!!feedback}>
             <PdfIcon /> Guardar PDF
           </MenuItem>
         </div>
@@ -111,15 +128,18 @@ export function ExportMenu({ turns }: { turns: ExportableTurn[] }) {
 function MenuItem({
   children,
   onClick,
+  disabled,
 }: {
   children: React.ReactNode;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       role="menuitem"
       onClick={onClick}
-      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[0.88rem] text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--ink)] transition-colors"
+      disabled={disabled}
+      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[0.92rem] text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--ink)] transition-colors disabled:opacity-60 disabled:cursor-wait"
     >
       {children}
     </button>

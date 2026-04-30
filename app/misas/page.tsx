@@ -158,32 +158,37 @@ function Misas() {
           </p>
 
           <form onSubmit={onSubmit} className="space-y-3">
-            <div className="card-input flex items-end gap-2">
-              <input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                disabled={pending}
-                placeholder="Tu dirección, barrio o ciudad"
-                className="flex-1 bg-transparent outline-none py-2 font-sans text-[1rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)]"
-                aria-label="Dirección"
-              />
-              <button
-                type="submit"
-                disabled={pending || !address.trim()}
-                aria-label="Buscar"
-                className={cn(
-                  "shrink-0 grid place-items-center w-11 h-11 rounded-full transition-all",
-                  address.trim() && !pending
-                    ? "bg-[var(--gold)] text-white hover:bg-[var(--gold-soft)]"
-                    : "bg-[var(--rule)] text-[var(--ink-faint)] cursor-default",
-                )}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </button>
-            </div>
+            <label className="block">
+              <span className="font-sans text-[0.82rem] font-medium text-[var(--ink-soft)] mb-1.5 block">
+                ¿Dónde estás?
+              </span>
+              <div className="card-input flex items-end gap-2">
+                <input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  disabled={pending}
+                  placeholder="Calle, barrio o ciudad"
+                  className="flex-1 bg-transparent outline-none py-2 font-sans text-[1rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)]"
+                  aria-label="Dirección, barrio o ciudad"
+                />
+                <button
+                  type="submit"
+                  disabled={pending || !address.trim()}
+                  aria-label="Buscar iglesias cercanas"
+                  className={cn(
+                    "shrink-0 grid place-items-center w-11 h-11 rounded-full transition-all",
+                    address.trim() && !pending
+                      ? "bg-[var(--gold)] text-white hover:bg-[var(--gold-soft)]"
+                      : "bg-[var(--rule)] text-[var(--ink-faint)] cursor-default",
+                  )}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </button>
+              </div>
+            </label>
             <div className="flex items-center gap-3">
               <span aria-hidden="true" className="h-px flex-1 bg-[var(--rule)]" />
               <span className="font-sans text-[0.7rem] tracking-[0.16em] uppercase text-[var(--ink-faint)]">
