@@ -4,6 +4,13 @@
    Lectio in silentio — Catholic chapel aesthetic
    --------------------------------------------------------------------------- */
 
+/* =============================================================================
+   THEME — light is the default (Lectio in silentio: cream missal). Dark mode
+   is "noche en la capilla" — deep marian-night surfaces with cream text and
+   warmer gold accents. Either follows the OS preference or is forced by the
+   user via [data-theme="light"] / [data-theme="dark"] on <html>.
+   =========================================================================== */
+
 :root {
   /* Surfaces */
   --paper:        #FAF7F2;  /* blanco hueso — page */
@@ -14,16 +21,68 @@
   /* Ink */
   --ink:          #1F1B16;  /* gris carbón — body */
   --ink-soft:     #5A5249;  /* secondary text — passes WCAG AA on cream */
-  --ink-faint:    #6B6358;  /* tertiary text — passes WCAG AA (was #8A7F70 = 3.7:1) */
+  --ink-faint:    #6B6358;  /* tertiary text — passes WCAG AA */
 
   /* Accents — two tones of gold:
        --gold        decorative use only (lines, borders, dots, bars)
        --gold-text   anything readable as text — passes WCAG AA on cream */
   --gold:         #B8924A;  /* dorado mate — rubric / decoration */
   --gold-soft:    #C8A765;  /* hover accent */
-  --gold-text:    #8B6E37;  /* readable gold for labels & references — ~5.2:1 */
+  --gold-text:    #8B6E37;  /* readable gold for labels & references */
   --marian:       #1B3A6B;  /* azul mariano */
   --vino:         #7A1F2B;  /* vino litúrgico (errors / scarce) */
+
+  /* Adaptive helpers — set per theme so things invert correctly */
+  --surface:      #ffffff;                  /* cards / chips / button bgs */
+  --scrim:        rgba(31, 27, 22, 0.34);   /* modal/sheet backdrop */
+  --shadow-color: 31, 27, 22;               /* RGB for shadow() functions */
+  --button-on-gold: #ffffff;                /* text color on solid gold buttons */
+}
+
+/* ---------------------------- DARK MODE PALETTE -------------------------- */
+
+:root[data-theme="dark"] {
+  --paper:        #0F1525;  /* deep marian-night — page */
+  --paper-deep:   #161D31;  /* card surface */
+  --vellum:       #1F2941;  /* verse cartouche on dark — slight blue warmth */
+  --rule:         #2C3650;  /* visible separators on dark */
+
+  --ink:          #F2EBD9;  /* cream as text — like candlelight on parchment */
+  --ink-soft:     #C5BAA0;  /* secondary text on dark — passes AA */
+  --ink-faint:    #918872;  /* tertiary text — passes AA */
+
+  --gold:         #D4AC6A;  /* warmer / brighter for dark — ~7:1 on paper */
+  --gold-soft:    #E2BE82;  /* hover */
+  --gold-text:    #E0BE7C;  /* readable gold for labels — ~8:1 on paper */
+  --marian:       #5C7CB1;  /* lighter blue accent for dark visibility */
+  --vino:         #C16B7A;  /* lighter wine for error visibility */
+
+  --surface:      #161D31;  /* card surface on dark — slightly above page */
+  --scrim:        rgba(0, 0, 0, 0.6);
+  --shadow-color: 0, 0, 0;
+  --button-on-gold: #1F1B16; /* dark ink on gold button — passes AA */
+}
+
+/* If the user hasn't expressed a choice, follow the OS preference. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:        #0F1525;
+    --paper-deep:   #161D31;
+    --vellum:       #1F2941;
+    --rule:         #2C3650;
+    --ink:          #F2EBD9;
+    --ink-soft:     #C5BAA0;
+    --ink-faint:    #918872;
+    --gold:         #D4AC6A;
+    --gold-soft:    #E2BE82;
+    --gold-text:    #E0BE7C;
+    --marian:       #5C7CB1;
+    --vino:         #C16B7A;
+    --surface:      #161D31;
+    --scrim:        rgba(0, 0, 0, 0.6);
+    --shadow-color: 0, 0, 0;
+    --button-on-gold: #1F1B16;
+  }
 }
 
 @theme inline {
@@ -65,7 +124,9 @@ html, body {
   -webkit-text-size-adjust: 100%;
 }
 
-/* Subtle paper-grain noise overlay — gives the page tactility (lower opacity) */
+/* Subtle paper-grain noise overlay — gives the page tactility (lower opacity).
+   On dark mode we flip to "screen" blend so the same SVG creates a soft
+   constellation of warm specks instead of darkening the surface further. */
 body::before {
   content: "";
   position: fixed;
@@ -78,6 +139,25 @@ body::before {
   background-size: 240px 240px;
 }
 
+:root[data-theme="dark"] body::before,
+:root:not([data-theme="light"]) body::before {
+  /* Auto-applied via the dark-mode media query below as well */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body::before {
+    opacity: 0.10;
+    mix-blend-mode: screen;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch' seed='3'/><feColorMatrix values='0 0 0 0 0.85 0 0 0 0 0.78 0 0 0 0 0.55 0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+}
+
+:root[data-theme="dark"] body::before {
+  opacity: 0.10;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch' seed='3'/><feColorMatrix values='0 0 0 0 0.85 0 0 0 0 0.78 0 0 0 0 0.55 0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
 /* Desktop-only ambient: warm "candlelight from above" radial glow + subtle
    stained-glass quatrefoil pattern faded into the page. Gives the desktop
    layout depth without overwhelming the content. */
@@ -86,6 +166,25 @@ body::before {
     background:
       radial-gradient(ellipse 80% 60% at 50% 0%, rgba(184, 146, 74, 0.10) 0%, transparent 60%),
       radial-gradient(ellipse 70% 50% at 50% 100%, rgba(27, 58, 107, 0.05) 0%, transparent 65%),
+      var(--paper);
+  }
+
+  /* On dark mode, the glow becomes a candle warmth above the marian-night
+     surface and the bottom blue is removed (it was over a deep-blue page). */
+  :root[data-theme="dark"] body,
+  :root:not([data-theme="light"]) body {
+    /* default: light — overridden by media below */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) body {
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212, 172, 106, 0.10) 0%, transparent 60%),
+        var(--paper);
+    }
+  }
+  :root[data-theme="dark"] body {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212, 172, 106, 0.10) 0%, transparent 60%),
       var(--paper);
   }
 
@@ -126,9 +225,9 @@ body::before {
       border: 1px solid var(--rule);
       border-radius: 10px;
       box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.6) inset,
-        0 18px 40px -22px rgba(31, 27, 22, 0.18),
-        0 4px 12px -4px rgba(31, 27, 22, 0.06);
+        0 1px 0 rgba(255, 255, 255, 0.06) inset,
+        0 18px 40px -22px rgba(var(--shadow-color), 0.30),
+        0 4px 12px -4px rgba(var(--shadow-color), 0.10);
       overflow: hidden;
       position: relative;
     }
@@ -164,7 +263,7 @@ body::before {
   }
 
   .card-response {
-    background: #ffffff;
+    background: var(--surface);
     border: 1px solid var(--rule);
     border-radius: 8px;
     padding: 1.1rem 1.25rem;
@@ -178,11 +277,11 @@ body::before {
   }
 
   .card-input {
-    background: #ffffff;
+    background: var(--surface);
     border: 1.5px solid var(--rule);
     border-radius: 14px;
     padding: 0.45rem 0.45rem 0.45rem 1rem;
-    box-shadow: 0 2px 6px rgba(31, 27, 22, 0.04);
+    box-shadow: 0 2px 6px rgba(var(--shadow-color), 0.04);
     transition:
       border-color 200ms ease,
       box-shadow 200ms ease;
@@ -190,7 +289,7 @@ body::before {
 
   .card-input:focus-within {
     border-color: var(--gold);
-    box-shadow: 0 2px 10px rgba(184, 146, 74, 0.18);
+    box-shadow: 0 2px 10px rgba(184, 146, 74, 0.22);
   }
   /* Inner controls already get the wrapper focus signal — suppress the
      global outline so we don't stack three rings on the same input. */
@@ -199,17 +298,17 @@ body::before {
   }
 
   .card-welcome {
-    background: #ffffff;
+    background: var(--surface);
     border: 1px solid var(--rule);
     border-radius: 12px;
     padding: 1.5rem 1.25rem;
-    box-shadow: 0 2px 8px rgba(31, 27, 22, 0.03);
+    box-shadow: 0 2px 8px rgba(var(--shadow-color), 0.05);
   }
 
   .chip-example {
     display: inline-flex;
     align-items: center;
-    background: #ffffff;
+    background: var(--surface);
     border: 1px solid var(--rule);
     border-radius: 999px;
     padding: 0.6rem 1rem;

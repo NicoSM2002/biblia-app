@@ -93,7 +93,7 @@ export function HistorySheet({
         <>
           <motion.div
             key="backdrop"
-            className="fixed inset-0 z-[60] bg-[var(--ink)]/30 backdrop-blur-[1px] no-print"
+            className="fixed inset-0 z-[60] bg-[var(--scrim)] backdrop-blur-[1px] no-print"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -109,7 +109,7 @@ export function HistorySheet({
             className={cn(
               "fixed top-0 left-0 bottom-0 z-[70] flex flex-col no-print",
               "w-[88%] max-w-[360px] bg-[var(--paper)] border-r border-[var(--rule)]",
-              "shadow-[6px_0_24px_-12px_rgba(31,27,22,0.25)]",
+              "shadow-[6px_0_24px_-12px_rgba(var(--shadow-color),0.45)]",
             )}
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
@@ -163,7 +163,7 @@ export function HistorySheet({
                       <button
                         onClick={() => onSelect(c.id)}
                         className={cn(
-                          "w-full text-left bg-white border rounded-lg px-3.5 py-3 transition-colors",
+                          "w-full text-left bg-[var(--surface)] border rounded-lg px-3.5 py-3 transition-colors",
                           activeId === c.id
                             ? "border-[var(--gold)] bg-[var(--vellum)]"
                             : "border-[var(--rule)] hover:border-[var(--gold)] hover:bg-[var(--vellum)]",
@@ -198,7 +198,7 @@ function SkeletonList() {
       {[0, 1, 2, 3].map((i) => (
         <li
           key={i}
-          className="bg-white border border-[var(--rule)] rounded-lg px-3.5 py-3 animate-pulse"
+          className="bg-[var(--surface)] border border-[var(--rule)] rounded-lg px-3.5 py-3 animate-pulse"
         >
           <div className="h-3 bg-[var(--rule)] rounded w-3/4" />
           <div className="h-2 bg-[var(--rule)] rounded w-1/3 mt-2" />

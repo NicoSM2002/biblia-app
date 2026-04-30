@@ -178,7 +178,7 @@ function Misas() {
                   className={cn(
                     "shrink-0 grid place-items-center w-11 h-11 rounded-full transition-all",
                     address.trim() && !pending
-                      ? "bg-[var(--gold)] text-white hover:bg-[var(--gold-soft)]"
+                      ? "bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)]"
                       : "bg-[var(--rule)] text-[var(--ink-faint)] cursor-default",
                   )}
                 >
@@ -200,7 +200,7 @@ function Misas() {
               type="button"
               onClick={useMyLocation}
               disabled={pending}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-[var(--rule)] bg-white text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 disabled:opacity-60"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 disabled:opacity-60"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" />
@@ -270,7 +270,7 @@ function ChurchCard({ church, index }: { church: Church; index: number }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: index * 0.025, duration: 0.25 }}
-      className="bg-white border border-[var(--rule)] rounded-lg p-4"
+      className="bg-[var(--surface)] border border-[var(--rule)] rounded-lg p-4"
     >
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="font-serif text-[1.05rem] text-[var(--ink)] leading-snug">

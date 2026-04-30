@@ -80,7 +80,7 @@ export function ExportMenu({ turns }: { turns: ExportableTurn[] }) {
         aria-haspopup="menu"
         aria-expanded={open}
         className={cn(
-          "inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border bg-white transition-all duration-200",
+          "inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border bg-[var(--surface)] transition-all duration-200",
           open
             ? "border-[var(--gold)] text-[var(--gold-text)] bg-[var(--vellum)]"
             : "border-[var(--rule)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)]",
@@ -96,10 +96,10 @@ export function ExportMenu({ turns }: { turns: ExportableTurn[] }) {
           role="menu"
           className="absolute right-0 top-full mt-2 w-56 border border-[var(--rule)] rounded-lg overflow-hidden z-50"
           style={{
-            backgroundColor: "#ffffff",
+            backgroundColor: "var(--surface)",
             isolation: "isolate",
             boxShadow:
-              "0 12px 28px -8px rgba(31, 27, 22, 0.22), 0 4px 10px -2px rgba(31, 27, 22, 0.08)",
+              "0 12px 28px -8px rgba(var(--shadow-color), 0.22), 0 4px 10px -2px rgba(var(--shadow-color), 0.08)",
           }}
         >
           {showShare && (

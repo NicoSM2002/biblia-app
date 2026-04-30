@@ -128,7 +128,7 @@ function NewConversationButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       aria-label="Empezar una nueva conversación"
       title="Nueva conversación"
-      className="group grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-white text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 shrink-0"
+      className="group grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 shrink-0"
     >
       <svg
         width="15"

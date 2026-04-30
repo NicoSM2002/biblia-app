@@ -166,7 +166,7 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
             onClick={onContinue}
-            className="mt-7 inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--gold)] text-white font-sans text-[0.95rem] font-medium hover:bg-[var(--gold-soft)] transition-colors min-h-[44px]"
+            className="mt-7 inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] font-sans text-[0.95rem] font-medium hover:bg-[var(--gold-soft)] transition-colors min-h-[44px]"
           >
             Comenzar
             <svg

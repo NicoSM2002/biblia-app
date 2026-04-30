@@ -62,7 +62,7 @@ export function AuthButton() {
     return (
       <Link
         href="/auth"
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-[var(--rule)] bg-white text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200"
       >
         <UserIcon />
         <span className="font-sans text-[0.78rem] sm:text-[0.82rem] font-medium">
@@ -95,7 +95,7 @@ export function AuthButton() {
           "inline-flex items-center justify-center w-11 h-11 rounded-full border transition-all duration-200",
           open
             ? "border-[var(--gold)] bg-[var(--vellum)] text-[var(--gold-text)]"
-            : "border-[var(--rule)] bg-white text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)]",
+            : "border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)]",
         )}
       >
         <span className="font-sans text-[0.85rem] font-semibold">{initial}</span>
@@ -105,10 +105,10 @@ export function AuthButton() {
           role="menu"
           className="absolute right-0 top-full mt-2 w-60 border border-[var(--rule)] rounded-lg overflow-hidden z-50"
           style={{
-            backgroundColor: "#ffffff",
+            backgroundColor: "var(--surface)",
             isolation: "isolate",
             boxShadow:
-              "0 12px 28px -8px rgba(31, 27, 22, 0.22), 0 4px 10px -2px rgba(31, 27, 22, 0.08)",
+              "0 12px 28px -8px rgba(var(--shadow-color), 0.22), 0 4px 10px -2px rgba(var(--shadow-color), 0.08)",
           }}
         >
           <div className="px-3.5 py-3 border-b border-[var(--rule)]">

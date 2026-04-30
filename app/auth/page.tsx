@@ -121,7 +121,7 @@ function AuthForm() {
 
           <form
             onSubmit={onSubmit}
-            className="space-y-3 bg-white border border-[var(--rule)] rounded-xl p-5 shadow-sm"
+            className="space-y-3 bg-[var(--surface)] border border-[var(--rule)] rounded-xl p-5 shadow-sm"
             noValidate
           >
             <Field
@@ -177,7 +177,7 @@ function AuthForm() {
                 "w-full mt-2 py-3 rounded-full font-sans text-[0.95rem] font-medium transition-colors min-h-[44px]",
                 pending
                   ? "bg-[var(--rule)] text-[var(--ink-faint)] cursor-wait"
-                  : "bg-[var(--gold)] text-white hover:bg-[var(--gold-soft)]",
+                  : "bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)]",
               )}
             >
               {pending
@@ -262,7 +262,7 @@ const Field = function FieldImpl({
       <span className="font-sans text-[0.85rem] font-medium text-[var(--ink-soft)]">
         {label}
       </span>
-      <div className="mt-1 flex items-center gap-1 rounded-md border bg-white border-[var(--rule)] focus-within:border-[var(--gold)] transition-colors">
+      <div className="mt-1 flex items-center gap-1 rounded-md border bg-[var(--surface)] border-[var(--rule)] focus-within:border-[var(--gold)] transition-colors">
         <input
           ref={ref}
           type={type}

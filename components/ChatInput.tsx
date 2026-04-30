@@ -79,7 +79,7 @@ export function ChatInput({
             "shrink-0 grid place-items-center w-11 h-11 rounded-full",
             "transition-all duration-200",
             active
-              ? "bg-[var(--gold)] text-white hover:bg-[var(--gold-soft)] shadow-sm"
+              ? "bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] shadow-sm"
               : "bg-[var(--rule)] text-[var(--ink-faint)] cursor-default",
           )}
         >
