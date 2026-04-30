@@ -141,73 +141,33 @@ html, body {
     color 280ms ease;
 }
 
-::view-transition-old(root),
+/* Route transitions — plain opacity crossfade on the root, no morphing,
+   no shared elements. Tried adding view-transition-name to the church
+   photo (card → hero) and to the bottom nav, but on WebKit it caused
+   the entire page to visibly scale mid-transition (the new root rect
+   was momentarily different during detail page mount) and the photo
+   floated above the bottom nav. Plain crossfade is calm and works
+   identically across browsers. */
+::view-transition-group(root) {
+  animation: none;
+}
+::view-transition-old(root) {
+  animation: vt-fade-out 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  mix-blend-mode: normal;
+}
 ::view-transition-new(root) {
-  /* Route crossfade: short so buttons on the new page feel responsive
-     immediately. Longer durations made tabs feel locked. */
-  animation-duration: 280ms;
-  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: vt-fade-in 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
   mix-blend-mode: normal;
 }
 
-/* Shared element transitions (church photo morph from card to hero).
-   The trick: keep the *group* (container) animating for 420ms so the
-   image-shaped frame morphs from card-size to hero-size smoothly, but
-   make the *old/new image cross-fade* almost instant (50ms). Otherwise
-   the browser cross-fades the old image with the new image — even
-   though they're the same URL — and it reads as a flash of "reload"
-   on top of the morph. With near-instant image cross-fade the eye sees
-   only the smooth shape change. */
-::view-transition-group(*) {
-  animation-duration: 420ms;
-  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-::view-transition-old(*),
-::view-transition-new(*) {
-  animation-duration: 50ms;
-}
-/* Root keeps the regular crossfade — these have to come AFTER the (*)
-   rules so they win on equal specificity. */
-::view-transition-group(root) {
-  animation-duration: 280ms;
-}
+/* All view-transition pseudo-elements: click-through so the freshly
+   mounted page is interactive immediately. */
+::view-transition,
+::view-transition-group(root),
+::view-transition-image-pair(root),
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 280ms;
-}
-
-/* Bottom nav: it's the same element in the same fixed position on every
-   screen, so it shouldn't animate at all during transitions. We give it
-   an explicit higher z-index inside the view-transition top layer so it
-   stays firmly above any morphing element (e.g. the church photo). DOM
-   source order alone wasn't enough on every browser. */
-::view-transition-group(bottom-nav),
-::view-transition-old(bottom-nav),
-::view-transition-new(bottom-nav) {
-  animation: none;
-  z-index: 100;
-}
-::view-transition-group(church-photo-shared) {
-  z-index: 1;
-}
-
-/* Make the entire view-transition pseudo-element tree click-through, not
-   just the old/new snapshots. The default for some of these (especially
-   ::view-transition-group) can capture pointer events and block taps on
-   the freshly-mounted page beneath. */
-::view-transition,
-::view-transition-group(*),
-::view-transition-image-pair(*),
-::view-transition-old(*),
-::view-transition-new(*) {
   pointer-events: none;
-}
-
-::view-transition-old(root) {
-  animation-name: vt-fade-out;
-}
-::view-transition-new(root) {
-  animation-name: vt-fade-in;
 }
 
 /* Plain opacity crossfade — no scale, no transform. Earlier we tried a

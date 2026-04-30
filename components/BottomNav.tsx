@@ -33,15 +33,6 @@ export function BottomNav() {
     <nav
       aria-label="Navegación principal"
       className="fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print"
-      // The bottom nav lives on every screen of the app. By giving it a
-      // view-transition-name, the browser puts it in the top layer during
-      // a view-transition (just like any shared element with a name) — and
-      // because it's the LAST top-layer element in DOM source order, it
-      // ends up stacked above any other shared element (e.g. the morphing
-      // church photo from /misas → /misas/[id]). Without this, the church
-      // photo's morph layer covered the nav for the duration of the
-      // transition, which read as "the photo lands on top of the nav".
-      style={{ viewTransitionName: "bottom-nav" }}
     >
       <ul className="max-w-2xl mx-auto flex items-stretch justify-around px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {items.map((item) => {

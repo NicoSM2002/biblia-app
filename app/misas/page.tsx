@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useEffect, useState, type FormEvent } from "react";
-import { flushSync } from "react-dom";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/BottomNav";
@@ -65,12 +64,6 @@ function Misas() {
   const [churches, setChurches] = useState<Church[] | null>(null);
   const [searchedFrom, setSearchedFrom] = useState<string | null>(null);
   const [searchOrigin, setSearchOrigin] = useState<SearchOrigin>(null);
-  // Tracks the church id whose card was last clicked. Only that card's
-  // image gets a `view-transition-name` — otherwise all 20 photos cross-
-  // fade simultaneously during navigation, which reads as a "brusco" flash
-  // even though only one of them actually morphs to the hero.
-  const [lastClickedId, setLastClickedId] = useState<string | null>(null);
-
   // Restore the previous search on mount so coming back from a detail page
   // (or any other in-app navigation) keeps the list and the address the
   // user typed. Without this, every time you tap a parish and tap back you
@@ -82,12 +75,6 @@ function Misas() {
       setChurches(cached.churches);
       setSearchedFrom(cached.searchedFrom);
       setSearchOrigin(cached.searchOrigin);
-    }
-    try {
-      const last = sessionStorage.getItem("lastClickedChurchId");
-      if (last) setLastClickedId(last);
-    } catch {
-      // ignore
     }
   }, []);
 
@@ -251,16 +238,8 @@ function Misas() {
                     church={c}
                     index={i}
                     origin={searchOrigin}
-                    isLastClicked={lastClickedId === c.id}
                     onPick={() => {
-                      // flushSync so the state update — and therefore the
-                      // VTN assignment — lands in the DOM before the view
-                      // transition snapshot is taken on the click event.
-                      flushSync(() => {
-                        setLastClickedId(c.id);
-                      });
                       try {
-                        sessionStorage.setItem("lastClickedChurchId", c.id);
                         sessionStorage.setItem(
                           "selectedChurch",
                           JSON.stringify(c),
@@ -297,13 +276,11 @@ function ChurchCard({
   church,
   index,
   origin,
-  isLastClicked,
   onPick,
 }: {
   church: Church;
   index: number;
   origin: SearchOrigin;
-  isLastClicked: boolean;
   onPick: () => void;
 }) {
   const distanceText =
@@ -348,16 +325,6 @@ function ChurchCard({
               alt=""
               draggable={false}
               className="absolute inset-0 w-full h-full object-cover"
-              // Shared element transition: only this card's photo gets a
-              // view-transition-name when it's the last one tapped. That
-              // avoids 20 photos cross-fading in parallel during the
-              // navigation. Same URL (`w=800`) as the detail hero so the
-              // browser cache hits and the morph has an image to draw.
-              style={
-                isLastClicked
-                  ? { viewTransitionName: "church-photo-shared" }
-                  : undefined
-              }
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[var(--gold-text)] opacity-50">
