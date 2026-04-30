@@ -7,18 +7,30 @@ type Theme = "light" | "dark";
 /**
  * Reads the current theme from <html data-theme="…"> on mount and lets the
  * user toggle between light and dark. The initial value is set by the inline
- * script in app/layout.tsx (so there's no flash on first paint).
+ * script in app/layout.tsx so there's no flash on first paint.
  *
  * The user's explicit choice is persisted in localStorage; without a saved
  * choice the app follows the OS `prefers-color-scheme` automatically.
+ *
+ * The visible theme transition uses the View Transitions API where supported,
+ * falling back to a CSS root-level transition on color/background-color so
+ * the swap reads as a soft crossfade rather than an instant flash.
  */
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme | null>(null);
+  // Render the button on first paint to avoid a wasted first click on a
+  // placeholder. Theme is read from the DOM during click, so an unknown
+  // initial state is fine — we just default the icon to "moon" until mount.
+  const [theme, setTheme] = useState<Theme>("light");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const current = (document.documentElement.getAttribute("data-theme") ||
-      "light") as Theme;
+      (window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light")) as Theme;
     setTheme(current);
+    setMounted(true);
+
     // Keep in sync if the OS preference changes mid-session AND the user
     // hasn't picked one explicitly.
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -33,13 +45,7 @@ export function ThemeToggle() {
     return () => mq.removeEventListener?.("change", onSystem);
   }, []);
 
-  if (theme === null) {
-    // Reserve space (44px) so the header layout doesn't shift after hydrate.
-    return <span aria-hidden="true" className="inline-block w-11 h-11 shrink-0" />;
-  }
-
-  function toggle() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
+  function applyTheme(next: Theme) {
     document.documentElement.setAttribute("data-theme", next);
     try {
       localStorage.setItem("theme", next);
@@ -49,18 +55,44 @@ export function ThemeToggle() {
     setTheme(next);
   }
 
+  function toggle() {
+    // Always read the *current* DOM theme — covers the case where the
+    // component just mounted and our state may still be stale.
+    const current = (document.documentElement.getAttribute("data-theme") ||
+      (window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light")) as Theme;
+    const next: Theme = current === "dark" ? "light" : "dark";
+
+    // View Transitions API gives us a free crossfade between old/new
+    // root snapshots. Reduced-motion users skip it via a CSS rule.
+    type DocWithVT = Document & {
+      startViewTransition?: (cb: () => void) => unknown;
+    };
+    const doc = document as DocWithVT;
+    if (typeof doc.startViewTransition === "function") {
+      doc.startViewTransition(() => applyTheme(next));
+    } else {
+      applyTheme(next);
+    }
+  }
+
   return (
     <button
       onClick={toggle}
-      aria-label={
-        theme === "dark"
-          ? "Activar modo claro"
-          : "Activar modo noche"
-      }
+      aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo noche"}
       title={theme === "dark" ? "Modo claro" : "Modo noche"}
       className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold-text)] transition-colors shrink-0"
+      // Avoid a hydration warning if the icon differs between server and
+      // client — the icon depends on the theme attribute, which is set by
+      // the inline script before hydration.
+      suppressHydrationWarning
     >
-      {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+      {/* Hide the icon until the client has read the actual theme so the
+          server-rendered icon doesn't briefly mismatch. */}
+      <span style={{ visibility: mounted ? "visible" : "hidden" }}>
+        {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+      </span>
     </button>
   );
 }

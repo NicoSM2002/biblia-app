@@ -124,6 +124,45 @@ html, body {
   -webkit-text-size-adjust: 100%;
 }
 
+/* -----------------------------------------------------------------------------
+   Theme crossfade — when the user toggles light↔dark we want the swap to
+   read as a soft transition, not an instant flash. Two layers:
+     1. CSS-only fallback: animate the root surface/text colors over 280ms
+        so any browser without View Transitions still feels gentle.
+     2. View Transitions API: when the toggle wraps the swap in
+        `document.startViewTransition()`, the browser snapshots the old DOM
+        and crossfades it against the new — covering every element at once
+        (cards, borders, gold accents, the noise overlay) with one curve.
+   --------------------------------------------------------------------------- */
+
+html, body {
+  transition:
+    background-color 280ms ease,
+    color 280ms ease;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+::view-transition-old(root) {
+  animation-name: vt-fade-out;
+}
+::view-transition-new(root) {
+  animation-name: vt-fade-in;
+}
+
+@keyframes vt-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes vt-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 /* Subtle paper-grain noise overlay — gives the page tactility (lower opacity).
    On dark mode we flip to "screen" blend so the same SVG creates a soft
    constellation of warm specks instead of darkening the surface further. */
@@ -435,6 +474,13 @@ body::before {
   .dot-1,
   .dot-2,
   .dot-3 { animation: none !important; }
+
+  /* Skip the theme crossfade entirely — the swap becomes instant, which is
+     the calmer choice for vestibular sensitivity. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
 }
 
 /* The "Buscando en la Palabra…" indicator dots */

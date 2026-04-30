@@ -12,7 +12,6 @@ const ACROSTIC =
 export function DailyVerse({ onContinue }: { onContinue: () => void }) {
   const [verse, setVerse] = useState<Verse | null>(null);
   const [error, setError] = useState(false);
-  const [skipped, setSkipped] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const reduce = useReducedMotion();
 
@@ -26,26 +25,23 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
       .catch(() => setError(true));
   }, []);
 
-  // Esc closes the modal; pressing any key after the verse is ready also
-  // skips the entrance animation so users in a hurry aren't held back.
+  // Esc / Enter / Space dismiss the overlay — same as tapping anywhere or the
+  // button. Any key press once the verse has been read continues the journey.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         onContinue();
-      } else if (verse && !skipped) {
-        setSkipped(true);
       }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onContinue, verse, skipped]);
+  }, [onContinue]);
 
   // Move focus to the action button as soon as it's available so screen
   // reader and keyboard users know they can dismiss.
   useEffect(() => {
     if (verse || error) {
-      // Delay slightly so it lands after the entrance animation begins.
       const t = setTimeout(() => buttonRef.current?.focus(), reduce ? 0 : 300);
       return () => clearTimeout(t);
     }
@@ -61,16 +57,11 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
     month: "long",
   });
 
-  // Whether the verse + button are visible. When the user clicks anywhere
-  // on the overlay or presses a key, we skip straight to the final state.
   const ready = !!verse || error;
-  const visible = ready && (skipped || true); // always visible once ready
-  // Animation timing — collapse to "instant" when reduced-motion is on or
-  // the user clicked to skip the cross intro.
-  const crossDuration = reduce ? 0 : skipped ? 0.2 : 0.85;
-  const cascadeDelay = reduce ? 0 : skipped ? 0 : 1.0;
+  const crossDuration = reduce ? 0 : 0.85;
+  const cascadeDelay = reduce ? 0 : 1.0;
   const cascadeDuration = reduce ? 0 : 0.6;
-  const buttonDelay = reduce ? 0 : skipped ? 0.05 : 1.55;
+  const buttonDelay = reduce ? 0 : 1.55;
 
   return (
     <motion.div
@@ -84,9 +75,11 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
       transition={{ duration: reduce ? 0 : 0.45, ease: [0.2, 0.7, 0.2, 1] }}
       className="fixed inset-0 z-[80] flex flex-col items-center justify-center px-6 bg-[var(--paper)] no-print overflow-hidden cursor-pointer"
       onClick={(e) => {
-        // Click on the overlay (not on the button) skips the entrance.
+        // Click on the overlay (or any non-button element) dismisses. Clicks
+        // on the button itself are handled by its own onClick — don't
+        // double-fire.
         if ((e.target as HTMLElement).closest("button")) return;
-        if (verse && !skipped) setSkipped(true);
+        onContinue();
       }}
     >
       {/* Soft radial halo behind the content */}
@@ -114,8 +107,8 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{
-            opacity: visible ? 1 : 0,
-            y: visible ? 0 : 8,
+            opacity: ready ? 1 : 0,
+            y: ready ? 0 : 8,
           }}
           transition={{
             delay: cascadeDelay,
@@ -155,8 +148,8 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
             ref={buttonRef}
             initial={{ opacity: 0, y: 8 }}
             animate={{
-              opacity: visible ? 1 : 0,
-              y: visible ? 0 : 8,
+              opacity: ready ? 1 : 0,
+              y: ready ? 0 : 8,
             }}
             transition={{
               delay: buttonDelay,
@@ -186,7 +179,7 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
           </motion.button>
 
           <p className="mt-4 font-sans text-[0.7rem] text-[var(--ink-faint)]">
-            {skipped ? "" : verse ? "Toca cualquier parte para continuar" : ""}
+            {ready ? "Toca cualquier parte para continuar" : ""}
           </p>
         </motion.div>
       </div>
