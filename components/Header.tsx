@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LatinCross } from "./Cross";
 import { ExportMenu } from "./ExportMenu";
 import { AuthButton } from "./AuthButton";
@@ -26,11 +27,42 @@ export function Header({
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {hasContent && <ExportMenu turns={exportableTurns} />}
+          <ChurchLink />
           {onReset && <NewConversationButton onClick={onReset} />}
           <AuthButton />
         </div>
       </div>
     </header>
+  );
+}
+
+function ChurchLink() {
+  return (
+    <Link
+      href="/misas"
+      aria-label="Buscar Misa cerca de ti"
+      title="Misa cerca de ti"
+      className="grid place-items-center w-9 h-9 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold)] transition-colors shrink-0"
+    >
+      {/* Stylised chapel: simple silhouette with a small cross on top */}
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <line x1="12" y1="2" x2="12" y2="5" />
+        <line x1="10.5" y1="3.5" x2="13.5" y2="3.5" />
+        <path d="M5 21V11l7-4 7 4v10" />
+        <line x1="3" y1="21" x2="21" y2="21" />
+        <rect x="10" y="14" width="4" height="7" />
+      </svg>
+    </Link>
   );
 }
 
