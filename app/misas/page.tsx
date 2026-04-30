@@ -101,12 +101,20 @@ function Misas() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-[var(--paper)]">
-      <header className="px-4 sm:px-8 lg:px-10 py-5 border-b border-[var(--rule)]">
+    <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--paper)]">
+      <div className="missal-page">
+      <header className="relative z-30 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)] bg-[var(--paper)]">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-3">
-            <LatinCross className="text-[var(--gold)]" size={14} />
-            <h1 className="font-sans text-[1rem] font-medium text-[var(--ink)]">
+          <Link
+            href="/"
+            aria-label="Volver al inicio"
+            className="flex items-center gap-2 sm:gap-3 group"
+          >
+            <LatinCross
+              className="text-[var(--gold)] shrink-0 transition-opacity group-hover:opacity-80"
+              size={14}
+            />
+            <h1 className="font-sans text-[1rem] sm:text-[1.05rem] font-medium text-[var(--ink)] truncate transition-colors group-hover:text-[var(--gold)]">
               Habla con la Palabra
             </h1>
           </Link>
@@ -119,7 +127,7 @@ function Misas() {
         </div>
       </header>
 
-      <main className="flex-1 px-4 sm:px-8 lg:px-10 py-8 overflow-y-auto">
+      <main className="relative z-10 flex-1 overflow-y-auto min-h-0 px-4 sm:px-8 lg:px-10 py-8">
         <div className="max-w-2xl mx-auto">
           <p className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-[var(--gold)] mb-2">
             Misa cerca de ti
@@ -226,6 +234,7 @@ function Misas() {
           )}
         </div>
       </main>
+      </div>
     </div>
   );
 }

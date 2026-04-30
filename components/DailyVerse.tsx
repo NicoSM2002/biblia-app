@@ -60,7 +60,7 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
   // Start the typewriter only once the verse has actually been fetched and
   // the introductory animations have settled (date label has appeared).
   const { output, isComplete } = useTypewriter(display, {
-    speed: 28,
+    speed: 14,
     start: !!verse,
   });
 
