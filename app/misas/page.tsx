@@ -3,9 +3,7 @@
 import { Suspense, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { LatinCross } from "@/components/Cross";
 import { BottomNav } from "@/components/BottomNav";
-import { cn } from "@/lib/utils";
 
 type Church = {
   id: string;
@@ -19,11 +17,14 @@ type Church = {
   userRatingCount?: number | null;
   openingHours?: string[] | null;
   mapsUrl: string;
+  photoName?: string | null;
 };
+
+type SearchOrigin = { lat: number; lng: number } | null;
 
 export default function MisasPage() {
   return (
-    <Suspense fallback={<div className="min-h-[100dvh] bg-[var(--paper)]" />}>
+    <Suspense fallback={<div className="h-[100dvh] bg-[var(--paper)]" />}>
       <Misas />
     </Suspense>
   );
@@ -35,6 +36,7 @@ function Misas() {
   const [error, setError] = useState<string | null>(null);
   const [churches, setChurches] = useState<Church[] | null>(null);
   const [searchedFrom, setSearchedFrom] = useState<string | null>(null);
+  const [searchOrigin, setSearchOrigin] = useState<SearchOrigin>(null);
 
   async function search(args: {
     address?: string;
@@ -55,13 +57,16 @@ function Misas() {
         }),
       });
       const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.error || `Error ${res.status}`);
-      }
+      if (!res.ok) throw new Error(json.error || `Error ${res.status}`);
       setChurches(json.churches as Church[]);
       setSearchedFrom(
         json.formattedAddress ||
           (args.coords ? "Tu ubicación actual" : args.address || ""),
+      );
+      setSearchOrigin(
+        json.center
+          ? { lat: json.center.lat, lng: json.center.lng }
+          : args.coords ?? null,
       );
     } catch (err) {
       setError((err as Error).message);
@@ -102,129 +107,62 @@ function Misas() {
   }
 
   return (
-    <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--paper)] pb-[68px]">
-      <div className="missal-page">
-      <header className="relative z-30 px-4 sm:px-8 lg:px-10 pt-5 sm:pt-6 lg:pt-7 pb-4 lg:pb-5 border-b border-[var(--rule)] bg-[var(--paper)]">
-        <div className="max-w-2xl mx-auto flex items-center gap-2 sm:gap-3">
+    <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--paper)]">
+      <header className="px-4 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
+        <div className="max-w-2xl mx-auto flex items-center gap-2">
           <Link
             href="/"
             aria-label="Volver al inicio"
-            title="Volver al inicio"
-            className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold-text)] transition-colors shrink-0"
+            className="grid place-items-center w-10 h-10 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] transition-colors shrink-0 -ml-1"
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
+            <BackIcon />
           </Link>
-          <Link
-            href="/"
-            aria-label="Volver al inicio"
-            className="flex items-center gap-2 sm:gap-3 min-w-0 group ml-1"
-          >
-            <LatinCross
-              className="text-[var(--gold-text)] shrink-0 transition-opacity group-hover:opacity-80"
-              size={14}
-            />
-            <h1 className="font-sans text-[1rem] sm:text-[1.05rem] font-medium text-[var(--ink)] truncate transition-colors group-hover:text-[var(--gold-text)]">
-              Habla con la Palabra
-            </h1>
-          </Link>
+          <h1 className="flex-1 font-sans text-[1rem] font-medium text-[var(--ink)]">
+            Parroquias
+          </h1>
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 overflow-y-auto min-h-0 px-4 sm:px-8 lg:px-10 py-8">
-        <div className="max-w-2xl mx-auto">
-          <p className="font-sans text-[0.75rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-2">
+      <main className="flex-1 overflow-y-auto pb-24">
+        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-7">
+          <h2 className="font-serif italic text-[1.55rem] sm:text-[1.75rem] text-[var(--ink)] leading-[1.25] text-center mb-2">
             Misa cerca de ti
-          </p>
-          <h2 className="font-serif italic text-[1.5rem] sm:text-[1.85rem] text-[var(--ink)] leading-[1.3] mb-2">
-            Encuentra una parroquia cercana.
           </h2>
-          <p className="font-sans text-[0.92rem] text-[var(--ink-soft)] leading-relaxed mb-6">
-            Escribe tu dirección o usa tu ubicación. Te mostramos las
-            iglesias católicas más cercanas con su sitio web y teléfono —
-            los horarios de Misa actualizados los confirma cada parroquia
-            en su web.
+          <p className="font-sans text-[0.92rem] text-[var(--ink-soft)] leading-relaxed text-center max-w-[34ch] mx-auto mb-6">
+            Encuentra iglesias católicas cercanas con horarios actualizados.
           </p>
 
-          <form onSubmit={onSubmit} className="space-y-3">
-            <label className="block">
-              <span className="font-sans text-[0.82rem] font-medium text-[var(--ink-soft)] mb-1.5 block">
-                ¿Dónde estás?
-              </span>
-              <div className="card-input flex items-end gap-2">
-                <input
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  disabled={pending}
-                  placeholder="Calle, barrio o ciudad"
-                  className="flex-1 bg-transparent outline-none py-2 font-sans text-[1rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)]"
-                  aria-label="Dirección, barrio o ciudad"
-                />
-                <button
-                  type="submit"
-                  disabled={pending || !address.trim()}
-                  aria-label="Buscar iglesias cercanas"
-                  className={cn(
-                    "shrink-0 grid place-items-center w-11 h-11 rounded-full transition-all",
-                    address.trim() && !pending
-                      ? "bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)]"
-                      : "bg-[var(--rule)] text-[var(--ink-faint)] cursor-default",
-                  )}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                </button>
-              </div>
-            </label>
-            <div className="flex items-center gap-3">
-              <span aria-hidden="true" className="h-px flex-1 bg-[var(--rule)]" />
-              <span className="font-sans text-[0.7rem] tracking-[0.16em] uppercase text-[var(--ink-faint)]">
-                o
-              </span>
-              <span aria-hidden="true" className="h-px flex-1 bg-[var(--rule)]" />
+          <form onSubmit={onSubmit}>
+            <div className="flex items-center gap-2 bg-[var(--surface)] border border-[var(--rule)] rounded-full pl-4 pr-1.5 py-1.5 transition-colors focus-within:border-[var(--gold)]">
+              <PinIcon className="text-[var(--ink-faint)] shrink-0" />
+              <input
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                disabled={pending}
+                placeholder="Escribe tu dirección o ciudad"
+                className="flex-1 bg-transparent outline-none font-sans text-[0.95rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
+                aria-label="Dirección o ciudad"
+              />
+              <button
+                type="button"
+                onClick={useMyLocation}
+                disabled={pending}
+                aria-label="Usar mi ubicación"
+                className="grid place-items-center w-10 h-10 rounded-full text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors disabled:opacity-50"
+              >
+                <TargetIcon />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={useMyLocation}
-              disabled={pending}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 disabled:opacity-60"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="2" x2="12" y2="4" />
-                <line x1="12" y1="20" x2="12" y2="22" />
-                <line x1="2" y1="12" x2="4" y2="12" />
-                <line x1="20" y1="12" x2="22" y2="12" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              <span className="font-sans text-[0.92rem] font-medium">
-                Usar mi ubicación
-              </span>
-            </button>
           </form>
 
           {error && (
-            <p className="mt-4 font-sans text-[0.92rem] text-[var(--vino)]">
+            <p role="alert" className="mt-4 font-sans text-[0.92rem] text-[var(--vino)]">
               {error}
             </p>
           )}
 
           {pending && (
-            <div className="mt-8 flex items-center gap-3">
+            <div className="mt-8 flex items-center gap-2 justify-center">
               <span className="flex items-center gap-[5px]">
                 <span className="dot-1 inline-block w-[6px] h-[6px] rounded-full bg-[var(--gold)]" />
                 <span className="dot-2 inline-block w-[6px] h-[6px] rounded-full bg-[var(--gold)]" />
@@ -237,113 +175,223 @@ function Misas() {
           )}
 
           {churches && (
-            <div className="mt-8">
-              <p className="font-sans text-[0.78rem] text-[var(--ink-faint)] mb-3">
-                {churches.length} iglesia{churches.length === 1 ? "" : "s"} cerca de{" "}
-                <span className="text-[var(--ink)]">{searchedFrom}</span>
+            <div className="mt-7">
+              <p className="font-sans text-[0.82rem] text-[var(--ink-soft)] mb-4">
+                {churches.length} resultado{churches.length === 1 ? "" : "s"} encontrado{churches.length === 1 ? "" : "s"}
+                {searchedFrom && (
+                  <>
+                    {" cerca de "}
+                    <span className="text-[var(--ink)]">{searchedFrom}</span>
+                  </>
+                )}
               </p>
               <ul className="space-y-3">
                 {churches.map((c, i) => (
-                  <ChurchCard key={c.id} church={c} index={i} />
+                  <ChurchCard
+                    key={c.id}
+                    church={c}
+                    index={i}
+                    origin={searchOrigin}
+                  />
                 ))}
               </ul>
-              <p className="mt-6 font-sans text-[0.78rem] text-[var(--ink-faint)] leading-relaxed">
-                Los horarios reales de Misa los confirma cada parroquia.
-                Toca el sitio web o llama para asegurarte antes de ir.
+            </div>
+          )}
+
+          {!churches && !pending && !error && (
+            <div className="mt-10 text-center">
+              <p className="font-serif italic text-[1.1rem] text-[var(--ink)]">
+                Empieza buscando una ubicación
+              </p>
+              <p className="mt-2 font-sans text-[0.9rem] text-[var(--ink-soft)]">
+                Escribe tu ciudad o usa el botón de ubicación.
               </p>
             </div>
           )}
         </div>
       </main>
-      </div>
+
       <BottomNav />
     </div>
   );
 }
 
-function ChurchCard({ church, index }: { church: Church; index: number }) {
+function ChurchCard({
+  church,
+  index,
+  origin,
+}: {
+  church: Church;
+  index: number;
+  origin: SearchOrigin;
+}) {
   const distanceText =
     church.distanceMeters < 1000
       ? `${Math.round(church.distanceMeters)} m`
       : `${(church.distanceMeters / 1000).toFixed(1)} km`;
+
+  const todayHours = pickTodayHours(church.openingHours);
+
+  // Forward the search origin so the detail page can show distance from the
+  // same point the user originally searched from (rather than the church
+  // itself, which would always say "0 m").
+  const detailHref = origin
+    ? `/misas/${church.id}?lat=${origin.lat}&lng=${origin.lng}`
+    : `/misas/${church.id}`;
 
   return (
     <motion.li
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: index * 0.025, duration: 0.25 }}
-      className="bg-[var(--surface)] border border-[var(--rule)] rounded-lg p-4"
+      className="bg-[var(--surface)] border border-[var(--rule)] rounded-xl overflow-hidden"
     >
-      <div className="flex items-start justify-between gap-3 mb-1">
-        <h3 className="font-serif text-[1.05rem] text-[var(--ink)] leading-snug">
-          {church.name}
-        </h3>
-        <span className="shrink-0 font-sans text-[0.75rem] tracking-[0.08em] uppercase text-[var(--gold-text)]">
-          {distanceText}
-        </span>
-      </div>
-      <p className="font-sans text-[0.86rem] text-[var(--ink-soft)] leading-relaxed">
-        {church.address}
-      </p>
-
-      {church.openingHours && church.openingHours.length > 0 && (
-        <details className="mt-3 group">
-          <summary className="cursor-pointer font-sans text-[0.78rem] text-[var(--ink-faint)] hover:text-[var(--gold-text)] select-none">
-            <span className="group-open:hidden">Ver horario de la parroquia</span>
-            <span className="hidden group-open:inline">Ocultar horario</span>
-          </summary>
-          <ul className="mt-2 space-y-1 font-sans text-[0.82rem] text-[var(--ink-soft)]">
-            {church.openingHours.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-          <p className="mt-2 font-sans text-[0.72rem] text-[var(--ink-faint)] italic">
-            Estos son los horarios que la parroquia publicó en Google.
-            Confirma con su web o teléfono antes de ir.
-          </p>
-        </details>
-      )}
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <a
-          href={church.mapsUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--rule)] hover:border-[var(--gold)] hover:bg-[var(--vellum)] font-sans text-[0.84rem] text-[var(--ink-soft)] hover:text-[var(--gold-text)] transition-colors min-h-[36px]"
+      <div className="flex items-stretch">
+        {/* Photo column — square. Falls back to a soft placeholder. */}
+        <Link
+          href={detailHref}
+          className="block w-[110px] sm:w-[124px] shrink-0 bg-[var(--vellum)] relative"
+          aria-hidden="true"
+          tabIndex={-1}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
-          Ver en Maps
-        </a>
-        {church.website && (
-          <a
-            href={church.website}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--rule)] hover:border-[var(--gold)] hover:bg-[var(--vellum)] font-sans text-[0.84rem] text-[var(--ink-soft)] hover:text-[var(--gold-text)] transition-colors min-h-[36px]"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="2" y1="12" x2="22" y2="12" />
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-            </svg>
-            Sitio web
-          </a>
-        )}
-        {church.phone && (
-          <a
-            href={`tel:${church.phone.replace(/\s+/g, "")}`}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--rule)] hover:border-[var(--gold)] hover:bg-[var(--vellum)] font-sans text-[0.84rem] text-[var(--ink-soft)] hover:text-[var(--gold-text)] transition-colors min-h-[36px]"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-            </svg>
-            Llamar
-          </a>
-        )}
+          {church.photoName ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`/api/places-photo?name=${encodeURIComponent(church.photoName)}&w=320`}
+              alt=""
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-[var(--gold-text)] opacity-50">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="2" x2="12" y2="5" />
+                <line x1="10.5" y1="3.5" x2="13.5" y2="3.5" />
+                <path d="M5 21V11l7-4 7 4v10" />
+                <line x1="3" y1="21" x2="21" y2="21" />
+                <rect x="10" y="14" width="4" height="7" />
+              </svg>
+            </div>
+          )}
+        </Link>
+
+        {/* Content column */}
+        <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col">
+          <Link href={detailHref} className="group min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="font-serif text-[1rem] sm:text-[1.05rem] text-[var(--ink)] leading-[1.25] line-clamp-2 group-hover:text-[var(--gold-text)] transition-colors">
+                {church.name}
+              </h3>
+              <span className="shrink-0 font-sans text-[0.76rem] text-[var(--ink-faint)]">
+                {distanceText}
+              </span>
+            </div>
+            {todayHours && (
+              <p className="mt-1.5 font-sans text-[0.74rem] tracking-[0.06em] uppercase text-[var(--ink-faint)]">
+                Próxima misa
+              </p>
+            )}
+            <p className="font-sans text-[0.86rem] text-[var(--gold-text)] font-medium leading-tight">
+              {todayHours ?? "Ver horarios"}
+            </p>
+          </Link>
+
+          <div className="mt-auto pt-2 flex items-center gap-1.5">
+            {church.phone && (
+              <a
+                href={`tel:${church.phone.replace(/\s+/g, "")}`}
+                aria-label={`Llamar a ${church.name}`}
+                className="grid place-items-center w-9 h-9 rounded-full border border-[var(--rule)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors"
+              >
+                <PhoneIcon />
+              </a>
+            )}
+            <a
+              href={church.mapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Cómo llegar a ${church.name}`}
+              className="grid place-items-center w-9 h-9 rounded-full border border-[var(--rule)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors"
+            >
+              <DirectionsIcon />
+            </a>
+          </div>
+        </div>
       </div>
     </motion.li>
+  );
+}
+
+/**
+ * Try to extract today's opening line from Google's weekdayDescriptions array.
+ * Format is e.g. "miércoles: 8:00 - 19:00" or "jueves: cerrado".
+ * Falls back to null if we can't find a line for today.
+ */
+function pickTodayHours(lines?: string[] | null): string | null {
+  if (!lines || lines.length === 0) return null;
+  const days = [
+    "domingo",
+    "lunes",
+    "martes",
+    "miércoles",
+    "jueves",
+    "viernes",
+    "sábado",
+  ];
+  const today = days[new Date().getDay()];
+  const line = lines.find((l) => l.toLowerCase().startsWith(today));
+  if (!line) return null;
+  // Strip the "today:" prefix to leave just the hours.
+  const idx = line.indexOf(":");
+  const rest = idx >= 0 ? line.slice(idx + 1).trim() : line;
+  if (/cerrado|closed/i.test(rest)) return null;
+  return `Hoy ${rest}`;
+}
+
+function BackIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
+    </svg>
+  );
+}
+
+function PinIcon({ className }: { className?: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+function TargetIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="2" x2="12" y2="4" />
+      <line x1="12" y1="20" x2="12" y2="22" />
+      <line x1="2" y1="12" x2="4" y2="12" />
+      <line x1="20" y1="12" x2="22" y2="12" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function PhoneIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg>
+  );
+}
+
+function DirectionsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </svg>
   );
 }

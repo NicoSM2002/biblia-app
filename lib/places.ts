@@ -6,6 +6,7 @@
 
 const GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json";
 const PLACES_TEXT_SEARCH_URL = "https://places.googleapis.com/v1/places:searchText";
+const PLACES_DETAILS_URL = "https://places.googleapis.com/v1/places";
 
 export type Coords = { lat: number; lng: number };
 
@@ -21,6 +22,16 @@ export type Church = {
   userRatingCount?: number | null;
   openingHours?: string[] | null;
   mapsUrl: string;
+  /** First photo's reference name, e.g. "places/XYZ/photos/ABC". Pass to
+   *  /api/places-photo?name=… to render. Null if Google has no photo. */
+  photoName?: string | null;
+};
+
+export type ChurchDetail = Church & {
+  /** All photo references (up to 10), to power a small carousel */
+  photoNames: string[];
+  /** Editorial summary (a short Google-curated description) when available */
+  description?: string | null;
 };
 
 function getApiKey(): string {
@@ -62,9 +73,7 @@ export async function geocodeAddress(
 }
 
 /**
- * Search for nearby Catholic churches using the Places API (New) text search,
- * which returns more relevant results for our query than Nearby Search +
- * type filtering.
+ * Search for nearby Catholic churches using the Places API (New) text search.
  */
 export async function searchNearbyChurches(
   center: Coords,
@@ -82,6 +91,7 @@ export async function searchNearbyChurches(
     "places.userRatingCount",
     "places.regularOpeningHours",
     "places.googleMapsUri",
+    "places.photos",
   ].join(",");
 
   const res = await fetch(PLACES_TEXT_SEARCH_URL, {
@@ -111,19 +121,7 @@ export async function searchNearbyChurches(
     throw new Error(`Places API ${res.status}: ${body.slice(0, 300)}`);
   }
   const data = (await res.json()) as {
-    places?: Array<{
-      id: string;
-      displayName?: { text?: string };
-      formattedAddress?: string;
-      location?: { latitude: number; longitude: number };
-      nationalPhoneNumber?: string;
-      internationalPhoneNumber?: string;
-      websiteUri?: string;
-      rating?: number;
-      userRatingCount?: number;
-      regularOpeningHours?: { weekdayDescriptions?: string[] };
-      googleMapsUri?: string;
-    }>;
+    places?: Array<RawPlace>;
   };
 
   const churches: Church[] = (data.places ?? [])
@@ -137,30 +135,108 @@ export async function searchNearbyChurches(
           p.displayName.text + " " + (p.formattedAddress ?? ""),
         ),
     )
-    .map((p) => {
-      const loc = p.location!;
-      return {
-        id: p.id,
-        name: p.displayName!.text!,
-        address: p.formattedAddress ?? "",
-        location: { lat: loc.latitude, lng: loc.longitude },
-        distanceMeters: haversine(center, {
-          lat: loc.latitude,
-          lng: loc.longitude,
-        }),
-        phone: p.nationalPhoneNumber ?? p.internationalPhoneNumber ?? null,
-        website: p.websiteUri ?? null,
-        rating: p.rating ?? null,
-        userRatingCount: p.userRatingCount ?? null,
-        openingHours: p.regularOpeningHours?.weekdayDescriptions ?? null,
-        mapsUrl:
-          p.googleMapsUri ||
-          `https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}&query_place_id=${p.id}`,
-      };
-    });
+    .map((p) => mapPlaceToChurch(p, center));
 
   churches.sort((a, b) => a.distanceMeters - b.distanceMeters);
   return churches;
+}
+
+/**
+ * Fetch full detail for a single place by ID. Includes a longer photo list
+ * and editorial summary when Google provides one.
+ */
+export async function getChurchDetail(
+  placeId: string,
+  origin?: Coords | null,
+): Promise<ChurchDetail | null> {
+  const fields = [
+    "id",
+    "displayName",
+    "formattedAddress",
+    "location",
+    "nationalPhoneNumber",
+    "internationalPhoneNumber",
+    "websiteUri",
+    "rating",
+    "userRatingCount",
+    "regularOpeningHours",
+    "googleMapsUri",
+    "photos",
+    "editorialSummary",
+  ].join(",");
+
+  const url = `${PLACES_DETAILS_URL}/${encodeURIComponent(placeId)}`;
+  const res = await fetch(url, {
+    headers: {
+      "X-Goog-Api-Key": getApiKey(),
+      "X-Goog-FieldMask": fields,
+      "Accept-Language": "es",
+    },
+    cache: "no-store",
+  });
+
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Places API ${res.status}: ${body.slice(0, 300)}`);
+  }
+
+  const p = (await res.json()) as RawPlace;
+  if (!p.displayName?.text || !p.location) return null;
+
+  const referenceCenter = origin ?? {
+    lat: p.location.latitude,
+    lng: p.location.longitude,
+  };
+  const base = mapPlaceToChurch(p, referenceCenter);
+  return {
+    ...base,
+    photoNames: (p.photos ?? [])
+      .filter((ph): ph is { name: string } => !!ph?.name)
+      .map((ph) => ph.name)
+      .slice(0, 10),
+    description: p.editorialSummary?.text ?? null,
+  };
+}
+
+type RawPlace = {
+  id: string;
+  displayName?: { text?: string };
+  formattedAddress?: string;
+  location?: { latitude: number; longitude: number };
+  nationalPhoneNumber?: string;
+  internationalPhoneNumber?: string;
+  websiteUri?: string;
+  rating?: number;
+  userRatingCount?: number;
+  regularOpeningHours?: { weekdayDescriptions?: string[] };
+  googleMapsUri?: string;
+  photos?: Array<{ name?: string }>;
+  editorialSummary?: { text?: string };
+};
+
+function mapPlaceToChurch(p: RawPlace, center: Coords): Church {
+  const loc = p.location!;
+  const firstPhoto = p.photos?.find((ph) => ph?.name)?.name ?? null;
+  return {
+    id: p.id,
+    name: p.displayName!.text!,
+    address: p.formattedAddress ?? "",
+    location: { lat: loc.latitude, lng: loc.longitude },
+    distanceMeters: haversine(center, {
+      lat: loc.latitude,
+      lng: loc.longitude,
+    }),
+    phone: p.nationalPhoneNumber ?? p.internationalPhoneNumber ?? null,
+    website: p.websiteUri ?? null,
+    rating: p.rating ?? null,
+    userRatingCount: p.userRatingCount ?? null,
+    openingHours: p.regularOpeningHours?.weekdayDescriptions ?? null,
+    mapsUrl:
+      p.googleMapsUri ||
+      `https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}&query_place_id=${p.id}`,
+    photoName: firstPhoto,
+  };
 }
 
 function haversine(a: Coords, b: Coords): number {
