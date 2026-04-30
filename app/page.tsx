@@ -28,6 +28,20 @@ export default function HomePage() {
 
   useEffect(() => {
     try {
+      // Match the inline-script logic: on reload (F5 / Cmd+R) always show
+      // the daily verse. Only respect a previous dismiss for in-app
+      // navigation (link clicks, back/forward, first visit).
+      let navType = "navigate";
+      try {
+        const entries = performance.getEntriesByType(
+          "navigation",
+        ) as PerformanceNavigationTiming[];
+        if (entries[0]?.type) navType = entries[0].type;
+      } catch {
+        // ignore — older browsers
+      }
+      if (navType === "reload") return;
+
       const today = new Date().toISOString().slice(0, 10);
       if (sessionStorage.getItem("dailyVerseSeen") === today) {
         setShowDailyVerse(false);
