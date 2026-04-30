@@ -43,9 +43,13 @@ export const viewport: Viewport = {
 /**
  * Synchronously sets `data-theme` on <html> from localStorage or system
  * preference, BEFORE React hydrates, so the user never sees a flash from
- * light → dark on page load.
+ * light → dark on page load. We also decide whether the daily-verse
+ * overlay should be visible by reading sessionStorage. CSS hides the
+ * overlay if `data-daily-verse-seen='1'` is set, so users who already
+ * saw today's verse never see a flash of the home page underneath
+ * before React mounts the overlay.
  */
-const themeInitScript = `
+const initScript = `
 (function() {
   try {
     var saved = localStorage.getItem('theme');
@@ -53,6 +57,12 @@ const themeInitScript = `
       ? saved
       : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', theme);
+  } catch (e) {}
+  try {
+    var today = new Date().toISOString().slice(0, 10);
+    if (sessionStorage.getItem('dailyVerseSeen') === today) {
+      document.documentElement.setAttribute('data-daily-verse-seen', '1');
+    }
   } catch (e) {}
 })();
 `;
@@ -66,7 +76,7 @@ export default function RootLayout({
       className={`${garamond.variable} ${inter.variable} h-full`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: initScript }} />
       </head>
       <body className="relative min-h-full antialiased">
         <ViewTransitionLinks />

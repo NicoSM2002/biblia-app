@@ -143,16 +143,13 @@ html, body {
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  /* 400ms is the sweet spot between "perceptible transition" and
-     "interactive again". Longer durations (700ms+) made buttons feel
-     locked because the visual fade keeps overlapping the new page's
-     hydration, even though clicks technically pass through. */
-  animation-duration: 400ms;
+  /* 480ms gives the crossfade enough room to feel intentional. Combined
+     with a subtle scale, the transition reads as 3-dimensional rather
+     than a flat opacity blend. */
+  animation-duration: 480ms;
   animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
   mix-blend-mode: normal;
-  /* Snapshots are visual only — clicks must pass straight through to the
-     real DOM beneath. The spec already does this by default, but being
-     explicit removes any doubt. */
+  /* Snapshots are visual only — clicks must pass straight through. */
   pointer-events: none;
 }
 
@@ -163,13 +160,24 @@ html, body {
   animation-name: vt-fade-in;
 }
 
+/* Tiny scale (2%) gives the crossfade a sense of depth — outgoing page
+   recedes slightly, incoming page settles into place. Subtle enough that
+   it doesn't read as movement, but enough to make the transition feel
+   like more than just opacity. */
 @keyframes vt-fade-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.98); }
 }
 @keyframes vt-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: scale(1.02); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Daily-verse overlay hidden if user already saw today's verse — the
+   inline init script in app/layout.tsx sets the attribute synchronously
+   before any paint, so the overlay never flashes for repeat visits. */
+:root[data-daily-verse-seen="1"] [data-daily-overlay] {
+  display: none !important;
 }
 
 /* Subtle paper-grain noise overlay — gives the page tactility (lower opacity).

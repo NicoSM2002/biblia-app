@@ -1,28 +1,27 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LatinCross } from "@/components/Cross";
 import { AuthButton } from "@/components/AuthButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { DailyVerse } from "@/components/DailyVerse";
 
-// useLayoutEffect runs synchronously after DOM mutations but BEFORE the
-// browser paints — exactly what we need to make the daily-verse decision
-// land in the very first paint (no flash of home behind). On the server
-// it falls back to useEffect, which avoids the SSR warning and is fine
-// because there's no paint to worry about there.
-const useIsomorphicLayoutEffect =
-  typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
 export default function HomePage() {
-  // Daily verse welcome — once per session per day, in sessionStorage so a
-  // page refresh doesn't reshow it.
-  const [showDailyVerse, setShowDailyVerse] = useState<boolean | null>(null);
-  useIsomorphicLayoutEffect(() => {
+  // The DailyVerse is rendered into the SSR HTML always — the inline
+  // script in app/layout.tsx sets `data-daily-verse-seen="1"` on <html>
+  // BEFORE any paint if sessionStorage says today's verse was already
+  // seen, and a CSS rule (in globals.css) hides the overlay in that
+  // case. So repeat visitors never see a flash of the home behind. Here
+  // we just start with `open: true` and dismiss it in useEffect for
+  // repeat visitors so the React tree matches.
+  const [showDailyVerse, setShowDailyVerse] = useState<boolean>(true);
+  useEffect(() => {
     try {
       const today = new Date().toISOString().slice(0, 10);
-      setShowDailyVerse(sessionStorage.getItem("dailyVerseSeen") !== today);
+      if (sessionStorage.getItem("dailyVerseSeen") === today) {
+        setShowDailyVerse(false);
+      }
     } catch {
       setShowDailyVerse(false);
     }
@@ -64,7 +63,7 @@ export default function HomePage() {
           </div>
         </main>
 
-        <DailyVerse open={!!showDailyVerse} onContinue={dismissDailyVerse} />
+        <DailyVerse open={showDailyVerse} onContinue={dismissDailyVerse} />
       </div>
     </div>
   );

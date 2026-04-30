@@ -89,6 +89,7 @@ export function DailyVerse({
       {open && (
         <motion.div
           key="daily-verse-overlay"
+          data-daily-overlay
           role="dialog"
           aria-modal="true"
           aria-labelledby="daily-verse-title"
