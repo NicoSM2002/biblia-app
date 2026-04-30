@@ -323,19 +323,11 @@ export default function ChatPage() {
   const empty = turns.length === 0;
 
   return (
-    <div className="relative h-[100dvh] flex flex-col overflow-hidden pb-[68px]">
+    <div className="relative h-[100dvh] flex flex-col overflow-hidden pb-[88px]">
       <div className="missal-page">
         <Header
-          onReset={reset}
           onOpenHistory={signedIn ? () => setHistoryOpen(true) : undefined}
           conversationTitle={activeConversationTitle}
-          exportableTurns={turns
-            .filter((t) => t.status === "done" && (t.response || t.verse))
-            .map((t) => ({
-              question: t.question,
-              verse: t.verse ?? null,
-              response: t.response,
-            }))}
         />
         <HistorySheet
           open={historyOpen}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState, type FormEvent } from "react";
+import { flushSync } from "react-dom";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/BottomNav";
@@ -64,6 +65,11 @@ function Misas() {
   const [churches, setChurches] = useState<Church[] | null>(null);
   const [searchedFrom, setSearchedFrom] = useState<string | null>(null);
   const [searchOrigin, setSearchOrigin] = useState<SearchOrigin>(null);
+  // Tracks the church id whose card was last clicked. Only that card's
+  // image gets a `view-transition-name` — otherwise all 20 photos cross-
+  // fade simultaneously during navigation, which reads as a "brusco" flash
+  // even though only one of them actually morphs to the hero.
+  const [lastClickedId, setLastClickedId] = useState<string | null>(null);
 
   // Restore the previous search on mount so coming back from a detail page
   // (or any other in-app navigation) keeps the list and the address the
@@ -76,6 +82,12 @@ function Misas() {
       setChurches(cached.churches);
       setSearchedFrom(cached.searchedFrom);
       setSearchOrigin(cached.searchOrigin);
+    }
+    try {
+      const last = sessionStorage.getItem("lastClickedChurchId");
+      if (last) setLastClickedId(last);
+    } catch {
+      // ignore
     }
   }, []);
 
@@ -239,6 +251,24 @@ function Misas() {
                     church={c}
                     index={i}
                     origin={searchOrigin}
+                    isLastClicked={lastClickedId === c.id}
+                    onPick={() => {
+                      // flushSync so the state update — and therefore the
+                      // VTN assignment — lands in the DOM before the view
+                      // transition snapshot is taken on the click event.
+                      flushSync(() => {
+                        setLastClickedId(c.id);
+                      });
+                      try {
+                        sessionStorage.setItem("lastClickedChurchId", c.id);
+                        sessionStorage.setItem(
+                          "selectedChurch",
+                          JSON.stringify(c),
+                        );
+                      } catch {
+                        // ignore
+                      }
+                    }}
                   />
                 ))}
               </ul>
@@ -267,10 +297,14 @@ function ChurchCard({
   church,
   index,
   origin,
+  isLastClicked,
+  onPick,
 }: {
   church: Church;
   index: number;
   origin: SearchOrigin;
+  isLastClicked: boolean;
+  onPick: () => void;
 }) {
   const distanceText =
     church.distanceMeters < 1000
@@ -279,27 +313,17 @@ function ChurchCard({
 
   const todayHours = pickTodayHours(church.openingHours);
 
-  // Forward the search origin so the detail page can show distance from the
-  // same point the user originally searched from (rather than the church
-  // itself, which would always say "0 m").
   const detailHref = origin
     ? `/misas/${church.id}?lat=${origin.lat}&lng=${origin.lng}`
     : `/misas/${church.id}`;
 
-  // Hand off the data we already have so the detail page can render the
-  // photo + name + address immediately on first paint — without waiting
-  // for /api/iglesias/[placeId] to come back. This is what makes the
-  // shared-element view transition feel like a real morph instead of
-  // landing on an empty skeleton and snapping in. The detail page reads
-  // this on mount and clears it after.
-  function stashChurch() {
-    try {
-      sessionStorage.setItem("selectedChurch", JSON.stringify(church));
-    } catch {
-      // ignore — without this hand-off the detail just shows a tiny
-      // loading state for ~200ms, no big deal.
-    }
-  }
+  // We use onPointerDown (not onClick) for the data hand-off because the
+  // global ViewTransitionLinks listener intercepts clicks in capture phase
+  // with stopImmediatePropagation — that's by design (so React's
+  // synthetic onClick on the Next.js <Link> never fires the default
+  // navigation), but it also blocks any onClick we put on the link.
+  // pointerdown fires earlier and isn't intercepted, so we get a
+  // guaranteed chance to save state before the view transition kicks in.
 
   return (
     <motion.li
@@ -312,7 +336,7 @@ function ChurchCard({
         {/* Photo column — square. Falls back to a soft placeholder. */}
         <Link
           href={detailHref}
-          onClick={stashChurch}
+          onPointerDown={onPick}
           className="block w-[110px] sm:w-[124px] shrink-0 bg-[var(--vellum)] relative"
           aria-hidden="true"
           tabIndex={-1}
@@ -324,12 +348,16 @@ function ChurchCard({
               alt=""
               draggable={false}
               className="absolute inset-0 w-full h-full object-cover"
-              // Shared element transition: when the user taps this card, the
-              // browser sees an element with the same view-transition-name
-              // on the destination page (the hero photo) and morphs from
-              // here to there. We use the same `w=800` URL on both pages so
-              // the browser cache hits and the morph has an image to draw.
-              style={{ viewTransitionName: `church-photo-${church.id}` }}
+              // Shared element transition: only this card's photo gets a
+              // view-transition-name when it's the last one tapped. That
+              // avoids 20 photos cross-fading in parallel during the
+              // navigation. Same URL (`w=800`) as the detail hero so the
+              // browser cache hits and the morph has an image to draw.
+              style={
+                isLastClicked
+                  ? { viewTransitionName: "church-photo-shared" }
+                  : undefined
+              }
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[var(--gold-text)] opacity-50">
@@ -346,7 +374,7 @@ function ChurchCard({
 
         {/* Content column */}
         <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col">
-          <Link href={detailHref} onClick={stashChurch} className="group min-w-0">
+          <Link href={detailHref} onPointerDown={onPick} className="group min-w-0">
             <div className="flex items-start justify-between gap-2">
               <h3 className="font-serif text-[1rem] sm:text-[1.05rem] text-[var(--ink)] leading-[1.25] line-clamp-2 group-hover:text-[var(--gold-text)] transition-colors">
                 {church.name}

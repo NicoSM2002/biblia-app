@@ -365,7 +365,15 @@ function PhotoCarousel({
         alt={churchName}
         draggable={false}
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ viewTransitionName: `church-photo-${churchId}` }}
+        // Only the FIRST photo in the carousel gets the shared name —
+        // that's the photo the user just morphed in from. If they swipe
+        // to a different photo, no shared name (otherwise switching photos
+        // would also try to trigger a transition).
+        style={
+          index === 0
+            ? { viewTransitionName: "church-photo-shared" }
+            : undefined
+        }
       />
 
       {photos.length > 1 && (
