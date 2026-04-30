@@ -150,18 +150,29 @@ html, body {
   mix-blend-mode: normal;
 }
 
-/* Shared element transitions (any element with a view-transition-name
-   other than root, e.g. the church photo when navigating from /misas to
-   /misas/[id]). The default cross-fade is too fast for a card → hero
-   morph; 420ms with a gentle curve gives it the "zooming in to the
-   parish" feel without dragging. */
+/* Shared element transitions (church photo morph from card to hero).
+   The trick: keep the *group* (container) animating for 420ms so the
+   image-shaped frame morphs from card-size to hero-size smoothly, but
+   make the *old/new image cross-fade* almost instant (50ms). Otherwise
+   the browser cross-fades the old image with the new image — even
+   though they're the same URL — and it reads as a flash of "reload"
+   on top of the morph. With near-instant image cross-fade the eye sees
+   only the smooth shape change. */
 ::view-transition-group(*) {
   animation-duration: 420ms;
   animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 50ms;
+}
+/* Root keeps the regular crossfade — these have to come AFTER the (*)
+   rules so they win on equal specificity. */
 ::view-transition-group(root) {
-  /* Don't apply the longer duration to the root group — it would slow
-     down the route fade. */
+  animation-duration: 280ms;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
   animation-duration: 280ms;
 }
 
