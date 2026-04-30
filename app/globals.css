@@ -143,7 +143,7 @@ html, body {
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 500ms;
+  animation-duration: 700ms;
   animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
   /* Both old and new snapshots animate at the same time — that's the
      crossfade. mix-blend-mode normal keeps the background readable while

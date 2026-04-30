@@ -96,7 +96,7 @@ export function DailyVerse({
           animate={{ opacity: ready ? 1 : 0 }}
           exit={{ opacity: 0 }}
           transition={{
-            duration: reduce ? 0 : 0.55,
+            duration: reduce ? 0 : 0.75,
             ease: [0.2, 0.7, 0.2, 1],
           }}
           className="fixed inset-0 z-[80] flex flex-col items-center justify-center px-6 bg-[var(--paper)] no-print overflow-hidden cursor-pointer"

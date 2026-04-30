@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation";
  * verifying this works in production. Once confirmed, we'll set
  * SHOW_DEBUG to false.
  */
-const SHOW_DEBUG = true;
+const SHOW_DEBUG = false;
 
 export function ViewTransitionLinks() {
   const router = useRouter();
