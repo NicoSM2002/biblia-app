@@ -51,18 +51,12 @@ export const viewport: Viewport = {
  */
 const initScript = `
 (function() {
-  // Theme — always set data-theme so the no-attribute fallback (which
-  // matches @media prefers-color-scheme: dark) never wins by accident.
-  var theme = 'light';
-  try {
-    var saved = localStorage.getItem('theme');
-    if (saved === 'dark' || saved === 'light') {
-      theme = saved;
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      theme = 'dark';
-    }
-  } catch (e) {}
-  document.documentElement.setAttribute('data-theme', theme);
+  // Theme — always start in light. The user explicitly asked that the
+  // app not persist a theme choice across reloads. The toggle still
+  // works within a session, but every fresh load begins in light mode.
+  // Setting data-theme explicitly also prevents the @media
+  // (prefers-color-scheme: dark) fallback from briefly applying dark.
+  document.documentElement.setAttribute('data-theme', 'light');
 
   // Daily verse — if already seen today, mark <html> so CSS hides the
   // overlay before any paint.

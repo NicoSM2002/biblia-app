@@ -587,11 +587,12 @@ body::before {
   to   { opacity: 1; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cross-breathing { animation: none !important; opacity: 1; }
-  .daily-verse-content.is-ready { animation: none !important; opacity: 1; }
-  .daily-verse-exiting { animation: none !important; opacity: 0; }
-}
+/* The daily-verse animations are intentionally NOT disabled by
+   prefers-reduced-motion. They're the central moment of arrival to the
+   app and the user explicitly asked for them; turning them off makes
+   the overlay feel broken. The system-wide reduced-motion preference
+   still disables every other animation (route transitions, route fades,
+   etc.) — see the global rule earlier in this file. */
 
 /* Selection styling — gold halo, slightly stronger so it's visible on cream */
 ::selection {

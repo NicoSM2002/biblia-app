@@ -23,7 +23,9 @@ export default function HomePage() {
         setShowDailyVerse(false);
       }
     } catch {
-      setShowDailyVerse(false);
+      // sessionStorage unavailable (private mode, etc.) — leave the
+      // overlay showing. Dismissing it would create a 0.2s flash on
+      // every visit because the SSR HTML includes the overlay by design.
     }
   }, []);
   function dismissDailyVerse() {

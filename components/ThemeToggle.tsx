@@ -6,52 +6,29 @@ type Theme = "light" | "dark";
 
 /**
  * Reads the current theme from <html data-theme="…"> on mount and lets the
- * user toggle between light and dark. The initial value is set by the inline
- * script in app/layout.tsx so there's no flash on first paint.
+ * user toggle between light and dark within the current session. The initial
+ * value is hardcoded to "light" by the inline script in app/layout.tsx — the
+ * choice is intentionally NOT persisted, so every fresh page load starts in
+ * light mode. (The user explicitly asked for this behavior; persisting via
+ * localStorage was causing confusion when the OS dark preference and saved
+ * choice diverged.)
  *
- * The user's explicit choice is persisted in localStorage; without a saved
- * choice the app follows the OS `prefers-color-scheme` automatically.
- *
- * The visible theme transition uses the View Transitions API where supported,
- * falling back to a CSS root-level transition on color/background-color so
- * the swap reads as a soft crossfade rather than an instant flash.
+ * The visible theme transition uses the View Transitions API where
+ * supported.
  */
 export function ThemeToggle() {
-  // Render the button on first paint to avoid a wasted first click on a
-  // placeholder. Theme is read from the DOM during click, so an unknown
-  // initial state is fine — we just default the icon to "moon" until mount.
   const [theme, setTheme] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const current = (document.documentElement.getAttribute("data-theme") ||
-      (window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light")) as Theme;
+      "light") as Theme;
     setTheme(current);
     setMounted(true);
-
-    // Keep in sync if the OS preference changes mid-session AND the user
-    // hasn't picked one explicitly.
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    function onSystem(e: MediaQueryListEvent) {
-      if (!localStorage.getItem("theme")) {
-        const next: Theme = e.matches ? "dark" : "light";
-        document.documentElement.setAttribute("data-theme", next);
-        setTheme(next);
-      }
-    }
-    mq.addEventListener?.("change", onSystem);
-    return () => mq.removeEventListener?.("change", onSystem);
   }, []);
 
   function applyTheme(next: Theme) {
     document.documentElement.setAttribute("data-theme", next);
-    try {
-      localStorage.setItem("theme", next);
-    } catch {
-      // ignore (private mode etc.)
-    }
     setTheme(next);
   }
 
@@ -59,13 +36,11 @@ export function ThemeToggle() {
     // Always read the *current* DOM theme — covers the case where the
     // component just mounted and our state may still be stale.
     const current = (document.documentElement.getAttribute("data-theme") ||
-      (window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light")) as Theme;
+      "light") as Theme;
     const next: Theme = current === "dark" ? "light" : "dark";
 
     // View Transitions API gives us a free crossfade between old/new
-    // root snapshots. Reduced-motion users skip it via a CSS rule.
+    // root snapshots.
     type DocWithVT = Document & {
       startViewTransition?: (cb: () => void) => unknown;
     };
