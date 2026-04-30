@@ -1,46 +1,51 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 /**
- * Global click interceptor that wraps all in-app navigation in
+ * Global click interceptor that wraps in-app navigation in
  * `document.startViewTransition()` so the browser plays a native
  * crossfade between the old and new page snapshots.
  *
- * Why this instead of framer-motion / a CSS @keyframes wrapper:
+ * Critical implementation detail: the listener is registered in **capture
+ * phase** (the third arg to addEventListener is `true`). React's synthetic
+ * event system, and any onClick handler on a Next.js <Link>, runs in
+ * bubble phase — so without capture phase, Next.js's internal navigation
+ * runs *before* our handler can take over. By the time we'd call
+ * `startViewTransition`, the navigation is already in flight and the
+ * snapshot would be wrong.
  *
- * Next.js 16 with Turbopack has a known scheduling quirk where
- * `<div key={pathname}>` in the root layout doesn't reliably remount
- * during soft navigation — so a mount-triggered CSS animation
- * silently doesn't fire. AnimatePresence has the same family of
- * issues with App Router's children swap. The View Transitions API
- * sidesteps both: it operates on the *browser's* before/after DOM
- * snapshots, totally independent of React reconciliation. As long
- * as the navigation goes through `router.push()`, the crossfade
- * happens.
+ * In capture phase we:
+ *   1. preventDefault()  — block the browser's default <a> navigation
+ *   2. stopImmediatePropagation()  — stop React from getting the event
+ *   3. start the view transition + router.push() ourselves
  *
- * The actual animation curves live in globals.css under
- * `::view-transition-old(root)` and `::view-transition-new(root)`,
- * shared with the theme toggle.
- *
- * Browser support: Chrome 111+, Edge 111+, Safari 18.2+. Older
- * browsers fall through to a regular Next.js navigation (no
- * animation, no flash — body keeps its paper background).
+ * We render a small fixed debug panel at the bottom-left while we're
+ * verifying this works in production. Once confirmed, we'll set
+ * SHOW_DEBUG to false.
  */
+const SHOW_DEBUG = true;
+
 export function ViewTransitionLinks() {
   const router = useRouter();
+  const [supported, setSupported] = useState<boolean | null>(null);
+  const [intercepts, setIntercepts] = useState(0);
+  const [lastHref, setLastHref] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   useEffect(() => {
     type DocWithVT = Document & {
       startViewTransition?: (cb: () => void) => unknown;
     };
     const doc = document as DocWithVT;
-    if (typeof doc.startViewTransition !== "function") return;
+    const isSupported = typeof doc.startViewTransition === "function";
+    setSupported(isSupported);
+
+    if (!isSupported) return;
 
     function handleClick(e: MouseEvent) {
-      // Plain left-clicks only — let the browser handle modifier keys
-      // (cmd-click for new tab, etc.).
+      // Plain left-clicks only.
       if (
         e.button !== 0 ||
         e.metaKey ||
@@ -70,18 +75,70 @@ export function ViewTransitionLinks() {
         return;
       }
 
-      // Skip same-path clicks — no transition needed for them.
+      // Skip same-path clicks.
       if (href === window.location.pathname) return;
 
+      // Take over before Next.js Link's onClick runs.
       e.preventDefault();
-      doc.startViewTransition!(() => {
+      e.stopImmediatePropagation();
+
+      setIntercepts((n) => n + 1);
+      setLastHref(href);
+      setLastError(null);
+
+      try {
+        doc.startViewTransition!(() => {
+          router.push(href);
+        });
+      } catch (err) {
+        setLastError((err as Error).message ?? "unknown");
+        // Fallback: navigate anyway, no transition.
         router.push(href);
-      });
+      }
     }
 
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+    document.addEventListener("click", handleClick, true); // capture phase
+    return () =>
+      document.removeEventListener("click", handleClick, true);
   }, [router]);
 
-  return null;
+  if (!SHOW_DEBUG) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: 8,
+        left: 8,
+        zIndex: 9999,
+        padding: "6px 10px",
+        background: "rgba(0, 0, 0, 0.78)",
+        color: "white",
+        fontFamily: "ui-monospace, monospace",
+        fontSize: 11,
+        lineHeight: 1.5,
+        borderRadius: 6,
+        pointerEvents: "none",
+        maxWidth: 260,
+      }}
+    >
+      <div>
+        VT API:{" "}
+        <strong style={{ color: supported ? "#7CFFB2" : "#FF8888" }}>
+          {supported === null ? "…" : supported ? "yes" : "NO"}
+        </strong>
+      </div>
+      <div>
+        intercepts: <strong>{intercepts}</strong>
+      </div>
+      {lastHref && (
+        <div style={{ wordBreak: "break-all" }}>last: {lastHref}</div>
+      )}
+      {lastError && (
+        <div style={{ color: "#FF8888", wordBreak: "break-all" }}>
+          err: {lastError}
+        </div>
+      )}
+    </div>
+  );
 }
