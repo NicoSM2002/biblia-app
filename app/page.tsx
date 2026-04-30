@@ -1,17 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import { LatinCross } from "@/components/Cross";
 import { AuthButton } from "@/components/AuthButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { DailyVerse } from "@/components/DailyVerse";
 
+// useLayoutEffect runs synchronously after DOM mutations but BEFORE the
+// browser paints — exactly what we need to make the daily-verse decision
+// land in the very first paint (no flash of home behind). On the server
+// it falls back to useEffect, which avoids the SSR warning and is fine
+// because there's no paint to worry about there.
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export default function HomePage() {
   // Daily verse welcome — once per session per day, in sessionStorage so a
   // page refresh doesn't reshow it.
   const [showDailyVerse, setShowDailyVerse] = useState<boolean | null>(null);
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     try {
       const today = new Date().toISOString().slice(0, 10);
       setShowDailyVerse(sessionStorage.getItem("dailyVerseSeen") !== today);

@@ -120,81 +120,84 @@ export function DailyVerse({
             }}
           />
 
-          {/* The content materializes onto the already-opaque paper. The
-              ease-out-expo curve (cubic-bezier(0.16, 1, 0.3, 1)) starts
-              fast and decelerates dramatically toward the end — feels
-              like the words are surfacing from beneath the paper rather
-              than snapping in. 1.3s is long for a fade, but that length
-              is what gives it the "materializing" character. CSS, not
-              framer-motion, so it doesn't multiply against the outer. */}
-          <div
-            className="relative w-full max-w-md text-center cursor-default"
-            style={{
-              opacity: ready ? 1 : 0,
-              transition: reduce
-                ? undefined
-                : "opacity 1300ms cubic-bezier(0.16, 1, 0.3, 1)",
-            }}
-          >
-            <div className="mb-7">
+          {/* Two-layer entrance:
+              1. The cross is visible from frame one (with a soft breathing
+                 pulse while the verse loads — feels like the moment is
+                 settling rather than waiting on a spinner).
+              2. Once the verse arrives (`ready`), the rest of the content
+                 (date, verse, button) materializes with an ease-out-expo
+                 fade — the words emerge from the paper instead of popping. */}
+          <div className="relative w-full max-w-md text-center cursor-default">
+            <div
+              className={`mb-7 ${!ready && !reduce ? "cross-breathing" : ""}`}
+            >
               <LatinCross className="mx-auto text-[var(--gold)]" size={32} />
             </div>
 
-            <p
-              id="daily-verse-title"
-              className="font-sans text-[0.78rem] tracking-[0.22em] uppercase text-[var(--gold-text)] mb-5"
+            <div
+              style={{
+                opacity: ready ? 1 : 0,
+                transition: reduce
+                  ? undefined
+                  : "opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
             >
-              Hoy · {today}
-            </p>
-
-            {error ? (
-              <p className="font-sans text-[1rem] text-[var(--ink-soft)]">
-                La Palabra te espera. Continúa cuando quieras.
-              </p>
-            ) : verse ? (
-              <>
-                <blockquote
-                  cite={verse.reference}
-                  className="font-serif italic text-[1.4rem] sm:text-[1.55rem] leading-[1.45] text-[var(--ink)]"
-                  style={{
-                    textWrap: "pretty" as React.CSSProperties["textWrap"],
-                  }}
-                >
-                  {display}
-                </blockquote>
-                <p className="mt-5 font-sans text-[0.82rem] tracking-[0.16em] uppercase text-[var(--gold-text)]">
-                  {verse.reference}
-                </p>
-              </>
-            ) : null}
-
-            <hr className="hairline-gold mt-8 mx-auto max-w-[8rem]" />
-
-            <button
-              ref={buttonRef}
-              onClick={onContinue}
-              className="mt-7 inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] font-sans text-[0.95rem] font-medium hover:bg-[var(--gold-soft)] transition-colors min-h-[44px]"
-            >
-              Comenzar
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
+              <p
+                id="daily-verse-title"
+                className="font-sans text-[0.78rem] tracking-[0.22em] uppercase text-[var(--gold-text)] mb-5"
               >
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </button>
+                Hoy · {today}
+              </p>
 
-            <p className="mt-4 font-sans text-[0.7rem] text-[var(--ink-faint)]">
-              {ready ? "Toca cualquier parte para continuar" : ""}
-            </p>
+              {error ? (
+                <p className="font-sans text-[1rem] text-[var(--ink-soft)]">
+                  La Palabra te espera. Continúa cuando quieras.
+                </p>
+              ) : verse ? (
+                <>
+                  <blockquote
+                    cite={verse.reference}
+                    className="font-serif italic text-[1.4rem] sm:text-[1.55rem] leading-[1.45] text-[var(--ink)]"
+                    style={{
+                      textWrap: "pretty" as React.CSSProperties["textWrap"],
+                    }}
+                  >
+                    {display}
+                  </blockquote>
+                  <p className="mt-5 font-sans text-[0.82rem] tracking-[0.16em] uppercase text-[var(--gold-text)]">
+                    {verse.reference}
+                  </p>
+                </>
+              ) : null}
+
+              <hr className="hairline-gold mt-8 mx-auto max-w-[8rem]" />
+
+              <button
+                ref={buttonRef}
+                onClick={onContinue}
+                className="mt-7 inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] font-sans text-[0.95rem] font-medium hover:bg-[var(--gold-soft)] transition-colors min-h-[44px]"
+              >
+                Comenzar
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </button>
+
+              <p className="mt-4 font-sans text-[0.7rem] text-[var(--ink-faint)]">
+                {ready ? "Toca cualquier parte para continuar" : ""}
+              </p>
+            </div>
           </div>
         </motion.div>
       )}

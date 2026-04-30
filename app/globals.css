@@ -515,6 +515,22 @@ body::before {
 .dot-2 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 200ms; }
 .dot-3 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 400ms; }
 
+/* Cross-breath — soft "loading" pulse for the daily-verse cross while
+   it waits for the verse to arrive. Goes opacity 0.45 ↔ 1 every 2s
+   with ease-in-out, so the cross feels like it's gently breathing
+   instead of being static. When ready=true the class is removed and
+   the cross settles to opacity 1. */
+@keyframes cross-breath {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1; }
+}
+.cross-breathing {
+  animation: cross-breath 2.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cross-breathing { animation: none !important; opacity: 1; }
+}
+
 /* Selection styling — gold halo, slightly stronger so it's visible on cream */
 ::selection {
   background: rgba(184, 146, 74, 0.32);
