@@ -4,6 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/BottomNav";
 
+// Heights — keep in sync with BottomNav so the prayer surface knows how
+// much vertical room to leave at the bottom.
+const NAV_RESERVE_PX = 88;
+
 type Verse = { reference: string; text: string };
 
 type Phase = "select" | "praying" | "ended";
@@ -99,21 +103,19 @@ export default function OracionPage() {
         }}
       />
 
-      {/* Header */}
-      <header className="relative z-10 px-5 pt-5 pb-3 flex items-center justify-between">
+      {/* Header — no close button. The bottom nav already gives a way out
+          (Inicio / Conversación / Parroquias), so a redundant X just adds
+          chrome to a surface that should feel like a quiet chapel. */}
+      <header className="relative z-10 px-5 pt-6 pb-2 flex items-center justify-center">
         <p className="font-sans text-[0.68rem] tracking-[0.28em] uppercase text-[#D4AC6A]">
           Modo oración
         </p>
-        <Link
-          href="/"
-          aria-label="Salir de modo oración"
-          className="grid place-items-center w-10 h-10 rounded-full text-[#F2EBD9]/70 hover:text-[#F2EBD9] hover:bg-white/5 transition-colors"
-        >
-          <CloseIcon />
-        </Link>
       </header>
 
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center min-h-0">
+      <main
+        className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center min-h-0"
+        style={{ paddingBottom: `calc(${NAV_RESERVE_PX}px + env(safe-area-inset-bottom))` }}
+      >
         {phase === "select" && (
           <SelectPhase onStart={start} />
         )}
@@ -137,9 +139,7 @@ export default function OracionPage() {
         )}
       </main>
 
-      {/* Hide the bottom nav during the actual prayer so nothing competes
-          with the silence. Show it on select / ended for normal navigation. */}
-      {phase !== "praying" && <BottomNav />}
+      <BottomNav />
     </div>
   );
 }
@@ -376,15 +376,6 @@ function PrayingHandsIcon() {
         <path d="M9 21h6" />
       </svg>
     </div>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
   );
 }
 

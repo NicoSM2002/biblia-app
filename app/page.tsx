@@ -6,7 +6,7 @@ import Link from "next/link";
 import { LatinCross } from "@/components/Cross";
 import { HomeAvatar } from "@/components/HomeAvatar";
 import { BottomNav } from "@/components/BottomNav";
-import { DailyVerse } from "@/components/DailyVerse";
+import { Splash } from "@/components/Splash";
 import {
   createClient,
   hasSessionCookie,
@@ -20,36 +20,16 @@ const SUGGESTIONS = [
   { id: "gracias", label: "Quiero dar gracias", icon: <HeartIcon /> },
 ];
 
+const ACROSTIC =
+  /\((?:Alef|Bet|Guímel|Guimel|Dálet|Dalet|He|Vau|Zain|Jet|Tet|Yod|Kaf|Lámed|Lamed|Mem|Nun|Sámec|Samec|Ain|Pe|Sade|Kof|Cof|Res|Sin|Sín|Shin|Tau)\)\s*/gi;
+
+type Verse = { reference: string; text: string };
+
 export default function HomePage() {
   const router = useRouter();
-  const [showDailyVerse, setShowDailyVerse] = useState<boolean>(true);
   const [name, setName] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
-
-  useEffect(() => {
-    try {
-      // Match the inline-script logic: on reload (F5 / Cmd+R) always show
-      // the daily verse. Only respect a previous dismiss for in-app
-      // navigation (link clicks, back/forward, first visit).
-      let navType = "navigate";
-      try {
-        const entries = performance.getEntriesByType(
-          "navigation",
-        ) as PerformanceNavigationTiming[];
-        if (entries[0]?.type) navType = entries[0].type;
-      } catch {
-        // ignore — older browsers
-      }
-      if (navType === "reload") return;
-
-      const today = new Date().toISOString().slice(0, 10);
-      if (sessionStorage.getItem("dailyVerseSeen") === today) {
-        setShowDailyVerse(false);
-      }
-    } catch {
-      // sessionStorage unavailable — leave the overlay showing
-    }
-  }, []);
+  const [verse, setVerse] = useState<Verse | null>(null);
 
   // Read user name (if signed in) for the personalized greeting.
   useEffect(() => {
@@ -64,16 +44,18 @@ export default function HomePage() {
     });
   }, []);
 
-  function dismissDailyVerse() {
-    try {
-      const today = new Date().toISOString().slice(0, 10);
-      sessionStorage.setItem("dailyVerseSeen", today);
-      document.documentElement.setAttribute("data-daily-verse-seen", "1");
-    } catch {
-      // ignore
-    }
-    setShowDailyVerse(false);
-  }
+  // Daily verse fetched in-line (used to be a fullscreen overlay; now it
+  // lives as a section between the input and the suggestions).
+  useEffect(() => {
+    fetch("/api/daily-verse")
+      .then((r) => r.json())
+      .then((d: { verse?: Verse }) => {
+        if (d.verse) setVerse(d.verse);
+      })
+      .catch(() => {
+        // optional — the rest of the home still works
+      });
+  }, []);
 
   function goToChat(q: string) {
     const trimmed = q.trim();
@@ -133,6 +115,9 @@ export default function HomePage() {
             </div>
           </form>
 
+          {/* Versículo del día — replaces the old fullscreen overlay */}
+          {verse && <DailyVerseSection verse={verse} />}
+
           <section className="mt-9">
             <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
               Sugerencias para ti
@@ -187,8 +172,46 @@ export default function HomePage() {
 
       <BottomNav />
 
-      <DailyVerse open={showDailyVerse} onContinue={dismissDailyVerse} />
+      <Splash />
     </div>
+  );
+}
+
+function DailyVerseSection({ verse }: { verse: Verse }) {
+  const display = `“${verse.text.replace(ACROSTIC, "").replace(/\s*\|\s*/g, " — ").trim()}”`;
+  const today = new Date().toLocaleDateString("es-ES", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  return (
+    <section className="mt-9">
+      <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
+        Versículo del día
+      </p>
+      <div
+        className="rounded-xl p-5 sm:p-6"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.03) 100%)",
+          border: "1px solid rgba(184, 146, 74, 0.22)",
+        }}
+      >
+        <p className="font-sans text-[0.7rem] tracking-[0.16em] uppercase text-[var(--gold-text)] mb-3">
+          {today}
+        </p>
+        <blockquote
+          cite={verse.reference}
+          className="font-serif italic text-[1.18rem] sm:text-[1.28rem] leading-[1.5] text-[var(--ink)]"
+          style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
+        >
+          {display}
+        </blockquote>
+        <p className="mt-3 font-sans text-[0.78rem] tracking-[0.14em] uppercase text-[var(--gold-text)]">
+          {verse.reference}
+        </p>
+      </div>
+    </section>
   );
 }
 

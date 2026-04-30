@@ -28,10 +28,20 @@ export function BottomNav() {
   const pathname = usePathname();
   if (pathname?.startsWith("/auth")) return null;
 
+  // Modo Oración has its own dark, candlelit surface — the regular paper
+  // nav clashes against it. We swap to dark tones when we're on /oracion
+  // so the nav blends with the chapel atmosphere instead of fighting it.
+  const dark = pathname === "/oracion";
+
   return (
     <nav
       aria-label="Navegación principal"
-      className="fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print"
+      className={cn(
+        "fixed bottom-0 inset-x-0 z-40 border-t no-print transition-colors duration-200",
+        dark
+          ? "bg-[#0a0604] border-[#3a2c18]"
+          : "bg-[var(--paper)] border-[var(--rule)]",
+      )}
     >
       <ul className="max-w-2xl mx-auto flex items-stretch justify-around px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {items.map((item) => {
@@ -43,9 +53,13 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg transition-colors min-h-[52px]",
-                  active
-                    ? "text-[var(--gold-text)]"
-                    : "text-[var(--ink-faint)] hover:text-[var(--ink-soft)]",
+                  dark
+                    ? active
+                      ? "text-[#D4AC6A]"
+                      : "text-[#F2EBD9]/55 hover:text-[#F2EBD9]/85"
+                    : active
+                      ? "text-[var(--gold-text)]"
+                      : "text-[var(--ink-faint)] hover:text-[var(--ink-soft)]",
                 )}
               >
                 <span aria-hidden="true">{item.icon}</span>

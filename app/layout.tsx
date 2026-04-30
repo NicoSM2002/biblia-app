@@ -54,35 +54,12 @@ export const viewport: Viewport = {
  */
 const initScript = `
 (function() {
-  // Theme — always start in light. The user explicitly asked that the
-  // app not persist a theme choice across reloads. The toggle still
-  // works within a session, but every fresh load begins in light mode.
-  // Setting data-theme explicitly also prevents the @media
-  // (prefers-color-scheme: dark) fallback from briefly applying dark.
+  // Theme — always start in light. The user asked that the app not persist
+  // a theme choice across reloads. The toggle still works within a session
+  // but every fresh load begins in light mode. Setting data-theme
+  // explicitly also prevents the @media (prefers-color-scheme: dark)
+  // fallback from briefly applying dark.
   document.documentElement.setAttribute('data-theme', 'light');
-
-  // Daily verse — show again on reload (F5 / Cmd+R) so the user always
-  // gets the moment when refreshing. On normal in-app navigation we
-  // respect the previous dismiss. We tell them apart via the Navigation
-  // Timing API: type === 'reload' means refresh, anything else is a
-  // first visit, link click, or back/forward.
-  try {
-    var navType = 'navigate';
-    try {
-      var entries = performance.getEntriesByType('navigation');
-      if (entries.length > 0 && entries[0].type) {
-        navType = entries[0].type;
-      }
-    } catch (e2) {}
-    if (navType === 'reload') {
-      sessionStorage.removeItem('dailyVerseSeen');
-    } else {
-      var today = new Date().toISOString().slice(0, 10);
-      if (sessionStorage.getItem('dailyVerseSeen') === today) {
-        document.documentElement.setAttribute('data-daily-verse-seen', '1');
-      }
-    }
-  } catch (e) {}
 })();
 `;
 
