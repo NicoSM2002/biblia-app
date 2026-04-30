@@ -160,17 +160,16 @@ html, body {
   animation-name: vt-fade-in;
 }
 
-/* Tiny scale (2%) gives the crossfade a sense of depth — outgoing page
-   recedes slightly, incoming page settles into place. Subtle enough that
-   it doesn't read as movement, but enough to make the transition feel
-   like more than just opacity. */
+/* Plain opacity crossfade — no scale, no transform. Earlier we tried a
+   subtle 2% scale to give "depth" but it made the transition feel like a
+   small earthquake when switching tabs in the bottom nav. Calm wins. */
 @keyframes vt-fade-out {
-  from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0; transform: scale(0.98); }
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 @keyframes vt-fade-in {
-  from { opacity: 0; transform: scale(1.02); }
-  to   { opacity: 1; transform: scale(1); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* Daily-verse overlay hidden if user already saw today's verse — the
