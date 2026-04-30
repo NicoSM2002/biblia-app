@@ -143,12 +143,17 @@ html, body {
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 700ms;
+  /* 400ms is the sweet spot between "perceptible transition" and
+     "interactive again". Longer durations (700ms+) made buttons feel
+     locked because the visual fade keeps overlapping the new page's
+     hydration, even though clicks technically pass through. */
+  animation-duration: 400ms;
   animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
-  /* Both old and new snapshots animate at the same time — that's the
-     crossfade. mix-blend-mode normal keeps the background readable while
-     they overlap. */
   mix-blend-mode: normal;
+  /* Snapshots are visual only — clicks must pass straight through to the
+     real DOM beneath. The spec already does this by default, but being
+     explicit removes any doubt. */
+  pointer-events: none;
 }
 
 ::view-transition-old(root) {
