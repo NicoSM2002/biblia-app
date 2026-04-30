@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import { LatinCross } from "@/components/Cross";
 import { AuthButton } from "@/components/AuthButton";
 import { DailyVerse } from "@/components/DailyVerse";
@@ -63,13 +63,8 @@ export default function HomePage() {
 
 function Welcome() {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className="text-center mb-8 sm:mb-10"
-    >
-      <p className="font-sans text-[0.7rem] tracking-[0.22em] uppercase text-[var(--gold-text)] mb-3">
+    <div className="text-center mb-8 sm:mb-10">
+      <p className="font-sans text-[0.75rem] tracking-[0.22em] uppercase text-[var(--gold-text)] font-semibold mb-3">
         Bienvenido
       </p>
       <h2 className="font-serif italic text-[1.55rem] sm:text-[1.95rem] lg:text-[2.2rem] text-[var(--ink)] leading-[1.2] mb-3">
@@ -79,7 +74,7 @@ function Welcome() {
         Una conversación con la Sagrada Escritura, o una parroquia
         cerca de ti. Tú eliges por dónde empezar.
       </p>
-    </motion.div>
+    </div>
   );
 }
 
@@ -88,7 +83,6 @@ function ActionCards() {
     <div className="space-y-4 sm:space-y-5">
       <ActionCard
         href="/chat"
-        delay={0.18}
         eyebrow="Conversación"
         title="Habla con la Palabra"
         description="Pregúntale algo — una duda, un dolor, una alegría — y recibe un versículo con una respuesta cercana."
@@ -97,7 +91,6 @@ function ActionCards() {
       />
       <ActionCard
         href="/misas"
-        delay={0.30}
         eyebrow="Tu parroquia"
         title="Misa cerca de ti"
         description="Encuentra iglesias católicas cercanas, con su sitio web y teléfono para confirmar el horario de Misa."
@@ -110,7 +103,6 @@ function ActionCards() {
 
 function ActionCard({
   href,
-  delay,
   eyebrow,
   title,
   description,
@@ -118,7 +110,6 @@ function ActionCard({
   icon,
 }: {
   href: string;
-  delay: number;
   eyebrow: string;
   title: string;
   description: string;
@@ -126,11 +117,7 @@ function ActionCard({
   icon: React.ReactNode;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: delay * 0.5, duration: 0.32, ease: "easeOut" }}
-    >
+    <div>
       <Link
         href={href}
         className="group block bg-white border border-[var(--rule)] rounded-xl p-5 sm:p-6 transition-all duration-200 hover:border-[var(--gold)] hover:shadow-[0_8px_24px_-12px_rgba(31,27,22,0.18)] hover:-translate-y-0.5 active:scale-[0.99] active:bg-[var(--vellum)]"
@@ -184,24 +171,19 @@ function ActionCard({
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }
 
 function Footer() {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.25, duration: 0.4 }}
-      className="mt-10 flex items-center justify-center gap-2"
-    >
+    <div className="mt-10 flex items-center justify-center gap-2">
       <span aria-hidden="true" className="h-px w-6 bg-[var(--rule)]" />
       <p className="font-sans text-[0.78rem] tracking-[0.04em] text-[var(--ink-soft)] text-center">
         Sagrada Biblia · Versión oficial de la Conferencia Episcopal Española
       </p>
       <span aria-hidden="true" className="h-px w-6 bg-[var(--rule)]" />
-    </motion.div>
+    </div>
   );
 }
 
