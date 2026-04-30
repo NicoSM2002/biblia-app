@@ -51,3 +51,12 @@ data/biblia.embeddings.json
 # Not redistributable. Keep out of public repos.
 Contexto/
 
+# Playwright debug artifacts — recorded videos, frame extractions, and
+# screenshots from local reproduction scripts. Don't commit.
+scripts/videos/
+scripts/frames/
+scripts/screenshots/
+scripts/screenshots-webkit/
+test-results/
+playwright-report/
+
