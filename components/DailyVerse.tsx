@@ -10,16 +10,21 @@ const ACROSTIC =
   /\((?:Alef|Bet|Guímel|Guimel|Dálet|Dalet|He|Vau|Zain|Jet|Tet|Yod|Kaf|Lámed|Lamed|Mem|Nun|Sámec|Samec|Ain|Pe|Sade|Kof|Cof|Res|Sin|Sín|Shin|Tau)\)\s*/gi;
 
 /**
- * The daily-verse welcome overlay. Owns its own AnimatePresence + motion.div
- * so the enter/exit animations are guaranteed to run — earlier the outer
- * motion.div was nested inside an AnimatePresence in page.tsx with
- * <DailyVerse> as the (custom) child, which meant AnimatePresence couldn't
- * hold the exit animation reliably (it can only sustain motion children
- * that are direct, not nested inside a custom component).
+ * Daily-verse welcome overlay.
  *
- * The parent passes `open` (whether the overlay should be visible) and
- * `onContinue` (the dismiss action). When `open` flips to false the
- * AnimatePresence here plays the exit fade.
+ * The animation strategy is intentionally minimal: ONE motion.div, ONE
+ * fade. The opacity goes 0 → 1 when the verse arrives (`ready`), so the
+ * home page stays visible behind a transparent overlay until the verse
+ * is actually ready to show — no empty paper screen, no nested fades
+ * fighting each other, no flicker.
+ *
+ * On exit (user clicks "Comenzar"), framer-motion's AnimatePresence runs
+ * the same curve in reverse.
+ *
+ * The AnimatePresence lives here so the motion.div is its direct child —
+ * earlier we had AnimatePresence in page.tsx wrapping <DailyVerse>, which
+ * is a custom component, and AnimatePresence couldn't reliably hold the
+ * exit (it can only sustain motion children that are direct).
  */
 export function DailyVerse({
   open,
@@ -88,17 +93,15 @@ export function DailyVerse({
           aria-modal="true"
           aria-labelledby="daily-verse-title"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: ready ? 1 : 0 }}
           exit={{ opacity: 0 }}
           transition={{
-            duration: reduce ? 0 : 0.45,
+            duration: reduce ? 0 : 0.55,
             ease: [0.2, 0.7, 0.2, 1],
           }}
           className="fixed inset-0 z-[80] flex flex-col items-center justify-center px-6 bg-[var(--paper)] no-print overflow-hidden cursor-pointer"
           onClick={(e) => {
             // Click on the overlay (or any non-button element) dismisses.
-            // Clicks on the button itself are handled by their own onClick
-            // — don't double-fire.
             if ((e.target as HTMLElement).closest("button")) return;
             onContinue();
           }}
@@ -113,19 +116,7 @@ export function DailyVerse({
             }}
           />
 
-          {/* Single CSS-driven fade for the entire content. We avoid a
-              second motion.div here so framer-motion's outer fade doesn't
-              multiply against an inner motion fade (that combo produced
-              the parpadeo). */}
-          <div
-            className="relative w-full max-w-md text-center cursor-default"
-            style={{
-              opacity: ready ? 1 : 0,
-              transition: reduce
-                ? undefined
-                : "opacity 600ms cubic-bezier(0.2, 0.7, 0.2, 1)",
-            }}
-          >
+          <div className="relative w-full max-w-md text-center cursor-default">
             <div className="mb-7">
               <LatinCross className="mx-auto text-[var(--gold)]" size={32} />
             </div>
