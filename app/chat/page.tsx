@@ -8,7 +8,11 @@ import { QuestionLine } from "@/components/QuestionLine";
 import { Loading } from "@/components/Loading";
 import { ChatInput } from "@/components/ChatInput";
 import { HistorySheet } from "@/components/HistorySheet";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  createClient,
+  hasSessionCookie,
+  isSupabaseConfigured,
+} from "@/lib/supabase/client";
 
 type Turn = {
   id: string;
@@ -29,7 +33,10 @@ export default function ChatPage() {
 
   const conversationIdRef = useRef<string | null>(null);
   const savedTurnIdsRef = useRef<Set<string>>(new Set());
-  const [signedIn, setSignedIn] = useState(false);
+  // Seed signed-in state from the Supabase auth-token cookie so the header
+  // doesn't flicker between renders (history button appearing late after
+  // the async getUser() check).
+  const [signedIn, setSignedIn] = useState<boolean>(() => hasSessionCookie());
   const [historyOpen, setHistoryOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     null,

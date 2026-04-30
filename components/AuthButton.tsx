@@ -4,26 +4,38 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 // (Mi historial moved out of this menu to a dedicated icon in the header.)
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  createClient,
+  hasSessionCookie,
+  isSupabaseConfigured,
+} from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 export function AuthButton() {
   const router = useRouter();
-  const [email, setEmail] = useState<string | null | undefined>(undefined);
+  // Seed signed-in flag from the auth-token cookie (sync) so the correct
+  // shape (avatar vs. "Entrar" button) renders on first paint and the
+  // header doesn't shift when the async getUser() resolves a moment later.
+  const [signedIn, setSignedIn] = useState<boolean>(() =>
+    isSupabaseConfigured() ? hasSessionCookie() : false,
+  );
+  const [email, setEmail] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) {
-      setEmail(null);
+      setSignedIn(false);
       return;
     }
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       setEmail(data.user?.email ?? null);
+      setSignedIn(!!data.user);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setEmail(session?.user?.email ?? null);
+      setSignedIn(!!session?.user);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -44,10 +56,9 @@ export function AuthButton() {
     };
   }, [open]);
 
-  if (email === undefined) return null; // still loading
   if (!isSupabaseConfigured()) return null;
 
-  if (!email) {
+  if (!signedIn) {
     return (
       <Link
         href="/auth"
@@ -68,8 +79,10 @@ export function AuthButton() {
     router.refresh();
   }
 
-  // Initial of the email for the avatar circle
-  const initial = email[0].toUpperCase();
+  // Initial of the email for the avatar circle. While the email is still
+  // loading (cookie present but getUser hasn't resolved yet), fall back to
+  // a neutral dot so the avatar geometry is identical to the final render.
+  const initial = email ? email[0].toUpperCase() : "·";
 
   return (
     <div className="relative no-print" ref={ref}>
