@@ -436,7 +436,7 @@ function PrintHeader() {
 
 function ChatEmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
-    <div className="anim-fade-rise space-y-4 lg:space-y-6 pb-4 lg:pt-2">
+    <div className="space-y-4 lg:space-y-6 pb-4 lg:pt-2">
       <div className="card-welcome lg:py-6 lg:px-8">
         <h2 className="font-serif italic text-[1.2rem] sm:text-[1.4rem] lg:text-[1.55rem] text-[var(--ink)] leading-[1.35] mb-2 lg:text-center">
           Pregúntale a la Sagrada Escritura.
