@@ -326,6 +326,24 @@ body::before {
 .anim-fade-rise { animation: fade-rise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .anim-fade-in   { animation: fade-in 800ms ease both; }
 
+/* Respect the user's "reduce motion" OS setting. WCAG 2.3.3 + helps users
+   with vestibular disorders. Critical for an app whose audience includes
+   older / vulnerable users. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .anim-fade-rise,
+  .anim-fade-in,
+  .dot-1,
+  .dot-2,
+  .dot-3,
+  .anim-cursor { animation: none !important; }
+}
+
 /* The "Buscando en la Palabra…" indicator dots */
 .dot-1 { animation: pulse-soft 1.6s ease-in-out infinite; }
 .dot-2 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 200ms; }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { LatinCross } from "./Cross";
 
 type Verse = { reference: string; text: string };
@@ -12,6 +12,9 @@ const ACROSTIC =
 export function DailyVerse({ onContinue }: { onContinue: () => void }) {
   const [verse, setVerse] = useState<Verse | null>(null);
   const [error, setError] = useState(false);
+  const [skipped, setSkipped] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     fetch("/api/daily-verse")
@@ -23,6 +26,31 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
       .catch(() => setError(true));
   }, []);
 
+  // Esc closes the modal; pressing any key after the verse is ready also
+  // skips the entrance animation so users in a hurry aren't held back.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onContinue();
+      } else if (verse && !skipped) {
+        setSkipped(true);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onContinue, verse, skipped]);
+
+  // Move focus to the action button as soon as it's available so screen
+  // reader and keyboard users know they can dismiss.
+  useEffect(() => {
+    if (verse || error) {
+      // Delay slightly so it lands after the entrance animation begins.
+      const t = setTimeout(() => buttonRef.current?.focus(), reduce ? 0 : 300);
+      return () => clearTimeout(t);
+    }
+  }, [verse, error, reduce]);
+
   const display = verse
     ? `\u201C${verse.text.replace(ACROSTIC, "").replace(/\s*\|\s*/g, " — ").trim()}\u201D`
     : "";
@@ -33,18 +61,33 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
     month: "long",
   });
 
-  // The verse + UI fade in only after the cross has had its centred moment.
-  // We delay the secondary block so the cross feels intentional.
-  const verseReady = !!verse || error;
+  // Whether the verse + button are visible. When the user clicks anywhere
+  // on the overlay or presses a key, we skip straight to the final state.
+  const ready = !!verse || error;
+  const visible = ready && (skipped || true); // always visible once ready
+  // Animation timing — collapse to "instant" when reduced-motion is on or
+  // the user clicked to skip the cross intro.
+  const crossDuration = reduce ? 0 : skipped ? 0.2 : 0.85;
+  const cascadeDelay = reduce ? 0 : skipped ? 0 : 1.0;
+  const cascadeDuration = reduce ? 0 : 0.6;
+  const buttonDelay = reduce ? 0 : skipped ? 0.05 : 1.55;
 
   return (
     <motion.div
       key="daily-verse-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="daily-verse-title"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.2, 0.7, 0.2, 1] }}
-      className="fixed inset-0 z-[80] flex flex-col items-center justify-center px-6 bg-[var(--paper)] no-print overflow-hidden"
+      transition={{ duration: reduce ? 0 : 0.45, ease: [0.2, 0.7, 0.2, 1] }}
+      className="fixed inset-0 z-[80] flex flex-col items-center justify-center px-6 bg-[var(--paper)] no-print overflow-hidden cursor-pointer"
+      onClick={(e) => {
+        // Click on the overlay (not on the button) skips the entrance.
+        if ((e.target as HTMLElement).closest("button")) return;
+        if (verse && !skipped) setSkipped(true);
+      }}
     >
       {/* Soft radial halo behind the content */}
       <div
@@ -56,35 +99,39 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
         }}
       />
 
-      <div className="relative w-full max-w-md text-center">
+      <div className="relative w-full max-w-md text-center cursor-default">
         {/* The cross — centerpiece of the moment. Appears alone first. */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.85, ease: [0.2, 0.7, 0.2, 1] }}
+          transition={{ duration: crossDuration, ease: [0.2, 0.7, 0.2, 1] }}
           className="mb-7"
         >
-          <LatinCross
-            className="mx-auto text-[var(--gold-text)]"
-            size={32}
-          />
+          <LatinCross className="mx-auto text-[var(--gold)]" size={32} />
         </motion.div>
 
         {/* The verse + reference + button cascade in once the cross has had its moment. */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{
-            opacity: verseReady ? 1 : 0,
-            y: verseReady ? 0 : 8,
+            opacity: visible ? 1 : 0,
+            y: visible ? 0 : 8,
           }}
-          transition={{ delay: 1.0, duration: 0.7, ease: [0.2, 0.7, 0.2, 1] }}
+          transition={{
+            delay: cascadeDelay,
+            duration: cascadeDuration,
+            ease: [0.2, 0.7, 0.2, 1],
+          }}
         >
-          <p className="font-sans text-[0.7rem] tracking-[0.22em] uppercase text-[var(--gold-text)] mb-5">
+          <p
+            id="daily-verse-title"
+            className="font-sans text-[0.78rem] tracking-[0.22em] uppercase text-[var(--gold-text)] mb-5"
+          >
             Hoy · {today}
           </p>
 
           {error ? (
-            <p className="font-sans text-[0.95rem] text-[var(--ink-soft)]">
+            <p className="font-sans text-[1rem] text-[var(--ink-soft)]">
               La Palabra te espera. Continúa cuando quieras.
             </p>
           ) : verse ? (
@@ -96,7 +143,7 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
               >
                 {display}
               </blockquote>
-              <p className="mt-5 font-sans text-[0.78rem] tracking-[0.16em] uppercase text-[var(--gold-text)]">
+              <p className="mt-5 font-sans text-[0.82rem] tracking-[0.16em] uppercase text-[var(--gold-text)]">
                 {verse.reference}
               </p>
             </>
@@ -105,16 +152,21 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
           <hr className="hairline-gold mt-8 mx-auto max-w-[8rem]" />
 
           <motion.button
+            ref={buttonRef}
             initial={{ opacity: 0, y: 8 }}
             animate={{
-              opacity: verseReady ? 1 : 0,
-              y: verseReady ? 0 : 8,
+              opacity: visible ? 1 : 0,
+              y: visible ? 0 : 8,
             }}
-            transition={{ delay: 1.55, duration: 0.55, ease: [0.2, 0.7, 0.2, 1] }}
+            transition={{
+              delay: buttonDelay,
+              duration: reduce ? 0 : 0.5,
+              ease: [0.2, 0.7, 0.2, 1],
+            }}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
             onClick={onContinue}
-            className="mt-7 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--gold)] text-white font-sans text-[0.92rem] font-medium hover:bg-[var(--gold-soft)] transition-colors"
+            className="mt-7 inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--gold)] text-white font-sans text-[0.95rem] font-medium hover:bg-[var(--gold-soft)] transition-colors min-h-[44px]"
           >
             Comenzar
             <svg
@@ -132,6 +184,10 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
               <polyline points="12 5 19 12 12 19" />
             </svg>
           </motion.button>
+
+          <p className="mt-4 font-sans text-[0.7rem] text-[var(--ink-faint)]">
+            {skipped ? "" : verse ? "Toca cualquier parte para continuar" : ""}
+          </p>
         </motion.div>
       </div>
     </motion.div>
