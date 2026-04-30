@@ -176,6 +176,15 @@ html, body {
   animation-duration: 280ms;
 }
 
+/* Bottom nav: it's the same element in the same fixed position on every
+   screen, so it shouldn't animate at all during transitions. We just want
+   it in the top layer so it stays ABOVE the morphing church photo. */
+::view-transition-group(bottom-nav),
+::view-transition-old(bottom-nav),
+::view-transition-new(bottom-nav) {
+  animation: none;
+}
+
 /* Make the entire view-transition pseudo-element tree click-through, not
    just the old/new snapshots. The default for some of these (especially
    ::view-transition-group) can capture pointer events and block taps on
