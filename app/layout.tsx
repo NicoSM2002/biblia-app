@@ -51,13 +51,21 @@ export const viewport: Viewport = {
  */
 const initScript = `
 (function() {
+  // Theme — always set data-theme so the no-attribute fallback (which
+  // matches @media prefers-color-scheme: dark) never wins by accident.
+  var theme = 'light';
   try {
     var saved = localStorage.getItem('theme');
-    var theme = saved === 'dark' || saved === 'light'
-      ? saved
-      : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', theme);
+    if (saved === 'dark' || saved === 'light') {
+      theme = saved;
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      theme = 'dark';
+    }
   } catch (e) {}
+  document.documentElement.setAttribute('data-theme', theme);
+
+  // Daily verse — if already seen today, mark <html> so CSS hides the
+  // overlay before any paint.
   try {
     var today = new Date().toISOString().slice(0, 10);
     if (sessionStorage.getItem('dailyVerseSeen') === today) {

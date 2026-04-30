@@ -523,20 +523,74 @@ body::before {
 .dot-2 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 200ms; }
 .dot-3 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 400ms; }
 
-/* Cross-breath — soft "loading" pulse for the daily-verse cross while
-   it waits for the verse to arrive. Goes opacity 0.45 ↔ 1 every 2s
-   with ease-in-out, so the cross feels like it's gently breathing
-   instead of being static. When ready=true the class is removed and
-   the cross settles to opacity 1. */
+/* ============================================================================
+   Daily-verse overlay — pure CSS animations, no framer-motion.
+   ============================================================================
+   The overlay is rendered into the SSR HTML always (parent passes open=true
+   by default). The inline init script in app/layout.tsx sets
+   `data-daily-verse-seen="1"` on <html> if today's verse was dismissed, and
+   the `:root[data-daily-verse-seen="1"] [data-daily-overlay]` rule below
+   hides the overlay before any paint for repeat visitors. New visitors see
+   the overlay from the very first paint.
+   ========================================================================= */
+
+.daily-verse-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem;
+  background: var(--paper);
+  overflow: hidden;
+  cursor: pointer;
+  /* Visible from frame one — opacity:1 from the get-go. Exit animation
+     overrides via the .daily-verse-exiting class. */
+  opacity: 1;
+}
+
+@keyframes daily-verse-exit {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+.daily-verse-exiting {
+  animation: daily-verse-exit 450ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  pointer-events: none;
+}
+
+/* Cross — always breathing softly while the overlay is open. Independent
+   of `ready` state so the user immediately sees the gentle motion instead
+   of staring at a static cross during the verse fetch. */
 @keyframes cross-breath {
-  0%, 100% { opacity: 0.45; }
+  0%, 100% { opacity: 0.55; }
   50%      { opacity: 1; }
 }
 .cross-breathing {
-  animation: cross-breath 2.2s ease-in-out infinite;
+  animation: cross-breath 2.6s ease-in-out infinite;
 }
+
+/* Verse + button block — hidden until ready, then revealed via a CSS
+   keyframe animation. We use @keyframes (not transition on inline opacity)
+   because the animation reliably triggers on class application; CSS
+   transitions can be silently skipped if React batches the state change
+   so the browser only ever sees the final value. */
+.daily-verse-content {
+  opacity: 0;
+}
+.daily-verse-content.is-ready {
+  animation: daily-verse-emerge 1500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes daily-verse-emerge {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cross-breathing { animation: none !important; opacity: 1; }
+  .daily-verse-content.is-ready { animation: none !important; opacity: 1; }
+  .daily-verse-exiting { animation: none !important; opacity: 0; }
 }
 
 /* Selection styling — gold halo, slightly stronger so it's visible on cream */
