@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,9 @@ export function HistorySheet({
 }) {
   const [list, setList] = useState<Conversation[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -46,14 +49,42 @@ export function HistorySheet({
     });
   }, [open]);
 
-  // Lock body scroll while the sheet is open and listen to Esc.
+  // Esc to close + focus trap (Tab cycles within the sheet) + restore the
+  // previously focused element when the sheet closes.
   useEffect(() => {
     if (!open) return;
+    previouslyFocusedRef.current = document.activeElement as HTMLElement;
+    // Move initial focus to the close button so keyboard users land somewhere
+    // useful inside the sheet.
+    setTimeout(() => closeButtonRef.current?.focus(), 50);
+
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab" && sheetRef.current) {
+        const focusables = sheetRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     }
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      // Return focus to wherever the user was before opening the sheet.
+      previouslyFocusedRef.current?.focus();
+    };
   }, [open, onClose]);
 
   return (
@@ -70,9 +101,11 @@ export function HistorySheet({
             onClick={onClose}
           />
           <motion.aside
+            ref={sheetRef}
             key="sheet"
             role="dialog"
-            aria-label="Historial de conversaciones"
+            aria-modal="true"
+            aria-labelledby="history-sheet-title"
             className={cn(
               "fixed top-0 left-0 bottom-0 z-[70] flex flex-col no-print",
               "w-[88%] max-w-[360px] bg-[var(--paper)] border-r border-[var(--rule)]",
@@ -85,14 +118,18 @@ export function HistorySheet({
           >
             <header className="px-5 pt-5 pb-3 border-b border-[var(--rule)] flex items-center justify-between">
               <div>
-                <p className="font-sans text-[0.66rem] tracking-[0.18em] uppercase text-[var(--gold-text)]">
+                <p className="font-sans text-[0.75rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold">
                   Mi historial
                 </p>
-                <h2 className="font-serif italic text-[1.2rem] text-[var(--ink)] mt-0.5">
+                <h2
+                  id="history-sheet-title"
+                  className="font-serif italic text-[1.2rem] text-[var(--ink)] mt-0.5"
+                >
                   Tus conversaciones
                 </h2>
               </div>
               <button
+                ref={closeButtonRef}
                 onClick={onClose}
                 aria-label="Cerrar historial"
                 className="grid place-items-center w-11 h-11 rounded-full hover:bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--ink)] transition-colors"
@@ -135,7 +172,7 @@ export function HistorySheet({
                         <p className="font-serif italic text-[0.95rem] text-[var(--ink)] leading-snug line-clamp-2">
                           {c.title || "(sin título)"}
                         </p>
-                        <p className="font-sans text-[0.7rem] text-[var(--ink-faint)] mt-1">
+                        <p className="font-sans text-[0.78rem] text-[var(--ink-soft)] mt-1">
                           {new Date(c.updated_at).toLocaleDateString("es-ES", {
                             day: "numeric",
                             month: "long",

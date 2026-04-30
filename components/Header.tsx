@@ -7,10 +7,15 @@ export function Header({
   onReset,
   onOpenHistory,
   exportableTurns = [],
+  conversationTitle,
 }: {
   onReset?: () => void;
   onOpenHistory?: () => void;
   exportableTurns?: ExportableTurn[];
+  /** Title of the currently-loaded saved conversation (if any). When set,
+   *  appears as a discreet subtitle under the app title so the user knows
+   *  which past conversation they're continuing. */
+  conversationTitle?: string | null;
 }) {
   const hasContent = exportableTurns.length > 0;
   return (
@@ -23,19 +28,29 @@ export function Header({
           <Link
             href="/"
             aria-label="Volver al inicio"
-            className="flex items-center gap-2 sm:gap-3 min-w-0 group ml-1"
+            className="flex flex-col min-w-0 group ml-1"
           >
-            <LatinCross
-              className="text-[var(--gold-text)] lg:hidden shrink-0 transition-opacity group-hover:opacity-80"
-              size={14}
-            />
-            <LatinCross
-              className="text-[var(--gold-text)] hidden lg:block shrink-0 transition-opacity group-hover:opacity-80"
-              size={18}
-            />
-            <h1 className="font-sans text-[1rem] sm:text-[1.05rem] lg:text-[1.15rem] font-medium text-[var(--ink)] tracking-[0.005em] truncate transition-colors group-hover:text-[var(--gold-text)]">
-              Habla con la Palabra
-            </h1>
+            <span className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <LatinCross
+                className="text-[var(--gold)] lg:hidden shrink-0 transition-opacity group-hover:opacity-80"
+                size={14}
+              />
+              <LatinCross
+                className="text-[var(--gold)] hidden lg:block shrink-0 transition-opacity group-hover:opacity-80"
+                size={18}
+              />
+              <h1 className="font-sans text-[1rem] sm:text-[1.05rem] lg:text-[1.15rem] font-medium text-[var(--ink)] tracking-[0.005em] truncate transition-colors group-hover:text-[var(--gold-text)]">
+                Habla con la Palabra
+              </h1>
+            </span>
+            {conversationTitle && (
+              <span
+                className="font-serif italic text-[0.78rem] text-[var(--ink-soft)] truncate ml-[22px] sm:ml-[26px] mt-0.5"
+                title={conversationTitle}
+              >
+                {conversationTitle}
+              </span>
+            )}
           </Link>
         </div>
         <div className="flex items-center gap-2 shrink-0">

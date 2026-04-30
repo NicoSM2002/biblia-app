@@ -41,6 +41,9 @@ export default function ChatPage() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     null,
   );
+  const [activeConversationTitle, setActiveConversationTitle] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -72,6 +75,7 @@ export default function ChatPage() {
     conversationIdRef.current = null;
     savedTurnIdsRef.current.clear();
     setActiveConversationId(null);
+    setActiveConversationTitle(null);
   }
 
   async function loadConversation(id: string) {
@@ -80,7 +84,7 @@ export default function ChatPage() {
       const res = await fetch(`/api/conversations/${id}`);
       if (!res.ok) throw new Error(`status ${res.status}`);
       const data = (await res.json()) as {
-        conversation: { id: string };
+        conversation: { id: string; title: string | null };
         turns: Array<{
           ord: number;
           question: string;
@@ -106,6 +110,7 @@ export default function ChatPage() {
       prevTurnCountRef.current = loadedTurns.length;
       conversationIdRef.current = data.conversation.id;
       setActiveConversationId(data.conversation.id);
+      setActiveConversationTitle(data.conversation.title);
       setTurns(loadedTurns);
       setHistoryOpen(false);
     } catch (err) {
@@ -303,6 +308,7 @@ export default function ChatPage() {
         <Header
           onReset={reset}
           onOpenHistory={signedIn ? () => setHistoryOpen(true) : undefined}
+          conversationTitle={activeConversationTitle}
           exportableTurns={turns
             .filter((t) => t.status === "done" && (t.response || t.verse))
             .map((t) => ({
