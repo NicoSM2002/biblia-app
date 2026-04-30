@@ -143,13 +143,23 @@ html, body {
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  /* 480ms gives the crossfade enough room to feel intentional. Combined
-     with a subtle scale, the transition reads as 3-dimensional rather
-     than a flat opacity blend. */
-  animation-duration: 480ms;
+  /* 280ms — short enough that the new page's buttons feel responsive
+     immediately. Longer durations made tabs feel locked while the
+     visual fade was still running over the freshly-hydrated page. */
+  animation-duration: 280ms;
   animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
   mix-blend-mode: normal;
-  /* Snapshots are visual only — clicks must pass straight through. */
+}
+
+/* Make the entire view-transition pseudo-element tree click-through, not
+   just the old/new snapshots. The default for some of these (especially
+   ::view-transition-group) can capture pointer events and block taps on
+   the freshly-mounted page beneath. */
+::view-transition,
+::view-transition-group(*),
+::view-transition-image-pair(*),
+::view-transition-old(*),
+::view-transition-new(*) {
   pointer-events: none;
 }
 
