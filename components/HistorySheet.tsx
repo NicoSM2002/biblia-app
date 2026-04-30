@@ -16,18 +16,40 @@ export function HistorySheet({
   open,
   onClose,
   onSelect,
+  onDeleted,
   activeId,
 }: {
   open: boolean;
   onClose: () => void;
   onSelect: (id: string) => void;
+  /** Called when the user deletes a conversation. Receives the deleted id
+   *  so the parent can clear local state if it was the active one. */
+  onDeleted?: (id: string) => void;
   activeId?: string | null;
 }) {
   const [list, setList] = useState<Conversation[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  async function deleteConversation(id: string) {
+    if (deleting) return;
+    setDeleting(id);
+    try {
+      const res = await fetch(`/api/conversations/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`status ${res.status}`);
+      setList((prev) => (prev ? prev.filter((c) => c.id !== id) : prev));
+      onDeleted?.(id);
+    } catch {
+      setError("No pudimos eliminar esa conversación. Intenta de nuevo.");
+    } finally {
+      setDeleting(null);
+      setConfirmingId(null);
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -153,35 +175,70 @@ export function HistorySheet({
                 </p>
               ) : (
                 <ul className="space-y-2">
-                  {list.map((c, i) => (
-                    <motion.li
-                      key={c.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: i * 0.02, duration: 0.2 }}
-                    >
-                      <button
-                        onClick={() => onSelect(c.id)}
+                  {list.map((c, i) => {
+                    const isConfirming = confirmingId === c.id;
+                    const isDeleting = deleting === c.id;
+                    return (
+                      <motion.li
+                        key={c.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.02, duration: 0.2 }}
                         className={cn(
-                          "w-full text-left bg-[var(--surface)] border rounded-lg px-3.5 py-3 transition-colors",
+                          "relative flex items-stretch bg-[var(--surface)] border rounded-lg overflow-hidden transition-colors",
                           activeId === c.id
                             ? "border-[var(--gold)] bg-[var(--vellum)]"
-                            : "border-[var(--rule)] hover:border-[var(--gold)] hover:bg-[var(--vellum)]",
+                            : "border-[var(--rule)] hover:border-[var(--gold)]",
                         )}
                       >
-                        <p className="font-serif italic text-[0.95rem] text-[var(--ink)] leading-snug line-clamp-2">
-                          {c.title || "(sin título)"}
-                        </p>
-                        <p className="font-sans text-[0.78rem] text-[var(--ink-soft)] mt-1">
-                          {new Date(c.updated_at).toLocaleDateString("es-ES", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
-                        </p>
-                      </button>
-                    </motion.li>
-                  ))}
+                        <button
+                          onClick={() => onSelect(c.id)}
+                          className="flex-1 text-left px-3.5 py-3 min-w-0 hover:bg-[var(--vellum)] transition-colors"
+                          disabled={isDeleting}
+                        >
+                          <p className="font-serif italic text-[0.95rem] text-[var(--ink)] leading-snug line-clamp-2">
+                            {c.title || "(sin título)"}
+                          </p>
+                          <p className="font-sans text-[0.78rem] text-[var(--ink-soft)] mt-1">
+                            {new Date(c.updated_at).toLocaleDateString("es-ES", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </button>
+
+                        {isConfirming ? (
+                          <div className="flex items-stretch border-l border-[var(--rule)]">
+                            <button
+                              onClick={() => deleteConversation(c.id)}
+                              disabled={isDeleting}
+                              aria-label="Confirmar eliminación"
+                              className="px-3.5 grid place-items-center bg-[var(--vino)] text-white hover:bg-[var(--vino)]/90 transition-colors min-h-[44px]"
+                            >
+                              {isDeleting ? <Spinner /> : <CheckIcon />}
+                            </button>
+                            <button
+                              onClick={() => setConfirmingId(null)}
+                              disabled={isDeleting}
+                              aria-label="Cancelar"
+                              className="px-3.5 grid place-items-center text-[var(--ink-soft)] hover:bg-[var(--vellum)] transition-colors min-h-[44px]"
+                            >
+                              <XIcon />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmingId(c.id)}
+                            aria-label={`Eliminar ${c.title || "conversación"}`}
+                            className="px-3.5 grid place-items-center text-[var(--ink-faint)] hover:text-[var(--vino)] hover:bg-[var(--vellum)] transition-colors min-h-[44px] border-l border-[var(--rule)]"
+                          >
+                            <TrashIcon />
+                          </button>
+                        )}
+                      </motion.li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
@@ -205,5 +262,42 @@ function SkeletonList() {
         </li>
       ))}
     </ul>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1.5 14a2 2 0 0 1-2 1.8H8.5A2 2 0 0 1 6.5 20L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+      <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+function Spinner() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="animate-spin">
+      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    </svg>
   );
 }

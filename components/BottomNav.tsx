@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * Persistent bottom navigation — five sections following the mockup:
- *   Inicio · Conversación · Oración · Parroquias · Guardados
+ * Persistent bottom navigation — four sections:
+ *   Inicio · Conversación · Oración · Parroquias
  *
- * Hidden on the auth page and during the daily-verse overlay (which is
- * z-80 and covers the whole viewport so the nav is naturally invisible).
+ * (We dropped the "Guardados" section — saving individual verses turned
+ *  out to not be a feature the app needs. Hidden on the auth page.)
  */
 type Item = {
   href: string;
@@ -22,7 +22,6 @@ const items: Item[] = [
   { href: "/chat", label: "Conversación", icon: <ChatIcon /> },
   { href: "/oracion", label: "Oración", icon: <MicIcon /> },
   { href: "/misas", label: "Parroquias", icon: <ChurchIcon /> },
-  { href: "/guardados", label: "Guardados", icon: <BookmarkIcon /> },
 ];
 
 export function BottomNav() {
@@ -108,10 +107,3 @@ function ChurchIcon() {
   );
 }
 
-function BookmarkIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-    </svg>
-  );
-}

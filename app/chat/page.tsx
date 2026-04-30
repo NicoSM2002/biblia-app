@@ -327,12 +327,19 @@ export default function ChatPage() {
       <div className="missal-page">
         <Header
           onOpenHistory={signedIn ? () => setHistoryOpen(true) : undefined}
+          onReset={turns.length > 0 ? reset : undefined}
           conversationTitle={activeConversationTitle}
         />
         <HistorySheet
           open={historyOpen}
           onClose={() => setHistoryOpen(false)}
           onSelect={loadConversation}
+          onDeleted={(id) => {
+            // If the user just deleted the conversation they were viewing,
+            // wipe the local chat state so they're not staring at orphaned
+            // turns from a row that no longer exists.
+            if (id === activeConversationId) reset();
+          }}
           activeId={activeConversationId}
         />
 
