@@ -143,8 +143,12 @@ html, body {
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 320ms;
+  animation-duration: 380ms;
   animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* Both old and new snapshots animate at the same time — that's the
+     crossfade. mix-blend-mode normal keeps the background readable while
+     they overlap. */
+  mix-blend-mode: normal;
 }
 
 ::view-transition-old(root) {
@@ -437,26 +441,12 @@ body::before {
   border: 0;
 }
 
-/* Route fade — a single keyframe that runs whenever the wrapper mounts
-   (i.e. every time the pathname changes, since the wrapper is keyed on
-   pathname and React tears down + recreates it). The body background is
-   already paper, so the eye sees "paper → content fading in" instead of
-   a flash. No exit animation: the old route is gone instantly, but the
-   incoming fade is enough to read as a soft transition. */
-.route-fade {
-  height: 100%;
-  width: 100%;
-  animation: route-fade-in 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
-@keyframes route-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .route-fade { animation: none !important; }
-}
+/* Route transitions are handled by the View Transitions API, wired up
+   in components/ViewTransitionLinks.tsx — every <a> click goes through
+   `document.startViewTransition()` so the browser plays a crossfade
+   between the old and new DOM snapshots. The actual animation curves
+   live in the `::view-transition-old(root)` / `::view-transition-new(root)`
+   rules below (shared with the theme toggle). */
 
 /* Animations — fade only. We deliberately do NOT translate content on mount;
    moving Y by even a few pixels reads as "settling" / "jumping" right after

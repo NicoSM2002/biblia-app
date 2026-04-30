@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence } from "motion/react";
 import { LatinCross } from "@/components/Cross";
 import { AuthButton } from "@/components/AuthButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -57,9 +56,7 @@ export default function HomePage() {
           </div>
         </main>
 
-        <AnimatePresence>
-          {showDailyVerse && <DailyVerse onContinue={dismissDailyVerse} />}
-        </AnimatePresence>
+        <DailyVerse open={!!showDailyVerse} onContinue={dismissDailyVerse} />
       </div>
     </div>
   );
