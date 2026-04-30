@@ -154,16 +154,9 @@ function Misas() {
 
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--paper)]">
-      <header className="px-4 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
-        <div className="max-w-2xl mx-auto flex items-center gap-2">
-          <Link
-            href="/"
-            aria-label="Volver al inicio"
-            className="grid place-items-center w-10 h-10 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] transition-colors shrink-0 -ml-1"
-          >
-            <BackIcon />
-          </Link>
-          <h1 className="flex-1 font-sans text-[1rem] font-medium text-[var(--ink)]">
+      <header className="px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="font-sans text-[1rem] font-medium text-[var(--ink)]">
             Parroquias
           </h1>
         </div>
@@ -410,15 +403,6 @@ function pickTodayHours(lines?: string[] | null): string | null {
   const rest = idx >= 0 ? line.slice(idx + 1).trim() : line;
   if (/cerrado|closed/i.test(rest)) return null;
   return `Hoy ${rest}`;
-}
-
-function BackIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="19" y1="12" x2="5" y2="12" />
-      <polyline points="12 19 5 12 12 5" />
-    </svg>
-  );
 }
 
 function PinIcon({ className }: { className?: string }) {
