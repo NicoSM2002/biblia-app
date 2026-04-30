@@ -92,7 +92,6 @@ export function ViewTransitionLinks() {
         });
       } catch (err) {
         setLastError((err as Error).message ?? "unknown");
-        // Fallback: navigate anyway, no transition.
         router.push(href);
       }
     }

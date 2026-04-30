@@ -93,6 +93,13 @@ export default function RootLayout({
     <html
       lang="es"
       className={`${garamond.variable} ${inter.variable} h-full`}
+      // The inline initScript below mutates <html> before React hydrates
+      // (sets data-theme and data-daily-verse-seen). Without this, React
+      // throws a hydration mismatch on every navigation and *throws away
+      // the entire subtree to re-render from scratch* — which is exactly
+      // what the user kept seeing as "elements refresh" and what was
+      // masking the view-transition crossfade.
+      suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: initScript }} />
