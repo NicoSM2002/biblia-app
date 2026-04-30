@@ -1,43 +1,32 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 
 /**
- * Route transitions = real crossfade.
+ * Pure-CSS route transition.
  *
- * Earlier versions used `mode="wait"`, which holds the new page off-screen
- * until the old page finishes its exit animation. That left a visible gap
- * — a single frame where the body background showed through and the user
- * read it as a flash / parpadeo. Calling display:contents on the wrapper
- * also silently broke opacity (the box is removed from the render tree).
+ * Earlier attempts used framer-motion's AnimatePresence to crossfade between
+ * routes. Two things kept biting us:
+ *   1) `display: contents` silently disables opacity animations.
+ *   2) AnimatePresence + Next.js App Router children swap doesn't always
+ *      detect the change cleanly enough to fire enter/exit on every nav,
+ *      especially with absolutely-positioned panes.
  *
- * This version layers the two pages on top of each other with absolute
- * positioning so the old fades out *while* the new fades in. No gap, no
- * flash. The container stays at viewport size and each page sits inside
- * with its existing h-[100dvh] layout.
+ * The simplest reliable approach: re-key a single wrapper by pathname so
+ * React unmounts the old route and mounts the new one. The new wrapper
+ * fires a CSS @keyframes fade-in on mount. The old route is gone instantly,
+ * but because <body> carries the paper background already, the eye sees
+ * "paper → content fading in" instead of a flash to blank.
  *
- * Critical: opacity does NOT apply to display:contents elements, so the
- * wrapper has to be a real positioned box (the .route-stage class does
- * this — relative + size:100% — so the absolutely-positioned children
- * have something to stack inside).
+ * No exit animation — but in practice the fade-in is enough to read as a
+ * soft turn-of-the-page, and there's no parpadeo because the wrapper
+ * starts at opacity 0 and animates upward against the paper background.
  */
 export function RouteTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <div className="route-stage">
-      <AnimatePresence initial={false}>
-        <motion.div
-          key={pathname}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.32, ease: [0.2, 0.7, 0.2, 1] }}
-          className="route-page"
-        >
-          {children}
-        </motion.div>
-      </AnimatePresence>
+    <div key={pathname} className="route-fade">
+      {children}
     </div>
   );
 }

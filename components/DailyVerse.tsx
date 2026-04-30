@@ -72,7 +72,7 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
       className="fixed inset-0 z-[80] flex flex-col items-center justify-center px-6 bg-[var(--paper)] no-print overflow-hidden cursor-pointer"
       onClick={(e) => {
         // Click on the overlay (or any non-button element) dismisses. Clicks
-        // on the button itself are handled by its own onClick — don't
+        // on the button itself are handled by their own onClick — don't
         // double-fire.
         if ((e.target as HTMLElement).closest("button")) return;
         onContinue();
@@ -88,14 +88,19 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
         }}
       />
 
-      {/* Single fade for the entire content — overlay covers the page right
-          away (no flash of home behind it) and the content fades in once
-          the verse arrives, all together, with one calm curve. */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: ready ? 1 : 0 }}
-        transition={{ duration: reduce ? 0 : 0.55, ease: [0.2, 0.7, 0.2, 1] }}
+      {/* Single fade for the entire content driven by a CSS transition (NOT
+          a nested motion.div) — nesting two framer-motion divs caused their
+          opacities to multiply during the entrance, which read as a flicker
+          / parpadeo. With one motion outer and one CSS-controlled inner,
+          the curve stays clean. */}
+      <div
         className="relative w-full max-w-md text-center cursor-default"
+        style={{
+          opacity: ready ? 1 : 0,
+          transition: reduce
+            ? undefined
+            : "opacity 600ms cubic-bezier(0.2, 0.7, 0.2, 1)",
+        }}
       >
         <div className="mb-7">
           <LatinCross className="mx-auto text-[var(--gold)]" size={32} />
@@ -154,7 +159,7 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
         <p className="mt-4 font-sans text-[0.7rem] text-[var(--ink-faint)]">
           {ready ? "Toca cualquier parte para continuar" : ""}
         </p>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }

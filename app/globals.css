@@ -437,26 +437,25 @@ body::before {
   border: 0;
 }
 
-/* Route-transition stage — a relative box that fills the viewport and
-   houses the absolutely-positioned page panes. Two panes can coexist
-   here briefly during a navigation: the outgoing one fading out while
-   the incoming one fades in. Without the absolute positioning the
-   panes would stack vertically and the page would visually scroll
-   during the crossfade. */
-.route-stage {
-  position: relative;
+/* Route fade — a single keyframe that runs whenever the wrapper mounts
+   (i.e. every time the pathname changes, since the wrapper is keyed on
+   pathname and React tears down + recreates it). The body background is
+   already paper, so the eye sees "paper → content fading in" instead of
+   a flash. No exit animation: the old route is gone instantly, but the
+   incoming fade is enough to read as a soft transition. */
+.route-fade {
   height: 100%;
   width: 100%;
-  /* Avoid a flash of body color during the crossfade — the stage paints
-     the same paper background that lives behind every page anyway. */
-  background: var(--paper);
+  animation: route-fade-in 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
-.route-page {
-  position: absolute;
-  inset: 0;
-  /* Each route's root container is h-[100dvh]; the absolute pane gives it
-     a parent box of identical size. */
+@keyframes route-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-fade { animation: none !important; }
 }
 
 /* Animations — fade only. We deliberately do NOT translate content on mount;
