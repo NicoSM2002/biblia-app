@@ -22,7 +22,11 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.28, ease: [0.2, 0.7, 0.2, 1] }}
+        // Deliberately fast — a longer crossfade lets the user notice the
+        // inner content appearing, which feels like "settling". 180ms is
+        // visible enough to feel intentional but short enough to read as
+        // a clean swap.
+        transition={{ duration: 0.18, ease: "easeOut" }}
         className="contents"
       >
         {children}

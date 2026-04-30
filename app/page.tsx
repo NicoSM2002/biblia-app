@@ -64,9 +64,9 @@ export default function HomePage() {
 function Welcome() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.2, 0.7, 0.2, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
       className="text-center mb-8 sm:mb-10"
     >
       <p className="font-sans text-[0.7rem] tracking-[0.22em] uppercase text-[var(--gold-text)] mb-3">
@@ -127,9 +127,9 @@ function ActionCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5, ease: [0.2, 0.7, 0.2, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: delay * 0.5, duration: 0.32, ease: "easeOut" }}
     >
       <Link
         href={href}
@@ -193,7 +193,7 @@ function Footer() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 0.5, duration: 0.5 }}
+      transition={{ delay: 0.25, duration: 0.4 }}
       className="mt-10 flex items-center justify-center gap-2"
     >
       <span aria-hidden="true" className="h-px w-6 bg-[var(--rule)]" />

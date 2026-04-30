@@ -11,7 +11,7 @@ type Mode = "login" | "signup";
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div className="min-h-[100dvh] bg-[var(--paper)]" />}>
+    <Suspense fallback={<div className="h-[100dvh] bg-[var(--paper)]" />}>
       <AuthForm />
     </Suspense>
   );
@@ -100,7 +100,7 @@ function AuthForm() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-[var(--paper)]">
+    <div className="h-[100dvh] flex flex-col bg-[var(--paper)] overflow-y-auto">
       <main className="flex-1 flex items-center justify-center px-5 py-10">
         <div className="w-full max-w-sm">
           <div className="flex flex-col items-center mb-8">

@@ -294,10 +294,13 @@ body::before {
   border: 0;
 }
 
-/* Animations */
+/* Animations — fade only. We deliberately do NOT translate content on mount;
+   moving Y by even a few pixels reads as "settling" / "jumping" right after
+   navigation, which is exactly what we want to avoid. Content appears in
+   its final position from the first frame. */
 @keyframes fade-rise {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes fade-in {

@@ -267,9 +267,9 @@ function ChurchCard({ church, index }: { church: Church; index: number }) {
 
   return (
     <motion.li
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.3 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: index * 0.025, duration: 0.25 }}
       className="bg-white border border-[var(--rule)] rounded-lg p-4"
     >
       <div className="flex items-start justify-between gap-3 mb-1">

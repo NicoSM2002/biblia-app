@@ -156,9 +156,9 @@ export function HistorySheet({
                   {list.map((c, i) => (
                     <motion.li
                       key={c.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.025, duration: 0.25 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.02, duration: 0.2 }}
                     >
                       <button
                         onClick={() => onSelect(c.id)}
