@@ -9,6 +9,7 @@ import { Loading } from "@/components/Loading";
 import { ChatInput } from "@/components/ChatInput";
 import { HistorySheet } from "@/components/HistorySheet";
 import { BottomNav } from "@/components/BottomNav";
+import { TurnActions } from "@/components/TurnActions";
 import {
   createClient,
   hasSessionCookie,
@@ -378,6 +379,13 @@ export default function ChatPage() {
                         {t.status === "streaming" && !t.verse && !t.response && (
                           <Loading />
                         )}
+                        {t.status === "done" && (t.verse || t.response) && (
+                          <TurnActions
+                            question={t.question}
+                            verse={t.verse ?? null}
+                            response={t.response}
+                          />
+                        )}
                       </>
                     )}
                     {t.status === "error" && (
@@ -455,32 +463,65 @@ function PrintHeader() {
 
 function ChatEmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
-    <div className="space-y-4 lg:space-y-6 pb-4 lg:pt-2">
-      <div className="card-welcome lg:py-6 lg:px-8">
-        <h2 className="font-serif italic text-[1.2rem] sm:text-[1.4rem] lg:text-[1.55rem] text-[var(--ink)] leading-[1.35] mb-2 lg:text-center">
-          Pregúntale a la Sagrada Escritura.
-        </h2>
-        <p className="font-sans text-[0.9rem] sm:text-[0.96rem] lg:text-[1rem] text-[var(--ink-soft)] leading-[1.6] lg:text-center lg:max-w-[44ch] lg:mx-auto">
-          Una duda, un dolor, una alegría. La Palabra responde con un
-          versículo y una explicación cercana.
-        </p>
-      </div>
-
-      <div className="lg:pt-1">
-        <p className="label-section lg:justify-center lg:flex">Prueba con</p>
-        <div className="flex flex-wrap gap-2 lg:justify-center">
-          {EXAMPLES.map((q) => (
-            <button
-              key={q}
-              onClick={() => onPick(q)}
-              className="chip-example"
-              type="button"
-            >
-              {q}
-            </button>
-          ))}
+    <div className="pt-2 pb-6">
+      {/* Hero card — gold-tinged background with leaf icon, evoking calm */}
+      <div
+        className="rounded-2xl px-5 py-6 sm:px-6 sm:py-7 mb-7 relative overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.04) 100%)",
+          border: "1px solid rgba(184, 146, 74, 0.18)",
+        }}
+      >
+        <div className="flex items-start gap-4">
+          <p className="font-serif italic text-[1.2rem] sm:text-[1.32rem] text-[var(--ink)] leading-[1.35] flex-1">
+            Dile a Dios lo que hay en tu corazón.
+            <br />
+            Él siempre te escucha.
+          </p>
+          <span aria-hidden="true" className="text-[var(--gold-text)] shrink-0 mt-1">
+            <LeafIcon />
+          </span>
         </div>
       </div>
+
+      <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
+        Prueba con
+      </p>
+      <ul className="space-y-2">
+        {EXAMPLES.map((q) => (
+          <li key={q}>
+            <button
+              onClick={() => onPick(q)}
+              type="button"
+              className="w-full text-left bg-[var(--surface)] border border-[var(--rule)] rounded-full px-5 py-3 font-sans text-[0.92rem] text-[var(--ink)] hover:border-[var(--gold)] hover:bg-[var(--vellum)] transition-colors flex items-center justify-between gap-3"
+            >
+              <span>{q}</span>
+              <span aria-hidden="true" className="text-[var(--ink-faint)] shrink-0">
+                <ArrowRight />
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
+  );
+}
+
+function LeafIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2c1 1.5 2 4.79 1.5 7-1 3.5-3 5-3 5l-3 3" />
+      <path d="M2 22 17 7" />
+    </svg>
+  );
+}
+
+function ArrowRight() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
   );
 }
