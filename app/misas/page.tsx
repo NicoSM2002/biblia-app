@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/BottomNav";
@@ -22,6 +22,33 @@ type Church = {
 
 type SearchOrigin = { lat: number; lng: number } | null;
 
+type CachedSearch = {
+  address: string;
+  churches: Church[];
+  searchedFrom: string | null;
+  searchOrigin: SearchOrigin;
+};
+
+const CACHE_KEY = "misasSearch";
+
+function loadCache(): CachedSearch | null {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as CachedSearch;
+  } catch {
+    return null;
+  }
+}
+
+function saveCache(c: CachedSearch) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(c));
+  } catch {
+    // sessionStorage might be unavailable in private mode — non-fatal.
+  }
+}
+
 export default function MisasPage() {
   return (
     <Suspense fallback={<div className="h-[100dvh] bg-[var(--paper)]" />}>
@@ -37,6 +64,20 @@ function Misas() {
   const [churches, setChurches] = useState<Church[] | null>(null);
   const [searchedFrom, setSearchedFrom] = useState<string | null>(null);
   const [searchOrigin, setSearchOrigin] = useState<SearchOrigin>(null);
+
+  // Restore the previous search on mount so coming back from a detail page
+  // (or any other in-app navigation) keeps the list and the address the
+  // user typed. Without this, every time you tap a parish and tap back you
+  // have to retype your location — tedious if you're browsing several.
+  useEffect(() => {
+    const cached = loadCache();
+    if (cached) {
+      setAddress(cached.address);
+      setChurches(cached.churches);
+      setSearchedFrom(cached.searchedFrom);
+      setSearchOrigin(cached.searchOrigin);
+    }
+  }, []);
 
   async function search(args: {
     address?: string;
@@ -58,16 +99,22 @@ function Misas() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || `Error ${res.status}`);
-      setChurches(json.churches as Church[]);
-      setSearchedFrom(
+      const newChurches = json.churches as Church[];
+      const newSearchedFrom =
         json.formattedAddress ||
-          (args.coords ? "Tu ubicación actual" : args.address || ""),
-      );
-      setSearchOrigin(
-        json.center
-          ? { lat: json.center.lat, lng: json.center.lng }
-          : args.coords ?? null,
-      );
+        (args.coords ? "Tu ubicación actual" : args.address || "");
+      const newOrigin: SearchOrigin = json.center
+        ? { lat: json.center.lat, lng: json.center.lng }
+        : args.coords ?? null;
+      setChurches(newChurches);
+      setSearchedFrom(newSearchedFrom);
+      setSearchOrigin(newOrigin);
+      saveCache({
+        address: args.address ?? "",
+        churches: newChurches,
+        searchedFrom: newSearchedFrom,
+        searchOrigin: newOrigin,
+      });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -260,7 +307,13 @@ function ChurchCard({
               src={`/api/places-photo?name=${encodeURIComponent(church.photoName)}&w=320`}
               alt=""
               loading="lazy"
+              draggable={false}
               className="absolute inset-0 w-full h-full object-cover"
+              // Shared element transition: when the user taps this card, the
+              // browser sees an element with the same view-transition-name
+              // on the destination page (the hero photo) and morphs from
+              // here to there. The id makes the name unique per church.
+              style={{ viewTransitionName: `church-photo-${church.id}` }}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[var(--gold-text)] opacity-50">

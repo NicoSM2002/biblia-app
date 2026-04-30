@@ -28,12 +28,15 @@ export const metadata: Metadata = {
   },
 };
 
-// Allow user zoom (WCAG 2.1 — never block pinch-to-zoom; older / low-vision
-// users need it). Just lock the initial scale so layout doesn't shift on
-// page load. themeColor is set per-theme via the meta tag below in <head>.
+// Zoom is intentionally locked at 1× per the user's request — pinch-to-zoom
+// and double-tap-to-zoom are disabled. (Note: this trades off WCAG 2.1's
+// recommendation to leave zoom available for low-vision users; if we want
+// to soften this later we can drop maximumScale and userScalable.)
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#FAF7F2" },
     { media: "(prefers-color-scheme: dark)",  color: "#0F1525" },

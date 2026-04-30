@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, use, useEffect, useState } from "react";
+import { Suspense, use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BottomNav } from "@/components/BottomNav";
@@ -126,45 +126,14 @@ function ChurchDetail({ placeId }: { placeId: string }) {
 
       <main className="flex-1 overflow-y-auto pb-24">
         <div className="max-w-2xl mx-auto">
-          {/* Photo carousel */}
-          <div className="relative bg-[var(--vellum)] aspect-[4/3] sm:aspect-[16/10] overflow-hidden">
-            {photos.length > 0 ? (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`/api/places-photo?name=${encodeURIComponent(photos[photoIdx])}&w=1200`}
-                  alt={church.name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                {photos.length > 1 && (
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-                    {photos.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setPhotoIdx(i)}
-                        aria-label={`Ver foto ${i + 1}`}
-                        className={`h-1.5 rounded-full transition-all ${
-                          i === photoIdx
-                            ? "w-5 bg-white"
-                            : "w-1.5 bg-white/60"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="absolute inset-0 grid place-items-center text-[var(--gold-text)] opacity-50">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="2" x2="12" y2="5" />
-                  <line x1="10.5" y1="3.5" x2="13.5" y2="3.5" />
-                  <path d="M5 21V11l7-4 7 4v10" />
-                  <line x1="3" y1="21" x2="21" y2="21" />
-                  <rect x="10" y="14" width="4" height="7" />
-                </svg>
-              </div>
-            )}
-          </div>
+          {/* Photo carousel — swipe (touch) + prev/next chevrons + dots */}
+          <PhotoCarousel
+            photos={photos}
+            churchName={church.name}
+            churchId={church.id}
+            index={photoIdx}
+            onChange={setPhotoIdx}
+          />
 
           <div className="px-5 sm:px-6 pt-6">
             <h1 className="font-serif italic text-[1.55rem] sm:text-[1.85rem] leading-[1.2] text-[var(--ink)]">
@@ -295,6 +264,137 @@ function ChurchDetail({ placeId }: { placeId: string }) {
 
       <BottomNav />
     </div>
+  );
+}
+
+function PhotoCarousel({
+  photos,
+  churchName,
+  churchId,
+  index,
+  onChange,
+}: {
+  photos: string[];
+  churchName: string;
+  churchId: string;
+  index: number;
+  onChange: (i: number) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const touchStartXRef = useRef<number | null>(null);
+
+  function go(delta: number) {
+    if (photos.length === 0) return;
+    const next = (index + delta + photos.length) % photos.length;
+    onChange(next);
+  }
+
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartXRef.current = e.touches[0]?.clientX ?? null;
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    const startX = touchStartXRef.current;
+    touchStartXRef.current = null;
+    if (startX == null) return;
+    const endX = e.changedTouches[0]?.clientX ?? startX;
+    const delta = endX - startX;
+    if (Math.abs(delta) < 40) return;
+    go(delta > 0 ? -1 : 1);
+  }
+
+  if (photos.length === 0) {
+    return (
+      <div className="relative bg-[var(--vellum)] aspect-[4/3] sm:aspect-[16/10] overflow-hidden">
+        <div className="absolute inset-0 grid place-items-center text-[var(--gold-text)] opacity-50">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="2" x2="12" y2="5" />
+            <line x1="10.5" y1="3.5" x2="13.5" y2="3.5" />
+            <path d="M5 21V11l7-4 7 4v10" />
+            <line x1="3" y1="21" x2="21" y2="21" />
+            <rect x="10" y="14" width="4" height="7" />
+          </svg>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative bg-[var(--vellum)] aspect-[4/3] sm:aspect-[16/10] overflow-hidden select-none"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`/api/places-photo?name=${encodeURIComponent(photos[index])}&w=1200`}
+        alt={churchName}
+        draggable={false}
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ viewTransitionName: `church-photo-${churchId}` }}
+      />
+
+      {photos.length > 1 && (
+        <>
+          {/* Prev / next chevrons — semi-translucent so they don't fight the
+              photo. Hidden on small screens where swipe is the primary
+              interaction; shown from sm+ where mouse users need them. */}
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            aria-label="Foto anterior"
+            className="hidden sm:grid place-items-center absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/35 text-white hover:bg-black/55 transition-colors"
+          >
+            <ChevronLeft />
+          </button>
+          <button
+            type="button"
+            onClick={() => go(1)}
+            aria-label="Foto siguiente"
+            className="hidden sm:grid place-items-center absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/35 text-white hover:bg-black/55 transition-colors"
+          >
+            <ChevronRight />
+          </button>
+
+          {/* Dots indicator */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/30 backdrop-blur-sm">
+            {photos.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => onChange(i)}
+                aria-label={`Ver foto ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === index ? "w-5 bg-white" : "w-1.5 bg-white/60"
+                }`}
+              />
+            ))}
+          </div>
+
+          <p
+            aria-hidden="true"
+            className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/35 text-white text-[0.72rem] font-sans tracking-[0.04em]"
+          >
+            {index + 1} / {photos.length}
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ChevronLeft() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
+function ChevronRight() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
   );
 }
 
