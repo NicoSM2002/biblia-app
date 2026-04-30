@@ -13,9 +13,14 @@ import { usePathname } from "next/navigation";
  * route mounts. `mode="wait"` plays the exit before the enter, which keeps
  * the screen calm and avoids cross-fade overlap on the missal-page card.
  *
- * Timing: the exit is ~45% of the enter (Material's "exit-faster-than-enter"
- * rule). The exit feels light, the enter feels intentional — together they
- * read as a soft turn-of-the-page instead of a door slam at 180ms.
+ * Critical: do NOT use display:contents on the wrapper — opacity does not
+ * apply to display:contents boxes (the element is removed from the render
+ * tree), so the fade simply doesn't happen. Use a real flex column that
+ * fills the body so the inner h-[100dvh] continues to work.
+ *
+ * Timing follows Material's "exit faster than enter" rule:
+ *   exit  ~140ms  (light, lets the user feel they advanced)
+ *   enter ~340ms  (intentional, registers as a turning page)
  */
 export function RouteTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -26,8 +31,8 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: 0.14, ease: "easeIn" } }}
-        transition={{ duration: 0.32, ease: [0.2, 0.7, 0.2, 1] }}
-        className="contents"
+        transition={{ duration: 0.34, ease: [0.2, 0.7, 0.2, 1] }}
+        className="route-transition-wrapper"
       >
         {children}
       </motion.div>

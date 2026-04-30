@@ -58,10 +58,14 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
   });
 
   const ready = !!verse || error;
-  const crossDuration = reduce ? 0 : 0.85;
-  const cascadeDelay = reduce ? 0 : 1.0;
-  const cascadeDuration = reduce ? 0 : 0.6;
-  const buttonDelay = reduce ? 0 : 1.55;
+  // Subtle, calm cascade — only opacity, no scale or y-translate (movement
+  // reads as "settling" right after a route entry). Total time from cross
+  // to button: ~1.1s, vs the previous ~2s — feels lighter and the user
+  // can tap "Comenzar" sooner if they want.
+  const crossDuration = reduce ? 0 : 0.55;
+  const cascadeDelay = reduce ? 0 : 0.5;
+  const cascadeDuration = reduce ? 0 : 0.5;
+  const buttonDelay = reduce ? 0 : 0.9;
 
   return (
     <motion.div
@@ -93,23 +97,24 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
       />
 
       <div className="relative w-full max-w-md text-center cursor-default">
-        {/* The cross — centerpiece of the moment. Appears alone first. */}
+        {/* The cross — centerpiece of the moment. Appears alone first.
+            Only opacity, no scale: physical movement reads as "settling"
+            after a route change. */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.7 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: crossDuration, ease: [0.2, 0.7, 0.2, 1] }}
           className="mb-7"
         >
           <LatinCross className="mx-auto text-[var(--gold)]" size={32} />
         </motion.div>
 
-        {/* The verse + reference + button cascade in once the cross has had its moment. */}
+        {/* The verse + reference + button cascade in once the cross has had
+            its moment. Only opacity — content sits in its final position
+            from the first frame so nothing slides into place. */}
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{
-            opacity: ready ? 1 : 0,
-            y: ready ? 0 : 8,
-          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: ready ? 1 : 0 }}
           transition={{
             delay: cascadeDelay,
             duration: cascadeDuration,
@@ -146,17 +151,14 @@ export function DailyVerse({ onContinue }: { onContinue: () => void }) {
 
           <motion.button
             ref={buttonRef}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{
-              opacity: ready ? 1 : 0,
-              y: ready ? 0 : 8,
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: ready ? 1 : 0 }}
             transition={{
               delay: buttonDelay,
-              duration: reduce ? 0 : 0.5,
+              duration: reduce ? 0 : 0.45,
               ease: [0.2, 0.7, 0.2, 1],
             }}
-            whileHover={{ y: -1 }}
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onContinue}
             className="mt-7 inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] font-sans text-[0.95rem] font-medium hover:bg-[var(--gold-soft)] transition-colors min-h-[44px]"

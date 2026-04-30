@@ -437,6 +437,18 @@ body::before {
   border: 0;
 }
 
+/* Route-transition wrapper — sits between <body> and the page tree. Must
+   take up the full body height without injecting a layout (no flex
+   centering, no padding) because each page already has its own
+   h-[100dvh] container. We use block + 100% height so opacity animations
+   actually apply (display:contents would remove the box from the render
+   tree and silently break the fade). */
+.route-transition-wrapper {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
 /* Animations — fade only. We deliberately do NOT translate content on mount;
    moving Y by even a few pixels reads as "settling" / "jumping" right after
    navigation, which is exactly what we want to avoid. Content appears in
@@ -456,8 +468,19 @@ body::before {
   50%      { opacity: 1; }
 }
 
+/* Streaming-text per-word fade. Each word span mounts once and runs this
+   animation a single time, so the browser only paints fades for the *new*
+   words instead of repainting the whole paragraph on every chunk. */
+@keyframes word-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 .anim-fade-rise { animation: fade-rise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .anim-fade-in   { animation: fade-in 800ms ease both; }
+.streaming-word {
+  animation: word-fade-in 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
 
 /* Respect the user's "reduce motion" OS setting. WCAG 2.3.3 + helps users
    with vestibular disorders. Critical for an app whose audience includes
