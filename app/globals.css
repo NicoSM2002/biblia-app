@@ -264,19 +264,6 @@ body::before {
   text-transform: uppercase;
 }
 
-/* Drop cap on the first letter of a verse */
-.drop-cap::first-letter {
-  font-family: var(--font-serif), serif;
-  font-weight: 500;
-  float: left;
-  font-size: 3.6em;
-  line-height: 0.85;
-  padding-right: 0.08em;
-  padding-top: 0.08em;
-  color: var(--gold);
-  font-style: normal;
-}
-
 /* The page's vertical "rubric" hairline — a missal's gilt edge */
 .rubric-line {
   background: linear-gradient(
@@ -340,8 +327,7 @@ body::before {
   .anim-fade-in,
   .dot-1,
   .dot-2,
-  .dot-3,
-  .anim-cursor { animation: none !important; }
+  .dot-3 { animation: none !important; }
 }
 
 /* The "Buscando en la Palabra…" indicator dots */
@@ -349,16 +335,9 @@ body::before {
 .dot-2 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 200ms; }
 .dot-3 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 400ms; }
 
-/* Typewriter cursor — slower, more deliberate blink for the daily verse */
-@keyframes cursor-blink {
-  0%, 49%   { opacity: 1; }
-  50%, 100% { opacity: 0; }
-}
-.anim-cursor { animation: cursor-blink 0.9s steps(1, end) infinite; }
-
-/* Selection styling — gold halo */
+/* Selection styling — gold halo, slightly stronger so it's visible on cream */
 ::selection {
-  background: rgba(184, 146, 74, 0.22);
+  background: rgba(184, 146, 74, 0.32);
   color: var(--ink);
 }
 
@@ -369,11 +348,16 @@ body::before {
   border-radius: 2px;
 }
 
-/* Custom scrollbar — minimal */
-::-webkit-scrollbar { width: 10px; height: 10px; }
+/* Custom scrollbar — minimal but easy to grab on desktop */
+::-webkit-scrollbar { width: 12px; height: 12px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--gold); background-clip: padding-box; }
 
 /* -----------------------------------------------------------------------------
    Print stylesheet — used when the user picks "Guardar PDF" from the export
