@@ -12,6 +12,10 @@ import { usePathname } from "next/navigation";
  * animations actually have a host element to keep alive while the next
  * route mounts. `mode="wait"` plays the exit before the enter, which keeps
  * the screen calm and avoids cross-fade overlap on the missal-page card.
+ *
+ * Timing: the exit is ~45% of the enter (Material's "exit-faster-than-enter"
+ * rule). The exit feels light, the enter feels intentional — together they
+ * read as a soft turn-of-the-page instead of a door slam at 180ms.
  */
 export function RouteTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -21,12 +25,8 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
         key={pathname}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        // Deliberately fast — a longer crossfade lets the user notice the
-        // inner content appearing, which feels like "settling". 180ms is
-        // visible enough to feel intentional but short enough to read as
-        // a clean swap.
-        transition={{ duration: 0.18, ease: "easeOut" }}
+        exit={{ opacity: 0, transition: { duration: 0.14, ease: "easeIn" } }}
+        transition={{ duration: 0.32, ease: [0.2, 0.7, 0.2, 1] }}
         className="contents"
       >
         {children}
