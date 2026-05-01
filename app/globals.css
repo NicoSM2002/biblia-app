@@ -274,21 +274,21 @@ body::before {
     background: var(--vellum);
     border: 1px solid var(--rule);
     border-left: 3px solid var(--gold);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 1.25rem;
   }
 
   .card-response {
     background: var(--surface);
     border: 1px solid var(--rule);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 1.1rem 1.25rem;
   }
 
   .card-question {
     background: rgba(184, 146, 74, 0.07);
     border: 1px solid rgba(184, 146, 74, 0.22);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 0.85rem 1rem;
   }
 
@@ -497,6 +497,7 @@ body::before {
      .text-quote     → 1.25rem  (verses, blockquotes)
      .text-title     → 1.4rem   (section subtitles serif)
      .text-page      → 1.6rem   (page hero titles serif)
+     .text-hero      → 1.85rem  (larger page heroes — modo oración, misas)
      .text-display   → 2.4rem   (timer, very large)
 */
 .text-eyebrow {
@@ -512,6 +513,7 @@ body::before {
 .text-quote { font-size: 1.25rem; }
 .text-title { font-size: 1.4rem; }
 .text-page { font-size: 1.6rem; }
+.text-hero { font-size: 1.85rem; }
 .text-display { font-size: 2.4rem; }
 
 /* Cross-breathing — used by the splash overlay. Soft pulse between
@@ -524,13 +526,20 @@ body::before {
   animation: cross-breath 2.6s ease-in-out infinite;
 }
 
-/* Page-content fade was making each route change feel laggy: every tab
-   switch had a 380ms fade-in BEFORE the user could see the content. The
-   user kept describing it as "lag". Reduced to a no-op so navigation
-   feels instant. The class still exists so we don't have to touch every
-   page that referenced it. */
+/* Page-content fade — short opacity-only ramp so route changes feel
+   intentional, not snap. Earlier we had 380ms which read as lag, then
+   removed it entirely which read as a hard cut. 120ms is the sweet
+   spot: perceptible to a calm reader, invisible to one paying
+   attention. No translation, no scale, no blur. */
+@keyframes page-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 .page-content-fade {
-  /* no animation — pages appear instantly on mount */
+  animation: page-fade-in 120ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-content-fade { animation: none !important; }
 }
 
 /* Helper for elements that appear later (e.g. carousel arrows once the
@@ -541,6 +550,44 @@ body::before {
 }
 .soft-fade-in {
   animation: soft-fade-in 220ms cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+/* Skeleton shimmer — lighter-pad sweep that travels across a placeholder
+   block. Reads as "loading something for you" instead of the static
+   pulse. The pseudo-element holds the gradient so the parent can keep
+   the base color (var(--rule)) and corner radius. */
+@keyframes skeleton-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: var(--rule);
+  border-radius: 6px;
+}
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+:root[data-theme="dark"] .skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(242, 235, 217, 0.10) 50%,
+    transparent 100%
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after { animation: none; }
 }
 
 /* Selection styling — gold halo, slightly stronger so it's visible on cream */

@@ -54,7 +54,7 @@ export function ShareConversation({ turns }: { turns: Turn[] }) {
           : "Compartir conversación"
       }
       title="Compartir conversación"
-      className="grid place-items-center w-10 h-10 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 shrink-0"
+      className="grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 shrink-0"
       style={{ touchAction: "manipulation" }}
     >
       {state === "copied" ? <CheckIcon /> : <ShareIcon />}

@@ -534,7 +534,7 @@ function ChatEmptyState({ onPick }: { onPick: (q: string) => void }) {
         }}
       >
         <div className="flex items-start gap-4">
-          <p className="font-serif italic text-[1.2rem] sm:text-[1.32rem] text-[var(--ink)] leading-[1.35] flex-1">
+          <p className="font-serif italic text-quote text-[var(--ink)] leading-[1.35] flex-1">
             Dile a Dios lo que hay en tu corazón.
             <br />
             Él siempre te escucha.

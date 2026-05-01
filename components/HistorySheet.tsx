@@ -147,7 +147,7 @@ export function HistorySheet({
                 </p>
                 <h2
                   id="history-sheet-title"
-                  className="font-serif italic text-[1.2rem] text-[var(--ink)] mt-0.5"
+                  className="font-serif italic text-quote text-[var(--ink)] mt-0.5"
                 >
                   Tus conversaciones
                 </h2>

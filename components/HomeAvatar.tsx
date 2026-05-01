@@ -112,7 +112,7 @@ export function HomeAvatar() {
       <Link
         href="/auth?modo=registro"
         aria-label="Crear cuenta o iniciar sesión"
-        className="grid place-items-center w-10 h-10 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all"
+        className="grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all"
       >
         <UserIcon />
       </Link>
@@ -141,7 +141,7 @@ export function HomeAvatar() {
         aria-haspopup="menu"
         aria-expanded={open}
         className={cn(
-          "grid place-items-center w-10 h-10 rounded-full border transition-all",
+          "grid place-items-center w-11 h-11 rounded-full border transition-all",
           open
             ? "border-[var(--gold)] bg-[var(--vellum)] text-[var(--gold-text)]"
             : "border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)]",

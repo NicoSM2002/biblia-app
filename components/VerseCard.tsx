@@ -25,7 +25,7 @@ export function VerseCard({
         </cite>
         <blockquote
           cite={reference}
-          className="font-serif italic text-[1.12rem] sm:text-[1.18rem] leading-[1.55] text-[var(--ink)]"
+          className="font-serif italic text-quote leading-[1.55] text-[var(--ink)]"
           style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
         >
           “{display}”

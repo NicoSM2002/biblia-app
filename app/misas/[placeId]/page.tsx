@@ -109,7 +109,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
         <DetailHeader title="Parroquia" />
         <main className="flex-1 grid place-items-center px-6 pb-24 text-center">
           <div className="max-w-sm">
-            <p className="font-serif italic text-[1.2rem] text-[var(--ink)] mb-2">
+            <p className="font-serif italic text-quote text-[var(--ink)] mb-2">
               No pudimos cargar esta parroquia
             </p>
             <p className="font-sans text-[0.9rem] text-[var(--ink-soft)]">{error}</p>
@@ -169,7 +169,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
           />
 
           <div className="px-5 sm:px-6 pt-6">
-            <h1 className="font-serif italic text-[1.55rem] sm:text-[1.85rem] leading-[1.2] text-[var(--ink)]">
+            <h1 className="font-serif italic text-page sm:text-hero leading-[1.2] text-[var(--ink)]">
               {church.name}
             </h1>
 
@@ -376,7 +376,7 @@ function PhotoCarousel({
             type="button"
             onClick={() => go(-1)}
             aria-label="Foto anterior"
-            className="grid place-items-center absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/45 text-white hover:bg-black/60 transition-colors active:scale-95"
+            className="grid place-items-center absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/45 text-white hover:bg-black/60 transition-colors active:scale-95"
           >
             <ChevronLeft />
           </button>
@@ -384,7 +384,7 @@ function PhotoCarousel({
             type="button"
             onClick={() => go(1)}
             aria-label="Foto siguiente"
-            className="grid place-items-center absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/45 text-white hover:bg-black/60 transition-colors active:scale-95"
+            className="grid place-items-center absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/45 text-white hover:bg-black/60 transition-colors active:scale-95"
           >
             <ChevronRight />
           </button>
@@ -433,12 +433,12 @@ function ChevronRight() {
 
 function DetailHeader({ title }: { title: string }) {
   return (
-    <header className="px-4 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] z-10">
+    <header className="px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] z-10">
       <div className="max-w-2xl mx-auto flex items-center gap-2">
         <Link
           href="/misas"
           aria-label="Volver a parroquias"
-          className="grid place-items-center w-10 h-10 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] transition-colors shrink-0 -ml-1"
+          className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] transition-colors shrink-0 -ml-1"
         >
           <BackIcon />
         </Link>

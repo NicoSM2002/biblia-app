@@ -29,7 +29,7 @@ export function Header({
   shareableTurns?: ExportableTurn[];
 }) {
   return (
-    <header className="relative z-30 px-4 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] no-print">
+    <header className="relative z-30 px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] no-print">
       <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           {onOpenHistory && <HistoryButton onClick={onOpenHistory} />}
@@ -73,7 +73,7 @@ function HistoryButton({ onClick }: { onClick: () => void }) {
     <button
       onClick={onClick}
       aria-label="Abrir historial"
-      className="grid place-items-center w-10 h-10 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold-text)] transition-colors shrink-0"
+      className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold-text)] transition-colors shrink-0"
     >
       <svg
         width="17"
@@ -100,7 +100,7 @@ function NewConversationButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       aria-label="Empezar una nueva conversación"
       title="Nueva conversación"
-      className="group grid place-items-center w-10 h-10 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 shrink-0"
+      className="group grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 shrink-0"
     >
       <svg
         width="14"

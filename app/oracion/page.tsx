@@ -89,7 +89,7 @@ export default function OracionPage() {
         }}
       />
 
-      <header className="relative z-10 px-5 pt-6 pb-6 flex items-center justify-center">
+      <header className="relative z-10 px-5 sm:px-6 pt-6 pb-6 flex items-center justify-center">
         <p className="font-sans text-[0.78rem] tracking-[0.28em] uppercase text-[var(--gold-text)] font-semibold">
           Modo oración
         </p>
@@ -131,7 +131,7 @@ function SelectPhase({ onStart }: { onStart: (min: number) => void }) {
       <div className="mb-7 grid place-items-center">
         <PrayingHandsIcon />
       </div>
-      <h1 className="font-serif italic text-[1.6rem] sm:text-[1.85rem] leading-[1.3] text-[var(--ink)] mb-3">
+      <h1 className="font-serif italic text-page sm:text-hero leading-[1.3] text-[var(--ink)] mb-3">
         Tómate un momento para hablar con Él.
       </h1>
       <p className="font-sans text-[1rem] text-[var(--ink-soft)] leading-relaxed mb-8">
@@ -179,13 +179,13 @@ function PrayingPhase({
 
   return (
     <div className="w-full max-w-md flex flex-col items-center">
-      <p className="font-serif italic text-[1.4rem] leading-[1.3] text-[var(--ink)] mb-5">
+      <p className="font-serif italic text-title leading-[1.3] text-[var(--ink)] mb-5">
         Respira. Dios está contigo.
       </p>
 
       <ProgressRing progress={progress} size={190}>
         <div className="text-center">
-          <p className="font-serif italic text-[2.4rem] leading-none tabular-nums text-[var(--ink)]">
+          <p className="font-serif italic text-display leading-none tabular-nums text-[var(--ink)]">
             {timeText}
           </p>
           <p className="font-sans text-[0.72rem] tracking-[0.2em] uppercase text-[var(--gold-text)] mt-1.5">
@@ -225,7 +225,7 @@ function PrayingPhase({
           <p className="font-sans text-[0.74rem] tracking-[0.16em] uppercase text-[var(--gold-text)] mb-2">
             {verse.reference}
           </p>
-          <p className="font-serif italic text-[1.18rem] leading-[1.5] text-[var(--ink)]">
+          <p className="font-serif italic text-quote leading-[1.5] text-[var(--ink)]">
             {verseDisplay}
           </p>
         </div>
@@ -251,7 +251,7 @@ function EndedPhase({
       <p className="font-sans text-[0.74rem] tracking-[0.24em] uppercase text-[var(--gold-text)] mb-2">
         El silencio fue oración
       </p>
-      <h2 className="font-serif italic text-[1.55rem] leading-[1.3] text-[var(--ink)] mb-5">
+      <h2 className="font-serif italic text-page leading-[1.3] text-[var(--ink)] mb-5">
         Dios te escuchó.
       </h2>
 
@@ -267,7 +267,7 @@ function EndedPhase({
           <p className="font-sans text-[0.74rem] tracking-[0.14em] uppercase text-[var(--gold-text)] mb-2">
             {verse.reference}
           </p>
-          <p className="font-serif italic text-[1.18rem] leading-[1.5] text-[var(--ink)]">
+          <p className="font-serif italic text-quote leading-[1.5] text-[var(--ink)]">
             {verseDisplay}
           </p>
         </div>

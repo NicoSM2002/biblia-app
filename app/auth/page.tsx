@@ -120,7 +120,7 @@ function AuthForm() {
               aria-label="Volver a Habla con la Palabra"
             >
               <LatinCross className="text-[var(--gold)]" size={20} />
-              <h1 className="font-serif italic text-[1.2rem] text-[var(--ink)]">
+              <h1 className="font-serif italic text-quote text-[var(--ink)]">
                 Habla con la Palabra
               </h1>
             </Link>

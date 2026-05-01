@@ -173,7 +173,7 @@ function Misas() {
 
       <main className="flex-1 overflow-y-auto pb-36">
         <div className="page-content-fade max-w-2xl mx-auto px-5 sm:px-6 pt-7">
-          <h2 className="font-serif italic text-[1.55rem] sm:text-[1.75rem] text-[var(--ink)] leading-[1.25] text-center mb-2">
+          <h2 className="font-serif italic text-page sm:text-hero text-[var(--ink)] leading-[1.25] text-center mb-2">
             Misa cerca de ti
           </h2>
           <p className="font-sans text-[0.92rem] text-[var(--ink-soft)] leading-relaxed text-center max-w-[34ch] mx-auto mb-6">
@@ -196,7 +196,7 @@ function Misas() {
                 onClick={useMyLocation}
                 disabled={pending}
                 aria-label="Usar mi ubicación"
-                className="grid place-items-center w-10 h-10 rounded-full text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors disabled:opacity-50"
+                className="grid place-items-center w-11 h-11 rounded-full text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors disabled:opacity-50"
               >
                 <TargetIcon />
               </button>
@@ -257,7 +257,7 @@ function Misas() {
 
           {!churches && !pending && !error && (
             <div className="mt-10 text-center">
-              <p className="font-serif italic text-[1.1rem] text-[var(--ink)]">
+              <p className="font-serif italic text-body-lg text-[var(--ink)]">
                 Empieza buscando una ubicación
               </p>
               <p className="mt-2 font-sans text-[0.9rem] text-[var(--ink-soft)]">

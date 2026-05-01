@@ -107,7 +107,7 @@ export default function HomePage() {
 
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden">
-      <header className="px-5 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
+      <header className="px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <LatinCross className="text-[var(--gold)] shrink-0" size={16} />
@@ -221,12 +221,12 @@ function DailyVerseSkeleton() {
           border: "1px solid rgba(184, 146, 74, 0.22)",
         }}
       >
-        <div className="space-y-2 animate-pulse">
-          <div className="h-5 bg-[var(--rule)] rounded w-full" />
-          <div className="h-5 bg-[var(--rule)] rounded w-[90%]" />
-          <div className="h-5 bg-[var(--rule)] rounded w-[70%]" />
+        <div className="space-y-2">
+          <div className="h-5 skeleton-shimmer w-full" />
+          <div className="h-5 skeleton-shimmer w-[90%]" />
+          <div className="h-5 skeleton-shimmer w-[70%]" />
         </div>
-        <div className="mt-3 h-3 bg-[var(--rule)] rounded w-24 animate-pulse" />
+        <div className="mt-3 h-3 skeleton-shimmer w-24" />
       </div>
     </section>
   );
@@ -351,7 +351,7 @@ function ActionButton({
         type="button"
         onClick={onStopVoice}
         aria-label="Detener dictado"
-        className="relative grid place-items-center w-10 h-10 rounded-full bg-[var(--vino)] text-white hover:opacity-90 active:scale-95 transition-all"
+        className="relative grid place-items-center w-11 h-11 rounded-full bg-[var(--vino)] text-white hover:opacity-90 active:scale-95 transition-all"
       >
         <span aria-hidden="true" className="absolute inset-0 rounded-full bg-[var(--vino)] opacity-40 animate-ping" />
         <span className="relative">
@@ -365,7 +365,7 @@ function ActionButton({
       <button
         type="submit"
         aria-label="Enviar pregunta"
-        className="grid place-items-center w-10 h-10 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
+        className="grid place-items-center w-11 h-11 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
         onClick={(e) => {
           // Use submit handler if inside form; otherwise call directly
           if (!e.currentTarget.form) {
@@ -384,7 +384,7 @@ function ActionButton({
     return (
       <span
         aria-hidden="true"
-        className="grid place-items-center w-10 h-10 rounded-full bg-[var(--rule)] text-[var(--ink-faint)]"
+        className="grid place-items-center w-11 h-11 rounded-full bg-[var(--rule)] text-[var(--ink-faint)]"
       >
         <SendIcon />
       </span>
@@ -395,7 +395,7 @@ function ActionButton({
       type="button"
       onClick={onStartVoice}
       aria-label="Dictar pregunta"
-      className="grid place-items-center w-10 h-10 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
+      className="grid place-items-center w-11 h-11 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
     >
       <MicIcon />
     </button>
