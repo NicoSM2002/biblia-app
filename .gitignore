@@ -60,3 +60,4 @@ scripts/screenshots-webkit/
 test-results/
 playwright-report/
 
+scripts/anim-check/
