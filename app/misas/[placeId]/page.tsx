@@ -158,7 +158,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
       <DetailHeader title={church.name} />
 
       <main className="flex-1 overflow-y-auto pb-36">
-        <div className="max-w-2xl mx-auto">
+        <div className="page-content-fade max-w-2xl mx-auto">
           {/* Photo carousel — swipe (touch) + prev/next chevrons + dots */}
           <PhotoCarousel
             photos={photos}
@@ -368,7 +368,7 @@ function PhotoCarousel({
       />
 
       {photos.length > 1 && (
-        <>
+        <div className="soft-fade-in">
           {/* Prev / next chevrons — always visible (mobile and desktop) so
               users have a clear way to navigate without depending on swipe
               alone. Semi-translucent so they don't fight the photo. */}
@@ -409,7 +409,7 @@ function PhotoCarousel({
           >
             {index + 1} / {photos.length}
           </p>
-        </>
+        </div>
       )}
     </div>
   );

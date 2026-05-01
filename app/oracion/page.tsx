@@ -95,7 +95,7 @@ export default function OracionPage() {
       </header>
 
       <main
-        className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center min-h-0"
+        className="page-content-fade relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center min-h-0"
         style={{ paddingBottom: `calc(${NAV_RESERVE_PX}px + env(safe-area-inset-bottom))` }}
       >
         {phase === "select" && <SelectPhase onStart={start} />}

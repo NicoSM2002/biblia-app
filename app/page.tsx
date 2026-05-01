@@ -111,7 +111,7 @@ export default function HomePage() {
       </header>
 
       <main className="flex-1 overflow-y-auto pb-32">
-        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-5">
+        <div className="page-content-fade max-w-2xl mx-auto px-5 sm:px-6 pt-5">
           <Greeting name={name} />
 
           <h2 className="mt-1.5 font-serif italic text-[1.4rem] sm:text-[1.6rem] leading-[1.25] text-[var(--ink)] mb-4">

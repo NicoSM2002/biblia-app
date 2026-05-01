@@ -134,12 +134,17 @@ html, body {
 ::view-transition-group(root) {
   animation: none;
 }
+/* Asymmetric timing: the outgoing page fades quickly (180ms) so the new
+   page is interactive almost immediately, while the incoming page has a
+   slightly longer fade-in (320ms) with a soft ease-out so the arrival
+   feels intentional, not abrupt. Net perceived transition ~320ms with
+   no perceptible "lock" at the start. */
 ::view-transition-old(root) {
-  animation: vt-fade-out 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: vt-fade-out 180ms cubic-bezier(0.4, 0, 1, 1);
   mix-blend-mode: normal;
 }
 ::view-transition-new(root) {
-  animation: vt-fade-in 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: vt-fade-in 320ms cubic-bezier(0, 0, 0.2, 1);
   mix-blend-mode: normal;
 }
 
@@ -488,16 +493,37 @@ body::before {
 .dot-2 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 200ms; }
 .dot-3 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 400ms; }
 
-/* Cross-breathing — used by the splash overlay (and previously by the
-   daily verse overlay). Soft pulse between opacity 0.55 and 1 with a
-   2.6s cycle. Intentionally NOT disabled by prefers-reduced-motion
-   because it is the central moment of arrival to the app. */
+/* Cross-breathing — used by the splash overlay. Soft pulse between
+   opacity 0.55 and 1 with a 2.6s cycle. */
 @keyframes cross-breath {
   0%, 100% { opacity: 0.55; }
   50%      { opacity: 1; }
 }
 .cross-breathing {
   animation: cross-breath 2.6s ease-in-out infinite;
+}
+
+/* Page-content entrance — soft fade-in on the main content of each
+   surface so the page feels like it's "arriving" instead of just snapping
+   into place. Pure opacity (no translate) to avoid any "settling" feel.
+   Used inside route view, runs every time the page mounts. 380ms with a
+   gentle ease-out. */
+@keyframes page-content-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.page-content-fade {
+  animation: page-content-fade 380ms cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+/* Helper for elements that appear later (e.g. carousel arrows once the
+   detail fetch resolves with multiple photos). 320ms ease-out. */
+@keyframes soft-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.soft-fade-in {
+  animation: soft-fade-in 320ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 /* Selection styling — gold halo, slightly stronger so it's visible on cream */
