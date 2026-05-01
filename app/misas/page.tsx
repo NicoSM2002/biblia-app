@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useLayoutEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/BottomNav";
+import { apiUrl } from "@/lib/api-url";
 
 // useLayoutEffect on the client (runs sync before paint), useEffect on the
 // server (silences the SSR warning). Used here to restore the cached search
@@ -94,7 +95,7 @@ function Misas() {
     setChurches(null);
     setPending(true);
     try {
-      const res = await fetch("/api/iglesias", {
+      const res = await fetch(apiUrl("/api/iglesias"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

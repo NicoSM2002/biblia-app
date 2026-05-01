@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/BottomNav";
+import { apiUrl } from "@/lib/api-url";
 
 const NAV_RESERVE_PX = 88;
 
@@ -31,7 +32,7 @@ export default function OracionPage() {
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/daily-verse")
+    fetch(apiUrl("/api/daily-verse"))
       .then((r) => r.json())
       .then((d: { verse?: Verse }) => {
         if (d.verse) setVerse(d.verse);

@@ -10,6 +10,7 @@ import { ChatInput } from "@/components/ChatInput";
 import { HistorySheet } from "@/components/HistorySheet";
 import { BottomNav } from "@/components/BottomNav";
 import { TurnActions } from "@/components/TurnActions";
+import { apiUrl } from "@/lib/api-url";
 import {
   createClient,
   hasSessionCookie,
@@ -123,7 +124,7 @@ export default function ChatPage() {
     const conversationId = conversationIdRef.current;
     if (!conversationId) return; // turn not yet persisted, nothing to PATCH
 
-    void fetch(`/api/conversations/${conversationId}/turns`, {
+    void fetch(apiUrl(`/api/conversations/${conversationId}/turns`), {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ord, liked: nextLiked }),
@@ -140,7 +141,7 @@ export default function ChatPage() {
   async function loadConversation(id: string) {
     if (pending) return;
     try {
-      const res = await fetch(`/api/conversations/${id}`);
+      const res = await fetch(apiUrl(`/api/conversations/${id}`));
       if (!res.ok) throw new Error(`status ${res.status}`);
       const data = (await res.json()) as {
         conversation: { id: string; title: string | null };
@@ -195,7 +196,7 @@ export default function ChatPage() {
   async function persistTurn(turn: Turn, ord: number) {
     try {
       if (!conversationIdRef.current) {
-        const res = await fetch("/api/conversations", {
+        const res = await fetch(apiUrl("/api/conversations"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({}),
@@ -204,7 +205,7 @@ export default function ChatPage() {
         const data = (await res.json()) as { conversation: { id: string } };
         conversationIdRef.current = data.conversation.id;
       }
-      await fetch(`/api/conversations/${conversationIdRef.current}/turns`, {
+      await fetch(apiUrl(`/api/conversations/${conversationIdRef.current}/turns`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -241,7 +242,7 @@ export default function ChatPage() {
       ]);
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(apiUrl("/api/chat"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question, history }),

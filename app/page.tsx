@@ -9,6 +9,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Splash } from "@/components/Splash";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSpeechRecognition } from "@/lib/use-speech-recognition";
+import { apiUrl } from "@/lib/api-url";
 import {
   createClient,
   hasSessionCookie,
@@ -67,7 +68,7 @@ export default function HomePage() {
     } catch {
       // ignore
     }
-    fetch("/api/daily-verse")
+    fetch(apiUrl("/api/daily-verse"))
       .then((r) => r.json())
       .then((d: { verse?: Verse }) => {
         if (d.verse) {
