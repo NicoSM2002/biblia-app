@@ -88,8 +88,8 @@ export default function OracionPage() {
         }}
       />
 
-      <header className="relative z-10 px-5 pt-6 pb-2 flex items-center justify-center">
-        <p className="font-sans text-[0.72rem] tracking-[0.28em] uppercase text-[var(--gold-text)]">
+      <header className="relative z-10 px-5 pt-6 pb-6 flex items-center justify-center">
+        <p className="font-sans text-[0.78rem] tracking-[0.28em] uppercase text-[var(--gold-text)] font-semibold">
           Modo oración
         </p>
       </header>
@@ -178,25 +178,22 @@ function PrayingPhase({
 
   return (
     <div className="w-full max-w-md flex flex-col items-center">
-      <p className="font-serif italic text-[1.4rem] sm:text-[1.55rem] leading-[1.3] text-[var(--ink)] mb-2">
+      <p className="font-serif italic text-[1.4rem] leading-[1.3] text-[var(--ink)] mb-5">
         Respira. Dios está contigo.
       </p>
-      <p className="font-sans text-[0.95rem] text-[var(--ink-soft)] leading-relaxed mb-8">
-        Tómate un momento para hablar con Él.
-      </p>
 
-      <ProgressRing progress={progress} size={220}>
+      <ProgressRing progress={progress} size={190}>
         <div className="text-center">
-          <p className="font-serif italic text-[2.6rem] leading-none tabular-nums text-[var(--ink)]">
+          <p className="font-serif italic text-[2.4rem] leading-none tabular-nums text-[var(--ink)]">
             {timeText}
           </p>
-          <p className="font-sans text-[0.74rem] tracking-[0.2em] uppercase text-[var(--gold-text)] mt-2">
+          <p className="font-sans text-[0.72rem] tracking-[0.2em] uppercase text-[var(--gold-text)] mt-1.5">
             {paused ? "Pausado" : "Silencio"}
           </p>
         </div>
       </ProgressRing>
 
-      <div className="mt-7 flex items-center gap-3">
+      <div className="mt-5 flex items-center gap-3">
         <button
           onClick={onTogglePause}
           aria-label={paused ? "Reanudar" : "Pausar"}
@@ -217,20 +214,17 @@ function PrayingPhase({
 
       {verse && (
         <div
-          className="mt-9 rounded-xl px-5 py-4 max-w-md w-full"
+          className="mt-6 rounded-xl px-5 py-4 max-w-md w-full text-left"
           style={{
             background:
               "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.03) 100%)",
             border: "1px solid rgba(184, 146, 74, 0.22)",
           }}
         >
-          <p className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-[var(--gold-text)] mb-2">
-            Palabra para orar
-          </p>
-          <p className="font-sans text-[0.78rem] tracking-[0.12em] uppercase text-[var(--gold-text)] mb-2">
+          <p className="font-sans text-[0.74rem] tracking-[0.16em] uppercase text-[var(--gold-text)] mb-2">
             {verse.reference}
           </p>
-          <p className="font-serif italic text-[1.05rem] leading-[1.55] text-[var(--ink)]">
+          <p className="font-serif italic text-[1.18rem] leading-[1.5] text-[var(--ink)]">
             {verseDisplay}
           </p>
         </div>
@@ -250,32 +244,29 @@ function EndedPhase({
 }) {
   return (
     <div className="max-w-md w-full">
-      <div className="mb-6 grid place-items-center">
+      <div className="mb-5 grid place-items-center">
         <PrayingHandsIcon />
       </div>
-      <p className="font-sans text-[0.74rem] tracking-[0.24em] uppercase text-[var(--gold-text)] mb-3">
+      <p className="font-sans text-[0.74rem] tracking-[0.24em] uppercase text-[var(--gold-text)] mb-2">
         El silencio fue oración
       </p>
-      <h2 className="font-serif italic text-[1.55rem] sm:text-[1.75rem] leading-[1.3] text-[var(--ink)] mb-3">
+      <h2 className="font-serif italic text-[1.55rem] leading-[1.3] text-[var(--ink)] mb-5">
         Dios te escuchó.
       </h2>
-      <p className="font-sans text-[1rem] text-[var(--ink-soft)] leading-relaxed mb-7">
-        Lleva su Palabra contigo el resto del día.
-      </p>
 
       {verse && (
         <div
-          className="rounded-xl px-5 py-4 mb-7 text-left"
+          className="rounded-xl px-5 py-4 mb-6 text-left"
           style={{
             background:
               "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.03) 100%)",
             border: "1px solid rgba(184, 146, 74, 0.22)",
           }}
         >
-          <p className="font-sans text-[0.78rem] tracking-[0.12em] uppercase text-[var(--gold-text)] mb-2">
+          <p className="font-sans text-[0.74rem] tracking-[0.14em] uppercase text-[var(--gold-text)] mb-2">
             {verse.reference}
           </p>
-          <p className="font-serif italic text-[1.05rem] leading-[1.55] text-[var(--ink)]">
+          <p className="font-serif italic text-[1.18rem] leading-[1.5] text-[var(--ink)]">
             {verseDisplay}
           </p>
         </div>

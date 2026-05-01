@@ -29,18 +29,19 @@ export const metadata: Metadata = {
 };
 
 // Zoom is intentionally locked at 1× per the user's request — pinch-to-zoom
-// and double-tap-to-zoom are disabled. (Note: this trades off WCAG 2.1's
-// recommendation to leave zoom available for low-vision users; if we want
-// to soften this later we can drop maximumScale and userScalable.)
+// and double-tap-to-zoom are disabled. theme-color is hardcoded to paper
+// (cream) instead of branching on prefers-color-scheme, because the user
+// wants the app to ALWAYS look light on first paint, regardless of their
+// OS dark setting. The mobile browser URL bar follows this color, so on
+// an iPhone in dark mode the bar would otherwise turn dark — which the
+// user perceived as "the app opened in dark mode" even though the page
+// itself was light.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FAF7F2" },
-    { media: "(prefers-color-scheme: dark)",  color: "#0F1525" },
-  ],
+  themeColor: "#FAF7F2",
 };
 
 /**

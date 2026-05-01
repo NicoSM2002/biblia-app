@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type Theme = "light" | "dark";
 
@@ -17,16 +17,17 @@ type Theme = "light" | "dark";
  * The choice is intentionally NOT persisted across reloads.
  */
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("light");
-
-  // Sync with the DOM once on mount, in case anything changed it (e.g.
-  // OS preference change handler in some other code path).
-  useEffect(() => {
-    const current = (document.documentElement.getAttribute("data-theme") ||
+  // Lazy init from the DOM — the inline init script in app/layout.tsx
+  // sets data-theme BEFORE hydration, so reading it here gives us the
+  // true current theme. Without this lazy read, the state would default
+  // to "light" while the DOM was already "dark" on the first render,
+  // making the very first toggle click a no-op (it would try to apply
+  // the same theme the DOM already had).
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof document === "undefined") return "light";
+    return (document.documentElement.getAttribute("data-theme") ||
       "light") as Theme;
-    if (current !== theme) setTheme(current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   function applyTheme(next: Theme) {
     document.documentElement.setAttribute("data-theme", next);
@@ -34,7 +35,11 @@ export function ThemeToggle() {
   }
 
   function toggle() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
+    // Read the DOM at click time too — bulletproof against any code path
+    // that mutates data-theme outside of this component.
+    const current = (document.documentElement.getAttribute("data-theme") ||
+      theme) as Theme;
+    const next: Theme = current === "dark" ? "light" : "dark";
     type DocWithVT = Document & {
       startViewTransition?: (cb: () => void) => unknown;
     };
