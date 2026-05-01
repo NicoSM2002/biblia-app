@@ -39,15 +39,18 @@ export function Splash() {
 
   useEffect(() => {
     if (phase !== "visible") return;
+    // Mark the splash as seen IMMEDIATELY on mount, not at the end of the
+    // fade. Otherwise: if the user taps a bottom-nav tab during the
+    // splash and comes back to / a moment later, the flag isn't set yet
+    // and the splash plays again. We only ever want it on first load /
+    // reload — once mounted, it's seen.
+    try {
+      sessionStorage.setItem("splashSeen", "1");
+    } catch {
+      // ignore
+    }
     const t1 = setTimeout(() => setPhase("fading"), VISIBLE_MS);
-    const t2 = setTimeout(() => {
-      setPhase("gone");
-      try {
-        sessionStorage.setItem("splashSeen", "1");
-      } catch {
-        // ignore
-      }
-    }, VISIBLE_MS + FADE_MS);
+    const t2 = setTimeout(() => setPhase("gone"), VISIBLE_MS + FADE_MS);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);

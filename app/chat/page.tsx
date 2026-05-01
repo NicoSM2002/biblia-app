@@ -324,7 +324,16 @@ export default function ChatPage() {
   const empty = turns.length === 0;
 
   return (
-    <div className="relative h-[100dvh] flex flex-col overflow-hidden pb-[88px]">
+    <div
+      className="relative h-[100dvh] flex flex-col overflow-hidden"
+      // Reserve exactly the bottom-nav height (52px content + 6px top
+      // padding + safe-area), so the input area sits flush against the
+      // top of the nav with no visible gap. pb-[88px] was leaving a
+      // visible cream stripe between the input and the nav on devices
+      // without safe-area, and getting tapped by the nav on those with
+      // it. The calc handles both correctly.
+      style={{ paddingBottom: "calc(58px + env(safe-area-inset-bottom))" }}
+    >
       <div className="missal-page">
         <Header
           onOpenHistory={signedIn ? () => setHistoryOpen(true) : undefined}
@@ -415,7 +424,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="relative z-10 px-4 sm:px-8 lg:px-10 pt-3 pb-3 border-t border-[var(--rule)] bg-[var(--paper)]">
+          <div className="relative z-10 px-4 sm:px-8 lg:px-10 pt-2 pb-2 border-t border-[var(--rule)] bg-[var(--paper)]">
             <div className="max-w-2xl mx-auto">
               <ChatInput
                 onSubmit={ask}

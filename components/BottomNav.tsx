@@ -51,8 +51,13 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
+                // touch-action: manipulation kills the 300ms tap delay
+                // some mobile browsers add. active:scale gives instant
+                // visual feedback BEFORE the view-transition starts so
+                // the nav doesn't feel laggy.
+                style={{ touchAction: "manipulation" }}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg transition-colors min-h-[52px]",
+                  "flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg transition-colors min-h-[52px] active:scale-95",
                   dark
                     ? active
                       ? "text-[#D4AC6A]"

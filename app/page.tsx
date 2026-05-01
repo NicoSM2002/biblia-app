@@ -7,18 +7,12 @@ import { LatinCross } from "@/components/Cross";
 import { HomeAvatar } from "@/components/HomeAvatar";
 import { BottomNav } from "@/components/BottomNav";
 import { Splash } from "@/components/Splash";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   createClient,
   hasSessionCookie,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
-
-const SUGGESTIONS = [
-  { id: "paz", label: "Necesito paz", icon: <LeafIcon /> },
-  { id: "solo", label: "Me siento solo", icon: <UserIcon /> },
-  { id: "direccion", label: "Busco dirección", icon: <CompassIcon /> },
-  { id: "gracias", label: "Quiero dar gracias", icon: <HeartIcon /> },
-];
 
 const ACROSTIC =
   /\((?:Alef|Bet|Guímel|Guimel|Dálet|Dalet|He|Vau|Zain|Jet|Tet|Yod|Kaf|Lámed|Lamed|Mem|Nun|Sámec|Samec|Ain|Pe|Sade|Kof|Cof|Res|Sin|Sín|Shin|Tau)\)\s*/gi;
@@ -76,22 +70,25 @@ export default function HomePage() {
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden">
       <header className="px-5 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <LatinCross className="text-[var(--gold)] shrink-0" size={16} />
             <h1 className="font-sans text-[0.98rem] font-medium text-[var(--ink)] truncate">
               Habla con la Palabra
             </h1>
           </div>
-          <HomeAvatar />
+          <div className="flex items-center gap-1 shrink-0">
+            <ThemeToggle />
+            <HomeAvatar />
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-36">
-        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-7">
+      <main className="flex-1 overflow-y-auto pb-32">
+        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-5">
           <Greeting name={name} />
 
-          <h2 className="mt-2 font-serif italic text-[1.5rem] sm:text-[1.7rem] leading-[1.25] text-[var(--ink)] mb-5">
+          <h2 className="mt-1.5 font-serif italic text-[1.4rem] sm:text-[1.6rem] leading-[1.25] text-[var(--ink)] mb-4">
             ¿Qué quieres preguntarle a Dios hoy?
           </h2>
 
@@ -118,30 +115,8 @@ export default function HomePage() {
           {/* Versículo del día — replaces the old fullscreen overlay */}
           {verse && <DailyVerseSection verse={verse} />}
 
-          <section className="mt-9">
-            <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
-              Sugerencias para ti
-            </p>
-            <div className="grid grid-cols-2 gap-2.5">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => goToChat(s.label)}
-                  className="flex items-center gap-2.5 bg-[var(--surface)] border border-[var(--rule)] rounded-full px-4 py-3 text-left hover:border-[var(--gold)] hover:bg-[var(--vellum)] transition-colors"
-                >
-                  <span aria-hidden="true" className="text-[var(--gold-text)] shrink-0">
-                    {s.icon}
-                  </span>
-                  <span className="font-sans text-[0.9rem] text-[var(--ink)] truncate">
-                    {s.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section className="mt-9">
-            <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
+          <section className="mt-6">
+            <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-2.5">
               Misa cerca de ti
             </p>
             <Link
@@ -179,35 +154,27 @@ export default function HomePage() {
 
 function DailyVerseSection({ verse }: { verse: Verse }) {
   const display = `“${verse.text.replace(ACROSTIC, "").replace(/\s*\|\s*/g, " — ").trim()}”`;
-  const today = new Date().toLocaleDateString("es-ES", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
   return (
-    <section className="mt-9">
-      <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
+    <section className="mt-6">
+      <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-2.5">
         Versículo del día
       </p>
       <div
-        className="rounded-xl p-5 sm:p-6"
+        className="rounded-xl px-4 py-4 sm:px-5 sm:py-5"
         style={{
           background:
             "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.03) 100%)",
           border: "1px solid rgba(184, 146, 74, 0.22)",
         }}
       >
-        <p className="font-sans text-[0.7rem] tracking-[0.16em] uppercase text-[var(--gold-text)] mb-3">
-          {today}
-        </p>
         <blockquote
           cite={verse.reference}
-          className="font-serif italic text-[1.18rem] sm:text-[1.28rem] leading-[1.5] text-[var(--ink)]"
+          className="font-serif italic text-[1.05rem] sm:text-[1.15rem] leading-[1.45] text-[var(--ink)]"
           style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
         >
           {display}
         </blockquote>
-        <p className="mt-3 font-sans text-[0.78rem] tracking-[0.14em] uppercase text-[var(--gold-text)]">
+        <p className="mt-2.5 font-sans text-[0.74rem] tracking-[0.14em] uppercase text-[var(--gold-text)]">
           {verse.reference}
         </p>
       </div>
@@ -246,41 +213,6 @@ function useGreetingPeriod(): "morning" | "afternoon" | "night" {
 
 function firstName(full: string): string {
   return full.trim().split(/\s+/)[0] ?? full;
-}
-
-function LeafIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2c1 1.5 2 4.79 1.5 7-1 3.5-3 5-3 5l-3 3" />
-      <path d="M2 22 17 7" />
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  );
-}
-
-function CompassIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-    </svg>
-  );
-}
-
-function HeartIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
-  );
 }
 
 function MicIcon() {
