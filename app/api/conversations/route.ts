@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
+  const supabase = createClient(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
   return Response.json({ conversation: data });
 }
 
-export async function GET() {
-  const supabase = await createClient();
+export async function GET(req: NextRequest) {
+  const supabase = createClient(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();

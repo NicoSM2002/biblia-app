@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 // (Mi historial moved out of this menu to a dedicated icon in the header.)
 import {
   createClient,
-  hasSessionCookie,
+  hasLocalSession,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,7 @@ export function AuthButton() {
   // shape (avatar vs. "Entrar" button) renders on first paint and the
   // header doesn't shift when the async getUser() resolves a moment later.
   const [signedIn, setSignedIn] = useState<boolean>(() =>
-    isSupabaseConfigured() ? hasSessionCookie() : false,
+    isSupabaseConfigured() ? hasLocalSession() : false,
   );
   const [email, setEmail] = useState<string | null>(null);
   const [open, setOpen] = useState(false);

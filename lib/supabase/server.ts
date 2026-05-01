@@ -1,35 +1,37 @@
 /**
- * Server-side Supabase client. Use inside Route Handlers, Server Components,
- * Server Actions, and middleware.
+ * Server-side Supabase client for Route Handlers.
  *
- * The cookies() integration keeps the user's session in sync between
- * server-rendered pages and client-side fetches.
+ * The browser stores the session in localStorage and sends the access
+ * token as an `Authorization: Bearer …` header on each authenticated
+ * request (see `lib/auth-fetch.ts`). This helper takes the incoming
+ * Request, lifts that header, and creates a Supabase client that uses
+ * the same identity — so `getUser()` and RLS work as expected.
+ *
+ * Why not @supabase/ssr's `createServerClient`? That helper is built
+ * around cookies. Cookies are unreliable when the client lives at
+ * `capacitor://localhost` (iOS WebView) and the API at a Vercel
+ * domain — different origins, no cookie sharing. Bearer tokens in a
+ * header sidestep all of that.
  */
 
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import {
+  createClient as createSupabaseClient,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
 
-export async function createClient() {
-  const cookieStore = await cookies();
-
-  return createServerClient(
+export function createClient(req: Request): SupabaseClient {
+  const authorization = req.headers.get("Authorization") ?? "";
+  return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // setAll can throw inside a Server Component — that's expected
-            // when middleware is also refreshing the session. Ignore.
-          }
-        },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+      global: {
+        headers: { Authorization: authorization },
       },
     },
   );

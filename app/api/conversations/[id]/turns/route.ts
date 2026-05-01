@@ -37,7 +37,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = createClient(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -80,7 +80,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = createClient(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();

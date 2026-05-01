@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   createClient,
-  hasSessionCookie,
+  hasLocalSession,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,7 @@ function writeCachedUser(user: CachedUser) {
 export function HomeAvatar() {
   const router = useRouter();
   const [signedIn, setSignedIn] = useState<boolean>(() =>
-    isSupabaseConfigured() ? hasSessionCookie() : false,
+    isSupabaseConfigured() ? hasLocalSession() : false,
   );
   // Read cached user data synchronously on first render so the avatar
   // shows the correct initial immediately, no placeholder flash.

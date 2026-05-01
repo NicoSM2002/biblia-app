@@ -11,11 +11,11 @@ import { createClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = createClient(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -42,11 +42,11 @@ export async function GET(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = createClient(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();

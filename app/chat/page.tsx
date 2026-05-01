@@ -11,9 +11,10 @@ import { HistorySheet } from "@/components/HistorySheet";
 import { BottomNav } from "@/components/BottomNav";
 import { TurnActions } from "@/components/TurnActions";
 import { apiUrl } from "@/lib/api-url";
+import { authFetch } from "@/lib/auth-fetch";
 import {
   createClient,
-  hasSessionCookie,
+  hasLocalSession,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
 
@@ -42,7 +43,7 @@ export default function ChatPage() {
   // Seed signed-in state from the Supabase auth-token cookie so the header
   // doesn't flicker between renders (history button appearing late after
   // the async getUser() check).
-  const [signedIn, setSignedIn] = useState<boolean>(() => hasSessionCookie());
+  const [signedIn, setSignedIn] = useState<boolean>(() => hasLocalSession());
   const [historyOpen, setHistoryOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     null,
@@ -124,7 +125,7 @@ export default function ChatPage() {
     const conversationId = conversationIdRef.current;
     if (!conversationId) return; // turn not yet persisted, nothing to PATCH
 
-    void fetch(apiUrl(`/api/conversations/${conversationId}/turns`), {
+    void authFetch(apiUrl(`/api/conversations/${conversationId}/turns`), {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ord, liked: nextLiked }),
@@ -141,7 +142,7 @@ export default function ChatPage() {
   async function loadConversation(id: string) {
     if (pending) return;
     try {
-      const res = await fetch(apiUrl(`/api/conversations/${id}`));
+      const res = await authFetch(apiUrl(`/api/conversations/${id}`));
       if (!res.ok) throw new Error(`status ${res.status}`);
       const data = (await res.json()) as {
         conversation: { id: string; title: string | null };
@@ -196,7 +197,7 @@ export default function ChatPage() {
   async function persistTurn(turn: Turn, ord: number) {
     try {
       if (!conversationIdRef.current) {
-        const res = await fetch(apiUrl("/api/conversations"), {
+        const res = await authFetch(apiUrl("/api/conversations"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({}),
@@ -205,7 +206,7 @@ export default function ChatPage() {
         const data = (await res.json()) as { conversation: { id: string } };
         conversationIdRef.current = data.conversation.id;
       }
-      await fetch(apiUrl(`/api/conversations/${conversationIdRef.current}/turns`), {
+      await authFetch(apiUrl(`/api/conversations/${conversationIdRef.current}/turns`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

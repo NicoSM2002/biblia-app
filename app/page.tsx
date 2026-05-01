@@ -12,7 +12,7 @@ import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { apiUrl } from "@/lib/api-url";
 import {
   createClient,
-  hasSessionCookie,
+  hasLocalSession,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
 
@@ -39,7 +39,7 @@ export default function HomePage() {
 
   // Read user name (if signed in) for the personalized greeting.
   useEffect(() => {
-    if (!isSupabaseConfigured() || !hasSessionCookie()) return;
+    if (!isSupabaseConfigured() || !hasLocalSession()) return;
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       const meta = data.user?.user_metadata as

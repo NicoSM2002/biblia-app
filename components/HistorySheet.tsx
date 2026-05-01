@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { apiUrl } from "@/lib/api-url";
+import { authFetch } from "@/lib/auth-fetch";
 import { cn } from "@/lib/utils";
 
 type Conversation = {
@@ -40,7 +41,7 @@ export function HistorySheet({
     if (deleting) return;
     setDeleting(id);
     try {
-      const res = await fetch(apiUrl(`/api/conversations/${id}`), { method: "DELETE" });
+      const res = await authFetch(apiUrl(`/api/conversations/${id}`), { method: "DELETE" });
       if (!res.ok) throw new Error(`status ${res.status}`);
       setList((prev) => (prev ? prev.filter((c) => c.id !== id) : prev));
       onDeleted?.(id);
@@ -62,7 +63,7 @@ export function HistorySheet({
         return;
       }
       try {
-        const res = await fetch(apiUrl("/api/conversations"));
+        const res = await authFetch(apiUrl("/api/conversations"));
         if (!res.ok) throw new Error(`status ${res.status}`);
         const json = (await res.json()) as { conversations: Conversation[] };
         setList(json.conversations);
