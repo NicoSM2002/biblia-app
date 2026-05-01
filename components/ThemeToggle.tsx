@@ -5,26 +5,27 @@ import { useEffect, useState } from "react";
 type Theme = "light" | "dark";
 
 /**
- * Reads the current theme from <html data-theme="…"> on mount and lets the
- * user toggle between light and dark within the current session. The initial
- * value is hardcoded to "light" by the inline script in app/layout.tsx — the
- * choice is intentionally NOT persisted, so every fresh page load starts in
- * light mode. (The user explicitly asked for this behavior; persisting via
- * localStorage was causing confusion when the OS dark preference and saved
- * choice diverged.)
+ * Theme toggle (sol / luna).
  *
- * The visible theme transition uses the View Transitions API where
- * supported.
+ * The inline script in app/layout.tsx sets `data-theme="light"` on <html>
+ * before any paint, so we can confidently start the React state in "light"
+ * with no hydration mismatch and no need to hide the icon while we read
+ * the DOM. The toggle then operates on local state — one click, one
+ * change, no double-tap. View Transitions API gives the swap a soft
+ * crossfade where supported.
+ *
+ * The choice is intentionally NOT persisted across reloads.
  */
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
 
+  // Sync with the DOM once on mount, in case anything changed it (e.g.
+  // OS preference change handler in some other code path).
   useEffect(() => {
     const current = (document.documentElement.getAttribute("data-theme") ||
       "light") as Theme;
-    setTheme(current);
-    setMounted(true);
+    if (current !== theme) setTheme(current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function applyTheme(next: Theme) {
@@ -33,14 +34,7 @@ export function ThemeToggle() {
   }
 
   function toggle() {
-    // Always read the *current* DOM theme — covers the case where the
-    // component just mounted and our state may still be stale.
-    const current = (document.documentElement.getAttribute("data-theme") ||
-      "light") as Theme;
-    const next: Theme = current === "dark" ? "light" : "dark";
-
-    // View Transitions API gives us a free crossfade between old/new
-    // root snapshots.
+    const next: Theme = theme === "dark" ? "light" : "dark";
     type DocWithVT = Document & {
       startViewTransition?: (cb: () => void) => unknown;
     };
@@ -57,17 +51,10 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo noche"}
       title={theme === "dark" ? "Modo claro" : "Modo noche"}
-      className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold-text)] transition-colors shrink-0"
-      // Avoid a hydration warning if the icon differs between server and
-      // client — the icon depends on the theme attribute, which is set by
-      // the inline script before hydration.
-      suppressHydrationWarning
+      className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold-text)] active:scale-95 transition-all shrink-0"
+      style={{ touchAction: "manipulation" }}
     >
-      {/* Hide the icon until the client has read the actual theme so the
-          server-rendered icon doesn't briefly mismatch. */}
-      <span style={{ visibility: mounted ? "visible" : "hidden" }}>
-        {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-      </span>
+      {theme === "dark" ? <SunIcon /> : <MoonIcon />}
     </button>
   );
 }

@@ -8,8 +8,10 @@ import { cn } from "@/lib/utils";
  * Persistent bottom navigation — four sections:
  *   Inicio · Conversación · Oración · Parroquias
  *
- * (We dropped the "Guardados" section — saving individual verses turned
- *  out to not be a feature the app needs. Hidden on the auth page.)
+ * The active tab gets a clear visual indicator: a soft gold pill
+ * background behind the icon + label, plus the gold-text color.
+ * Without it the user kept asking "where am I?" — a color change
+ * alone was too subtle.
  */
 type Item = {
   href: string;
@@ -28,20 +30,10 @@ export function BottomNav() {
   const pathname = usePathname();
   if (pathname?.startsWith("/auth")) return null;
 
-  // Modo Oración has its own dark, candlelit surface — the regular paper
-  // nav clashes against it. We swap to dark tones when we're on /oracion
-  // so the nav blends with the chapel atmosphere instead of fighting it.
-  const dark = pathname === "/oracion";
-
   return (
     <nav
       aria-label="Navegación principal"
-      className={cn(
-        "fixed bottom-0 inset-x-0 z-40 border-t no-print transition-colors duration-200",
-        dark
-          ? "bg-[#0a0604] border-[#3a2c18]"
-          : "bg-[var(--paper)] border-[var(--rule)]",
-      )}
+      className="fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print"
     >
       <ul className="max-w-2xl mx-auto flex items-stretch justify-around px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {items.map((item) => {
@@ -51,20 +43,12 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                // touch-action: manipulation kills the 300ms tap delay
-                // some mobile browsers add. active:scale gives instant
-                // visual feedback BEFORE the view-transition starts so
-                // the nav doesn't feel laggy.
                 style={{ touchAction: "manipulation" }}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg transition-colors min-h-[52px] active:scale-95",
-                  dark
-                    ? active
-                      ? "text-[#D4AC6A]"
-                      : "text-[#F2EBD9]/55 hover:text-[#F2EBD9]/85"
-                    : active
-                      ? "text-[var(--gold-text)]"
-                      : "text-[var(--ink-faint)] hover:text-[var(--ink-soft)]",
+                  "flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-2xl transition-colors min-h-[52px] active:scale-95",
+                  active
+                    ? "bg-[var(--vellum)] text-[var(--gold-text)] font-medium"
+                    : "text-[var(--ink-faint)] hover:text-[var(--ink-soft)] hover:bg-[var(--vellum)]/50",
                 )}
               >
                 <span aria-hidden="true">{item.icon}</span>
@@ -125,4 +109,3 @@ function ChurchIcon() {
     </svg>
   );
 }
-

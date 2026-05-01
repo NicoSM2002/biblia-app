@@ -156,11 +156,11 @@ function DailyVerseSection({ verse }: { verse: Verse }) {
   const display = `“${verse.text.replace(ACROSTIC, "").replace(/\s*\|\s*/g, " — ").trim()}”`;
   return (
     <section className="mt-6">
-      <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-2.5">
+      <p className="font-sans text-[0.78rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-2.5">
         Versículo del día
       </p>
       <div
-        className="rounded-xl px-4 py-4 sm:px-5 sm:py-5"
+        className="rounded-xl px-5 py-5"
         style={{
           background:
             "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.03) 100%)",
@@ -169,12 +169,12 @@ function DailyVerseSection({ verse }: { verse: Verse }) {
       >
         <blockquote
           cite={verse.reference}
-          className="font-serif italic text-[1.05rem] sm:text-[1.15rem] leading-[1.45] text-[var(--ink)]"
+          className="font-serif italic text-[1.25rem] leading-[1.45] text-[var(--ink)]"
           style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
         >
           {display}
         </blockquote>
-        <p className="mt-2.5 font-sans text-[0.74rem] tracking-[0.14em] uppercase text-[var(--gold-text)]">
+        <p className="mt-3 font-sans text-[0.78rem] tracking-[0.14em] uppercase text-[var(--gold-text)]">
           {verse.reference}
         </p>
       </div>

@@ -44,22 +44,19 @@ export const viewport: Viewport = {
 };
 
 /**
- * Synchronously sets `data-theme` on <html> from localStorage or system
- * preference, BEFORE React hydrates, so the user never sees a flash from
- * light → dark on page load. We also decide whether the daily-verse
- * overlay should be visible by reading sessionStorage. CSS hides the
- * overlay if `data-daily-verse-seen='1'` is set, so users who already
- * saw today's verse never see a flash of the home page underneath
- * before React mounts the overlay.
+ * Forces `data-theme="light"` on <html> before any paint. The user wants
+ * the app to ALWAYS start in light mode, regardless of OS preference or
+ * any previous toggle. The toggle button can swap to dark within a
+ * session but reloads / new visits always come back to light.
  */
 const initScript = `
 (function() {
-  // Theme — always start in light. The user asked that the app not persist
-  // a theme choice across reloads. The toggle still works within a session
-  // but every fresh load begins in light mode. Setting data-theme
-  // explicitly also prevents the @media (prefers-color-scheme: dark)
-  // fallback from briefly applying dark.
   document.documentElement.setAttribute('data-theme', 'light');
+  // Defensive: also blow away any stale localStorage from earlier
+  // versions of the app that used to persist the choice. Without this,
+  // a user who toggled to dark in an old build would still see dark
+  // after upgrading.
+  try { localStorage.removeItem('theme'); } catch (e) {}
 })();
 `;
 

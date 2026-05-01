@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/BottomNav";
 
-// Heights — keep in sync with BottomNav so the prayer surface knows how
-// much vertical room to leave at the bottom.
 const NAV_RESERVE_PX = 88;
 
 type Verse = { reference: string; text: string };
@@ -18,16 +16,11 @@ const ACROSTIC =
   /\((?:Alef|Bet|Guímel|Guimel|Dálet|Dalet|He|Vau|Zain|Jet|Tet|Yod|Kaf|Lámed|Lamed|Mem|Nun|Sámec|Samec|Ain|Pe|Sade|Kof|Cof|Res|Sin|Sín|Shin|Tau)\)\s*/gi;
 
 /**
- * Modo Oración — a quiet, dark, distraction-free surface for silent
- * prayer. The user picks a duration, starts the timer, and meditates on
- * a Scripture verse. When the time elapses they're invited to extend
- * (+1 min) or come back to the home.
+ * Modo Oración — a quiet, distraction-free surface for silent prayer.
  *
- * Design choices:
- * - Always dark, regardless of the app's light/dark theme. The chapel
- *   atmosphere needs the dark backdrop.
- * - The bottom nav is hidden during the actual prayer, so nothing
- *   competes with the silence.
+ * The page now respects the active theme (light or dark) instead of
+ * forcing a hardcoded dark "chapel" palette. The user asked for that
+ * explicitly: if I'm in light mode, this should be light too.
  */
 export default function OracionPage() {
   const [phase, setPhase] = useState<Phase>("select");
@@ -37,7 +30,6 @@ export default function OracionPage() {
   const [verse, setVerse] = useState<Verse | null>(null);
   const intervalRef = useRef<number | null>(null);
 
-  // Fetch a verse to meditate on as soon as the user enters the page
   useEffect(() => {
     fetch("/api/daily-verse")
       .then((r) => r.json())
@@ -45,11 +37,10 @@ export default function OracionPage() {
         if (d.verse) setVerse(d.verse);
       })
       .catch(() => {
-        // verse is optional — silence is the point
+        // verse is optional
       });
   }, []);
 
-  // Timer
   useEffect(() => {
     if (phase !== "praying" || paused) return;
     intervalRef.current = window.setInterval(() => {
@@ -85,29 +76,20 @@ export default function OracionPage() {
     : "";
 
   return (
-    <div
-      className="relative h-[100dvh] flex flex-col overflow-hidden no-print"
-      style={{
-        background:
-          "radial-gradient(ellipse 80% 60% at 50% 30%, #2a1f12 0%, #120a06 60%, #0a0604 100%)",
-        color: "#F2EBD9",
-      }}
-    >
-      {/* Soft candle-flicker glow */}
+    <div className="relative h-[100dvh] flex flex-col overflow-hidden no-print bg-[var(--paper)] text-[var(--ink)]">
+      {/* Soft gold radial behind the prayer area — works in both light
+          and dark themes because rgba(184,146,74) is the brand gold. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 50% 80%, rgba(255, 180, 90, 0.18) 0%, transparent 45%)",
+            "radial-gradient(ellipse 80% 60% at 50% 35%, rgba(184, 146, 74, 0.10) 0%, transparent 65%)",
         }}
       />
 
-      {/* Header — no close button. The bottom nav already gives a way out
-          (Inicio / Conversación / Parroquias), so a redundant X just adds
-          chrome to a surface that should feel like a quiet chapel. */}
       <header className="relative z-10 px-5 pt-6 pb-2 flex items-center justify-center">
-        <p className="font-sans text-[0.68rem] tracking-[0.28em] uppercase text-[#D4AC6A]">
+        <p className="font-sans text-[0.72rem] tracking-[0.28em] uppercase text-[var(--gold-text)]">
           Modo oración
         </p>
       </header>
@@ -116,9 +98,7 @@ export default function OracionPage() {
         className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center min-h-0"
         style={{ paddingBottom: `calc(${NAV_RESERVE_PX}px + env(safe-area-inset-bottom))` }}
       >
-        {phase === "select" && (
-          <SelectPhase onStart={start} />
-        )}
+        {phase === "select" && <SelectPhase onStart={start} />}
         {phase === "praying" && (
           <PrayingPhase
             secondsLeft={secondsLeft}
@@ -150,10 +130,10 @@ function SelectPhase({ onStart }: { onStart: (min: number) => void }) {
       <div className="mb-7 grid place-items-center">
         <PrayingHandsIcon />
       </div>
-      <h1 className="font-serif italic text-[1.6rem] sm:text-[1.85rem] leading-[1.3] mb-3">
+      <h1 className="font-serif italic text-[1.6rem] sm:text-[1.85rem] leading-[1.3] text-[var(--ink)] mb-3">
         Tómate un momento para hablar con Él.
       </h1>
-      <p className="font-sans text-[0.95rem] text-[#F2EBD9]/70 leading-relaxed mb-8">
+      <p className="font-sans text-[1rem] text-[var(--ink-soft)] leading-relaxed mb-8">
         Elige cuánto tiempo quieres dedicar al silencio.
       </p>
       <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
@@ -161,7 +141,8 @@ function SelectPhase({ onStart }: { onStart: (min: number) => void }) {
           <button
             key={min}
             onClick={() => onStart(min)}
-            className="py-3.5 rounded-full border border-[#D4AC6A]/40 text-[#F2EBD9] hover:bg-[#D4AC6A]/15 hover:border-[#D4AC6A] transition-colors font-sans text-[0.95rem]"
+            className="py-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink)] hover:border-[var(--gold)] hover:bg-[var(--vellum)] transition-colors font-sans text-[1rem] active:scale-95"
+            style={{ touchAction: "manipulation" }}
           >
             {min} min
           </button>
@@ -197,19 +178,19 @@ function PrayingPhase({
 
   return (
     <div className="w-full max-w-md flex flex-col items-center">
-      <p className="font-serif italic text-[1.4rem] sm:text-[1.55rem] leading-[1.3] mb-2">
+      <p className="font-serif italic text-[1.4rem] sm:text-[1.55rem] leading-[1.3] text-[var(--ink)] mb-2">
         Respira. Dios está contigo.
       </p>
-      <p className="font-sans text-[0.92rem] text-[#F2EBD9]/65 leading-relaxed mb-8">
+      <p className="font-sans text-[0.95rem] text-[var(--ink-soft)] leading-relaxed mb-8">
         Tómate un momento para hablar con Él.
       </p>
 
       <ProgressRing progress={progress} size={220}>
         <div className="text-center">
-          <p className="font-serif italic text-[2.6rem] leading-none tabular-nums">
+          <p className="font-serif italic text-[2.6rem] leading-none tabular-nums text-[var(--ink)]">
             {timeText}
           </p>
-          <p className="font-sans text-[0.7rem] tracking-[0.2em] uppercase text-[#D4AC6A] mt-2">
+          <p className="font-sans text-[0.74rem] tracking-[0.2em] uppercase text-[var(--gold-text)] mt-2">
             {paused ? "Pausado" : "Silencio"}
           </p>
         </div>
@@ -219,14 +200,16 @@ function PrayingPhase({
         <button
           onClick={onTogglePause}
           aria-label={paused ? "Reanudar" : "Pausar"}
-          className="grid place-items-center w-14 h-14 rounded-full bg-[#D4AC6A] text-[#1F1B16] hover:bg-[#E2BE82] transition-colors"
+          className="grid place-items-center w-14 h-14 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
+          style={{ touchAction: "manipulation" }}
         >
           {paused ? <PlayIcon /> : <PauseIcon />}
         </button>
         <button
           onClick={onEnd}
           aria-label="Terminar"
-          className="grid place-items-center w-12 h-12 rounded-full border border-[#F2EBD9]/30 text-[#F2EBD9]/70 hover:text-[#F2EBD9] hover:bg-white/5 transition-colors"
+          className="grid place-items-center w-12 h-12 rounded-full border border-[var(--rule)] text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--ink)] active:scale-95 transition-all"
+          style={{ touchAction: "manipulation" }}
         >
           <StopIcon />
         </button>
@@ -236,17 +219,18 @@ function PrayingPhase({
         <div
           className="mt-9 rounded-xl px-5 py-4 max-w-md w-full"
           style={{
-            background: "rgba(255, 255, 255, 0.04)",
-            border: "1px solid rgba(212, 172, 106, 0.25)",
+            background:
+              "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.03) 100%)",
+            border: "1px solid rgba(184, 146, 74, 0.22)",
           }}
         >
-          <p className="font-sans text-[0.66rem] tracking-[0.24em] uppercase text-[#D4AC6A] mb-2">
+          <p className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-[var(--gold-text)] mb-2">
             Palabra para orar
           </p>
-          <p className="font-sans text-[0.78rem] tracking-[0.12em] uppercase text-[#F2EBD9]/85 mb-2">
+          <p className="font-sans text-[0.78rem] tracking-[0.12em] uppercase text-[var(--gold-text)] mb-2">
             {verse.reference}
           </p>
-          <p className="font-serif italic text-[1.02rem] leading-[1.55] text-[#F2EBD9]/90">
+          <p className="font-serif italic text-[1.05rem] leading-[1.55] text-[var(--ink)]">
             {verseDisplay}
           </p>
         </div>
@@ -269,13 +253,13 @@ function EndedPhase({
       <div className="mb-6 grid place-items-center">
         <PrayingHandsIcon />
       </div>
-      <p className="font-sans text-[0.7rem] tracking-[0.24em] uppercase text-[#D4AC6A] mb-3">
+      <p className="font-sans text-[0.74rem] tracking-[0.24em] uppercase text-[var(--gold-text)] mb-3">
         El silencio fue oración
       </p>
-      <h2 className="font-serif italic text-[1.55rem] sm:text-[1.75rem] leading-[1.3] mb-3">
+      <h2 className="font-serif italic text-[1.55rem] sm:text-[1.75rem] leading-[1.3] text-[var(--ink)] mb-3">
         Dios te escuchó.
       </h2>
-      <p className="font-sans text-[0.95rem] text-[#F2EBD9]/70 leading-relaxed mb-7">
+      <p className="font-sans text-[1rem] text-[var(--ink-soft)] leading-relaxed mb-7">
         Lleva su Palabra contigo el resto del día.
       </p>
 
@@ -283,14 +267,15 @@ function EndedPhase({
         <div
           className="rounded-xl px-5 py-4 mb-7 text-left"
           style={{
-            background: "rgba(255, 255, 255, 0.04)",
-            border: "1px solid rgba(212, 172, 106, 0.25)",
+            background:
+              "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.03) 100%)",
+            border: "1px solid rgba(184, 146, 74, 0.22)",
           }}
         >
-          <p className="font-sans text-[0.78rem] tracking-[0.12em] uppercase text-[#D4AC6A] mb-2">
+          <p className="font-sans text-[0.78rem] tracking-[0.12em] uppercase text-[var(--gold-text)] mb-2">
             {verse.reference}
           </p>
-          <p className="font-serif italic text-[1.02rem] leading-[1.55] text-[#F2EBD9]/90">
+          <p className="font-serif italic text-[1.05rem] leading-[1.55] text-[var(--ink)]">
             {verseDisplay}
           </p>
         </div>
@@ -299,13 +284,15 @@ function EndedPhase({
       <div className="flex flex-col sm:flex-row items-stretch gap-3 max-w-sm mx-auto">
         <button
           onClick={onExtend}
-          className="flex-1 py-3 rounded-full border border-[#D4AC6A]/40 text-[#F2EBD9] hover:bg-[#D4AC6A]/15 hover:border-[#D4AC6A] transition-colors font-sans text-[0.92rem] font-medium"
+          className="flex-1 py-3 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink)] hover:border-[var(--gold)] hover:bg-[var(--vellum)] transition-colors font-sans text-[0.95rem] font-medium active:scale-95"
+          style={{ touchAction: "manipulation" }}
         >
           Extender 1 minuto
         </button>
         <Link
           href="/"
-          className="flex-1 py-3 rounded-full bg-[#D4AC6A] text-[#1F1B16] hover:bg-[#E2BE82] transition-colors font-sans text-[0.92rem] font-medium text-center"
+          className="flex-1 py-3 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all font-sans text-[0.95rem] font-medium text-center"
+          style={{ touchAction: "manipulation" }}
         >
           Volver al inicio
         </Link>
@@ -340,7 +327,7 @@ function ProgressRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="rgba(212, 172, 106, 0.18)"
+          stroke="var(--rule)"
           strokeWidth={stroke}
         />
         <circle
@@ -348,7 +335,7 @@ function ProgressRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="#D4AC6A"
+          stroke="var(--gold)"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
@@ -366,11 +353,11 @@ function PrayingHandsIcon() {
     <div
       className="grid place-items-center w-16 h-16 rounded-full"
       style={{
-        background: "rgba(212, 172, 106, 0.12)",
-        border: "1px solid rgba(212, 172, 106, 0.3)",
+        background: "rgba(184, 146, 74, 0.12)",
+        border: "1px solid rgba(184, 146, 74, 0.3)",
       }}
     >
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D4AC6A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M11 21V8.5a2 2 0 0 0-2-2 2 2 0 0 0-2 2V14l-2-1.5" />
         <path d="M13 21V8.5a2 2 0 0 1 2-2 2 2 0 0 1 2 2V14l2-1.5" />
         <path d="M9 21h6" />
