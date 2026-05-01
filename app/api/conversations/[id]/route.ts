@@ -33,7 +33,7 @@ export async function GET(
 
   const { data: turns, error: e2 } = await supabase
     .from("turns")
-    .select("ord, question, verse_reference, verse_text, response")
+    .select("ord, question, verse_reference, verse_text, response, liked")
     .eq("conversation_id", id)
     .order("ord", { ascending: true });
   if (e2) return Response.json({ error: e2.message }, { status: 500 });

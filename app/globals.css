@@ -483,6 +483,37 @@ body::before {
 .dot-2 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 200ms; }
 .dot-3 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 400ms; }
 
+/* ---------------------------------------------------------------------------
+   Type scale — a single, named ladder so we stop sprinkling text-[1.05rem],
+   text-[1.18rem], text-[1.28rem] across the codebase.
+   ---------------------------------------------------------------------------
+   Use these classes instead of arbitrary tailwind sizes:
+
+     .text-eyebrow   → 0.78rem uppercase tracking-wide  (section labels)
+     .text-meta      → 0.78rem (dates, distance, references)
+     .text-body-sm   → 0.88rem
+     .text-body      → 1rem
+     .text-body-lg   → 1.05rem  (card titles, emphasis)
+     .text-quote     → 1.25rem  (verses, blockquotes)
+     .text-title     → 1.4rem   (section subtitles serif)
+     .text-page      → 1.6rem   (page hero titles serif)
+     .text-display   → 2.4rem   (timer, very large)
+*/
+.text-eyebrow {
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.text-meta { font-size: 0.78rem; }
+.text-body-sm { font-size: 0.88rem; }
+.text-body { font-size: 1rem; }
+.text-body-lg { font-size: 1.05rem; }
+.text-quote { font-size: 1.25rem; }
+.text-title { font-size: 1.4rem; }
+.text-page { font-size: 1.6rem; }
+.text-display { font-size: 2.4rem; }
+
 /* Cross-breathing — used by the splash overlay. Soft pulse between
    opacity 0.55 and 1 with a 2.6s cycle. */
 @keyframes cross-breath {

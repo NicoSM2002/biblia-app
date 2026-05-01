@@ -27,6 +27,7 @@ create table if not exists public.turns (
   verse_reference text,
   verse_text text,
   response text not null,
+  liked boolean not null default false,
   created_at timestamptz not null default now()
 );
 

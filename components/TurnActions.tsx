@@ -3,23 +3,29 @@
 import { useState } from "react";
 
 /**
- * Small action row under each completed turn — heart (visual "me llegó",
- * no persistence) and share (Web Share API where available, copy fallback).
+ * Action row under each completed turn — heart (favorite) and share.
  *
- * The heart toggle is intentionally session-only. We dropped the Guardados
- * section, so there's no point persisting it; the user just gets a tactile
- * acknowledgement that this turn meant something.
+ * The heart is now a controlled component: the parent manages the liked
+ * state and persists it to Supabase when the user is signed in. That way
+ * the like survives reload, navigation away and back, and any other
+ * remount of the chat page.
+ *
+ * Share uses the Web Share API where available, with a clipboard copy
+ * fallback (no auth required, always works).
  */
 export function TurnActions({
   question,
   verse,
   response,
+  liked,
+  onToggleLike,
 }: {
   question: string;
   verse?: { reference: string; text: string } | null;
   response?: string;
+  liked: boolean;
+  onToggleLike: () => void;
 }) {
-  const [liked, setLiked] = useState(false);
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
 
   function buildShareText(): string {
@@ -66,7 +72,7 @@ export function TurnActions({
     <div className="flex items-center gap-2 mt-3 mb-1">
       <button
         type="button"
-        onClick={() => setLiked((v) => !v)}
+        onClick={onToggleLike}
         aria-label={liked ? "Quitar me gusta" : "Me gusta"}
         aria-pressed={liked}
         className={`grid place-items-center w-9 h-9 rounded-full border transition-colors ${

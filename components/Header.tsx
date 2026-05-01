@@ -1,20 +1,21 @@
 import Link from "next/link";
 import { LatinCross } from "./Cross";
+import { ShareConversation } from "./ShareConversation";
+import type { ExportableTurn } from "@/lib/export";
 
 /**
  * Chat header.
  *
- * The bottom nav now handles "go to home" — so we don't ship a back arrow
- * here.
+ * Bottom nav handles "go to home" — no back arrow here.
  *
- * What stays: the optional history hamburger (signed-in users browsing
- * past conversations), the title, and a "new conversation" button on the
- * right so the user can start fresh without leaving /chat.
+ * Right side: share-the-whole-conversation button (when there's at least
+ * one turn) + new-conversation button (when there's something to reset).
  */
 export function Header({
   onOpenHistory,
   onReset,
   conversationTitle,
+  shareableTurns = [],
 }: {
   onOpenHistory?: () => void;
   /** Reset the chat to an empty state — clears turns and active
@@ -24,6 +25,8 @@ export function Header({
    *  appears as a discreet subtitle under the app title so the user knows
    *  which past conversation they're continuing. */
   conversationTitle?: string | null;
+  /** Completed turns. Used to render the share-conversation button. */
+  shareableTurns?: ExportableTurn[];
 }) {
   return (
     <header className="relative z-30 px-4 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] no-print">
@@ -54,11 +57,12 @@ export function Header({
             )}
           </Link>
         </div>
-        {onReset && (
-          <div className="shrink-0">
-            <NewConversationButton onClick={onReset} />
-          </div>
-        )}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {shareableTurns.length > 0 && (
+            <ShareConversation turns={shareableTurns} />
+          )}
+          {onReset && <NewConversationButton onClick={onReset} />}
+        </div>
       </div>
     </header>
   );

@@ -23,6 +23,9 @@ type Turn = {
   response?: string;
   status: "loading" | "streaming" | "done" | "error";
   error?: string;
+  /** Whether the user marked this turn with a heart. Only persisted for
+   *  signed-in users (in the turns table). */
+  liked?: boolean;
 };
 
 export default function ChatPage() {
@@ -99,6 +102,41 @@ export default function ChatPage() {
     setActiveConversationTitle(null);
   }
 
+  /**
+   * Toggle the heart on a turn. Optimistic update so the UI flips
+   * instantly, then sync to the database in the background. If the user
+   * isn't signed in we just keep the like in local state — it'll vanish
+   * with the conversation when they navigate away (which is fine; the
+   * heart only really makes sense for persisted convos).
+   */
+  function toggleLike(turnId: string, ord: number) {
+    let nextLiked = false;
+    setTurns((prev) =>
+      prev.map((t) => {
+        if (t.id !== turnId) return t;
+        nextLiked = !t.liked;
+        return { ...t, liked: nextLiked };
+      }),
+    );
+
+    if (!signedIn) return;
+    const conversationId = conversationIdRef.current;
+    if (!conversationId) return; // turn not yet persisted, nothing to PATCH
+
+    void fetch(`/api/conversations/${conversationId}/turns`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ord, liked: nextLiked }),
+    }).catch(() => {
+      // On failure, roll back the optimistic update so UI matches reality
+      setTurns((prev) =>
+        prev.map((t) =>
+          t.id === turnId ? { ...t, liked: !nextLiked } : t,
+        ),
+      );
+    });
+  }
+
   async function loadConversation(id: string) {
     if (pending) return;
     try {
@@ -112,6 +150,7 @@ export default function ChatPage() {
           verse_reference: string | null;
           verse_text: string | null;
           response: string;
+          liked?: boolean;
         }>;
       };
 
@@ -124,6 +163,7 @@ export default function ChatPage() {
             : null,
         response: t.response,
         status: "done" as const,
+        liked: t.liked ?? false,
       }));
 
       savedTurnIdsRef.current = new Set(loadedTurns.map((t) => t.id));
@@ -339,6 +379,13 @@ export default function ChatPage() {
           onOpenHistory={signedIn ? () => setHistoryOpen(true) : undefined}
           onReset={turns.length > 0 ? reset : undefined}
           conversationTitle={activeConversationTitle}
+          shareableTurns={turns
+            .filter((t) => t.status === "done" && (t.response || t.verse))
+            .map((t) => ({
+              question: t.question,
+              verse: t.verse ?? null,
+              response: t.response,
+            }))}
         />
         <HistorySheet
           open={historyOpen}
@@ -393,6 +440,8 @@ export default function ChatPage() {
                             question={t.question}
                             verse={t.verse ?? null}
                             response={t.response}
+                            liked={t.liked ?? false}
+                            onToggleLike={() => toggleLike(t.id, i)}
                           />
                         )}
                       </>
