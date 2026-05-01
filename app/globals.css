@@ -63,27 +63,10 @@
   --button-on-gold: #1F1B16; /* dark ink on gold button — passes AA */
 }
 
-/* If the user hasn't expressed a choice, follow the OS preference. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper:        #0F1525;
-    --paper-deep:   #161D31;
-    --vellum:       #1F2941;
-    --rule:         #2C3650;
-    --ink:          #F2EBD9;
-    --ink-soft:     #C5BAA0;
-    --ink-faint:    #918872;
-    --gold:         #D4AC6A;
-    --gold-soft:    #E2BE82;
-    --gold-text:    #E0BE7C;
-    --marian:       #5C7CB1;
-    --vino:         #C16B7A;
-    --surface:      #161D31;
-    --scrim:        rgba(0, 0, 0, 0.6);
-    --shadow-color: 0, 0, 0;
-    --button-on-gold: #1F1B16;
-  }
-}
+/* No prefers-color-scheme: dark fallback. The user explicitly wants the
+   app to ALWAYS open in light, regardless of OS preference. Dark mode
+   only applies when data-theme="dark" is set explicitly (by the toggle
+   button within the current session). */
 
 @theme inline {
   --color-paper:        var(--paper);
@@ -198,19 +181,8 @@ body::before {
   background-size: 240px 240px;
 }
 
-:root[data-theme="dark"] body::before,
-:root:not([data-theme="light"]) body::before {
-  /* Auto-applied via the dark-mode media query below as well */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) body::before {
-    opacity: 0.10;
-    mix-blend-mode: screen;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch' seed='3'/><feColorMatrix values='0 0 0 0 0.85 0 0 0 0 0.78 0 0 0 0 0.55 0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  }
-}
-
+/* Dark mode overrides for the noise overlay — only when data-theme is
+   explicitly "dark". No prefers-color-scheme fallback on purpose. */
 :root[data-theme="dark"] body::before {
   opacity: 0.10;
   mix-blend-mode: screen;
@@ -229,18 +201,8 @@ body::before {
   }
 
   /* On dark mode, the glow becomes a candle warmth above the marian-night
-     surface and the bottom blue is removed (it was over a deep-blue page). */
-  :root[data-theme="dark"] body,
-  :root:not([data-theme="light"]) body {
-    /* default: light — overridden by media below */
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) body {
-      background:
-        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212, 172, 106, 0.10) 0%, transparent 60%),
-        var(--paper);
-    }
-  }
+     surface and the bottom blue is removed (it was over a deep-blue page).
+     Only triggered by explicit data-theme="dark", not by OS preference. */
   :root[data-theme="dark"] body {
     background:
       radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212, 172, 106, 0.10) 0%, transparent 60%),

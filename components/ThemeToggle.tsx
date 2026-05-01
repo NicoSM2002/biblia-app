@@ -29,26 +29,19 @@ export function ThemeToggle() {
       "light") as Theme;
   });
 
-  function applyTheme(next: Theme) {
-    document.documentElement.setAttribute("data-theme", next);
-    setTheme(next);
-  }
-
   function toggle() {
     // Read the DOM at click time too — bulletproof against any code path
     // that mutates data-theme outside of this component.
     const current = (document.documentElement.getAttribute("data-theme") ||
       theme) as Theme;
     const next: Theme = current === "dark" ? "light" : "dark";
-    type DocWithVT = Document & {
-      startViewTransition?: (cb: () => void) => unknown;
-    };
-    const doc = document as DocWithVT;
-    if (typeof doc.startViewTransition === "function") {
-      doc.startViewTransition(() => applyTheme(next));
-    } else {
-      applyTheme(next);
-    }
+    // Apply synchronously, no view-transition wrapper. The previous
+    // implementation wrapped this in document.startViewTransition() for a
+    // crossfade, but on iOS Safari the first click would sometimes feel
+    // like a no-op because the user perceived the queued transition as
+    // "nothing happened". Synchronous = one click, instantaneous swap.
+    document.documentElement.setAttribute("data-theme", next);
+    setTheme(next);
   }
 
   return (

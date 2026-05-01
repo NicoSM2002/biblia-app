@@ -38,13 +38,39 @@ export default function HomePage() {
     });
   }, []);
 
-  // Daily verse fetched in-line (used to be a fullscreen overlay; now it
-  // lives as a section between the input and the suggestions).
+  // Daily verse — cached in sessionStorage so the SECOND time the user
+  // navigates to the home in the same session it appears instantly. The
+  // network round-trip used to make the verse "pop in late" every visit.
+  // Cache keyed by today's date so it auto-invalidates on a new day.
   useEffect(() => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const cached = sessionStorage.getItem("dailyVerseCache");
+      if (cached) {
+        const parsed = JSON.parse(cached) as { date: string; verse: Verse };
+        if (parsed.date === today && parsed.verse) {
+          setVerse(parsed.verse);
+          return;
+        }
+      }
+    } catch {
+      // ignore
+    }
     fetch("/api/daily-verse")
       .then((r) => r.json())
       .then((d: { verse?: Verse }) => {
-        if (d.verse) setVerse(d.verse);
+        if (d.verse) {
+          setVerse(d.verse);
+          try {
+            const today = new Date().toISOString().slice(0, 10);
+            sessionStorage.setItem(
+              "dailyVerseCache",
+              JSON.stringify({ date: today, verse: d.verse }),
+            );
+          } catch {
+            // ignore
+          }
+        }
       })
       .catch(() => {
         // optional — the rest of the home still works
@@ -112,8 +138,15 @@ export default function HomePage() {
             </div>
           </form>
 
-          {/* Versículo del día — replaces the old fullscreen overlay */}
-          {verse && <DailyVerseSection verse={verse} />}
+          {/* Versículo del día — skeleton while loading so the layout
+              doesn't shift when the fetch comes back, and on subsequent
+              visits in the same session it's instant via sessionStorage
+              cache. */}
+          {verse ? (
+            <DailyVerseSection verse={verse} />
+          ) : (
+            <DailyVerseSkeleton />
+          )}
 
           <section className="mt-6">
             <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-2.5">
@@ -149,6 +182,31 @@ export default function HomePage() {
 
       <Splash />
     </div>
+  );
+}
+
+function DailyVerseSkeleton() {
+  return (
+    <section className="mt-6">
+      <p className="font-sans text-[0.78rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-2.5">
+        Versículo del día
+      </p>
+      <div
+        className="rounded-xl px-5 py-5"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.03) 100%)",
+          border: "1px solid rgba(184, 146, 74, 0.22)",
+        }}
+      >
+        <div className="space-y-2 animate-pulse">
+          <div className="h-5 bg-[var(--rule)] rounded w-full" />
+          <div className="h-5 bg-[var(--rule)] rounded w-[90%]" />
+          <div className="h-5 bg-[var(--rule)] rounded w-[70%]" />
+        </div>
+        <div className="mt-3 h-3 bg-[var(--rule)] rounded w-24 animate-pulse" />
+      </div>
+    </section>
   );
 }
 

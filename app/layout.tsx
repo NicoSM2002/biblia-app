@@ -45,18 +45,12 @@ export const viewport: Viewport = {
 };
 
 /**
- * Forces `data-theme="light"` on <html> before any paint. The user wants
- * the app to ALWAYS start in light mode, regardless of OS preference or
- * any previous toggle. The toggle button can swap to dark within a
- * session but reloads / new visits always come back to light.
+ * Defensive cleanup — earlier builds of the app persisted the theme
+ * choice in localStorage. Wipe that so a returning user from those
+ * builds doesn't get dark-mode by accident.
  */
 const initScript = `
 (function() {
-  document.documentElement.setAttribute('data-theme', 'light');
-  // Defensive: also blow away any stale localStorage from earlier
-  // versions of the app that used to persist the choice. Without this,
-  // a user who toggled to dark in an old build would still see dark
-  // after upgrading.
   try { localStorage.removeItem('theme'); } catch (e) {}
 })();
 `;
@@ -68,12 +62,13 @@ export default function RootLayout({
     <html
       lang="es"
       className={`${garamond.variable} ${inter.variable} h-full`}
-      // The inline initScript below mutates <html> before React hydrates
-      // (sets data-theme and data-daily-verse-seen). Without this, React
-      // throws a hydration mismatch on every navigation and *throws away
-      // the entire subtree to re-render from scratch* — which is exactly
-      // what the user kept seeing as "elements refresh" and what was
-      // masking the view-transition crossfade.
+      // data-theme="light" is hardcoded into the server-rendered HTML so
+      // there's no dependency on the inline script firing before paint
+      // and no risk of React removing the attribute during hydration. The
+      // toggle button can flip this at runtime; reloads always come back
+      // to light because every fresh response from the server has
+      // data-theme="light" right here in the JSX.
+      data-theme="light"
       suppressHydrationWarning
     >
       <head>
