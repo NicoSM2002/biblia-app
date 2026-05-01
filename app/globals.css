@@ -131,22 +131,12 @@ html, body {
    was momentarily different during detail page mount) and the photo
    floated above the bottom nav. Plain crossfade is calm and works
    identically across browsers. */
-::view-transition-group(root) {
-  animation: none;
-}
-/* Asymmetric timing: the outgoing page fades quickly (180ms) so the new
-   page is interactive almost immediately, while the incoming page has a
-   slightly longer fade-in (320ms) with a soft ease-out so the arrival
-   feels intentional, not abrupt. Net perceived transition ~320ms with
-   no perceptible "lock" at the start. */
-::view-transition-old(root) {
-  animation: vt-fade-out 180ms cubic-bezier(0.4, 0, 1, 1);
-  mix-blend-mode: normal;
-}
-::view-transition-new(root) {
-  animation: vt-fade-in 320ms cubic-bezier(0, 0, 0.2, 1);
-  mix-blend-mode: normal;
-}
+/* No View Transitions API for route changes anymore. We tried it but
+   WebKit kept morphing the root viewport (visible scaling of the whole
+   page during transitions) and there was no reliable way to stop it.
+   Instead, each route's <main> uses .page-content-fade — a plain CSS
+   keyframe animation that fades in the content on mount. Simpler,
+   predictable, no scaling, no browser quirks. */
 
 /* All view-transition pseudo-elements: click-through so the freshly
    mounted page is interactive immediately. */
@@ -503,27 +493,23 @@ body::before {
   animation: cross-breath 2.6s ease-in-out infinite;
 }
 
-/* Page-content entrance — soft fade-in on the main content of each
-   surface so the page feels like it's "arriving" instead of just snapping
-   into place. Pure opacity (no translate) to avoid any "settling" feel.
-   Used inside route view, runs every time the page mounts. 380ms with a
-   gentle ease-out. */
-@keyframes page-content-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
+/* Page-content fade was making each route change feel laggy: every tab
+   switch had a 380ms fade-in BEFORE the user could see the content. The
+   user kept describing it as "lag". Reduced to a no-op so navigation
+   feels instant. The class still exists so we don't have to touch every
+   page that referenced it. */
 .page-content-fade {
-  animation: page-content-fade 380ms cubic-bezier(0, 0, 0.2, 1) both;
+  /* no animation — pages appear instantly on mount */
 }
 
 /* Helper for elements that appear later (e.g. carousel arrows once the
-   detail fetch resolves with multiple photos). 320ms ease-out. */
+   detail fetch resolves). Short fade-in so they don't pop in. */
 @keyframes soft-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 .soft-fade-in {
-  animation: soft-fade-in 320ms cubic-bezier(0, 0, 0.2, 1) both;
+  animation: soft-fade-in 220ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 /* Selection styling — gold halo, slightly stronger so it's visible on cream */

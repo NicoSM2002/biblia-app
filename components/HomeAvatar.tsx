@@ -17,13 +17,45 @@ import { cn } from "@/lib/utils";
  * - Signed in: shows the first letter of the user's name (or email if no
  *   name is set). Tap → small menu with name/email + sign out.
  */
+// Cache the user's name + email in sessionStorage so the avatar shows
+// the right initial INSTANTLY on every page mount, instead of flashing a
+// placeholder ("·") while supabase.auth.getUser() resolves async.
+const CACHE_KEY = "homeAvatarUser";
+
+type CachedUser = { name: string | null; email: string | null };
+
+function readCachedUser(): CachedUser | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as CachedUser;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedUser(user: CachedUser) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(user));
+  } catch {
+    // ignore
+  }
+}
+
 export function HomeAvatar() {
   const router = useRouter();
   const [signedIn, setSignedIn] = useState<boolean>(() =>
     isSupabaseConfigured() ? hasSessionCookie() : false,
   );
-  const [name, setName] = useState<string | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
+  // Read cached user data synchronously on first render so the avatar
+  // shows the correct initial immediately, no placeholder flash.
+  const [name, setName] = useState<string | null>(
+    () => readCachedUser()?.name ?? null,
+  );
+  const [email, setEmail] = useState<string | null>(
+    () => readCachedUser()?.email ?? null,
+  );
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -32,23 +64,27 @@ export function HomeAvatar() {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       const user = data.user;
-      setSignedIn(!!user);
-      setEmail(user?.email ?? null);
-      setName(
+      const newName =
         (user?.user_metadata?.full_name as string | undefined) ??
-          (user?.user_metadata?.name as string | undefined) ??
-          null,
-      );
+        (user?.user_metadata?.name as string | undefined) ??
+        null;
+      const newEmail = user?.email ?? null;
+      setSignedIn(!!user);
+      setEmail(newEmail);
+      setName(newName);
+      writeCachedUser({ name: newName, email: newEmail });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const user = session?.user ?? null;
-      setSignedIn(!!user);
-      setEmail(user?.email ?? null);
-      setName(
+      const newName =
         (user?.user_metadata?.full_name as string | undefined) ??
-          (user?.user_metadata?.name as string | undefined) ??
-          null,
-      );
+        (user?.user_metadata?.name as string | undefined) ??
+        null;
+      const newEmail = user?.email ?? null;
+      setSignedIn(!!user);
+      setEmail(newEmail);
+      setName(newName);
+      writeCachedUser({ name: newName, email: newEmail });
     });
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -83,7 +119,12 @@ export function HomeAvatar() {
     );
   }
 
-  const initial = (name?.[0] ?? email?.[0] ?? "·").toUpperCase();
+  // Prefer the real initial, but if neither name nor email has loaded
+  // yet (cookie says signed in, but getUser() is still resolving and we
+  // don't have a sessionStorage cache), show the UserIcon instead of a
+  // placeholder dot so the avatar looks intentional, not "loading".
+  const initial =
+    name?.[0]?.toUpperCase() ?? email?.[0]?.toUpperCase() ?? null;
 
   async function logout() {
     const supabase = createClient();
@@ -106,7 +147,11 @@ export function HomeAvatar() {
             : "border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)]",
         )}
       >
-        <span className="font-sans text-[0.85rem] font-semibold">{initial}</span>
+        {initial ? (
+          <span className="font-sans text-[0.85rem] font-semibold">{initial}</span>
+        ) : (
+          <UserIcon />
+        )}
       </button>
       {open && (
         <div

@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { EB_Garamond, Inter } from "next/font/google";
-import { ViewTransitionLinks } from "@/components/ViewTransitionLinks";
 import "./globals.css";
 
 const garamond = EB_Garamond({
@@ -75,7 +74,6 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: initScript }} />
       </head>
       <body className="relative min-h-full antialiased">
-        <ViewTransitionLinks />
         {children}
       </body>
     </html>

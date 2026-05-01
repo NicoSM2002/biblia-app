@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useLayoutEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
 import { BottomNav } from "@/components/BottomNav";
 
 // useLayoutEffect on the client (runs sync before paint), useEffect on the
@@ -234,11 +233,10 @@ function Misas() {
                 )}
               </p>
               <ul className="space-y-3">
-                {churches.map((c, i) => (
+                {churches.map((c) => (
                   <ChurchCard
                     key={c.id}
                     church={c}
-                    index={i}
                     origin={searchOrigin}
                     onPick={() => {
                       try {
@@ -276,12 +274,10 @@ function Misas() {
 
 function ChurchCard({
   church,
-  index,
   origin,
   onPick,
 }: {
   church: Church;
-  index: number;
   origin: SearchOrigin;
   onPick: () => void;
 }) {
@@ -305,12 +301,7 @@ function ChurchCard({
   // guaranteed chance to save state before the view transition kicks in.
 
   return (
-    <motion.li
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: index * 0.04, duration: 0.32, ease: [0, 0, 0.2, 1] }}
-      className="bg-[var(--surface)] border border-[var(--rule)] rounded-xl overflow-hidden hover:border-[var(--gold)] hover:shadow-[0_4px_16px_-8px_rgba(var(--shadow-color),0.25)] active:scale-[0.99] transition-all duration-200"
-    >
+    <li className="bg-[var(--surface)] border border-[var(--rule)] rounded-xl overflow-hidden hover:border-[var(--gold)] hover:shadow-[0_4px_16px_-8px_rgba(var(--shadow-color),0.25)] active:scale-[0.99] transition-all duration-200">
       <div className="flex items-stretch">
         {/* Photo column — square. Falls back to a soft placeholder. */}
         <Link
@@ -384,7 +375,7 @@ function ChurchCard({
           </div>
         </div>
       </div>
-    </motion.li>
+    </li>
   );
 }
 
