@@ -552,6 +552,28 @@ body::before {
   animation: soft-fade-in 220ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
+/* Detail-page stagger entry — each major section fades in independently
+   so the page reads as "assembling" instead of appearing all at once.
+   Pure opacity, no translation (we deliberately avoided Y-shift after
+   it read as "settling/jumping"). Used by the parish detail page;
+   could be reused on any detail/profile screen.
+
+   Caller sets `animationDelay` inline per section (e.g. 0/60/120/180ms)
+   to control the cascade order. The animation runs once on mount —
+   subsequent React re-renders don't replay it, so updating the data
+   later (e.g. when the fetch fills in more fields) doesn't cause a
+   flicker. */
+@keyframes detail-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.detail-fade-in {
+  animation: detail-fade-in 240ms cubic-bezier(0, 0, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .detail-fade-in { animation: none !important; }
+}
+
 /* Skeleton shimmer — lighter-pad sweep that travels across a placeholder
    block. Reads as "loading something for you" instead of the static
    pulse. The pseudo-element holds the gradient so the parent can keep

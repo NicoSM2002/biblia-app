@@ -158,46 +158,56 @@ function ChurchDetail({ placeId }: { placeId: string }) {
       <DetailHeader title={church.name} />
 
       <main className="flex-1 overflow-y-auto pb-36">
-        <div className="page-content-fade max-w-2xl mx-auto">
-          {/* Photo carousel — swipe (touch) + prev/next chevrons + dots */}
-          <PhotoCarousel
-            photos={photos}
-            churchName={church.name}
-            churchId={church.id}
-            index={photoIdx}
-            onChange={setPhotoIdx}
-          />
+        <div className="max-w-2xl mx-auto">
+          {/* Each block of the detail page fades in with a small delay
+              so the page reads as "arriving" instead of just appearing.
+              Pure opacity — no shift — to stay consistent with the rest
+              of the app's animation language. */}
+          <div className="detail-fade-in" style={{ animationDelay: "0ms" }}>
+            <PhotoCarousel
+              photos={photos}
+              churchName={church.name}
+              churchId={church.id}
+              index={photoIdx}
+              onChange={setPhotoIdx}
+            />
+          </div>
 
           <div className="px-5 sm:px-6 pt-6">
-            <h1 className="font-serif italic text-page sm:text-hero leading-[1.2] text-[var(--ink)]">
-              {church.name}
-            </h1>
+            <div className="detail-fade-in" style={{ animationDelay: "60ms" }}>
+              <h1 className="font-serif italic text-page sm:text-hero leading-[1.2] text-[var(--ink)]">
+                {church.name}
+              </h1>
 
-            <div className="mt-3 flex items-start gap-2">
-              <span className="text-[var(--gold-text)] mt-0.5 shrink-0">
-                <PinIcon />
-              </span>
-              <p className="font-sans text-[0.92rem] text-[var(--ink-soft)] leading-relaxed">
-                {church.address}
+              <div className="mt-3 flex items-start gap-2">
+                <span className="text-[var(--gold-text)] mt-0.5 shrink-0">
+                  <PinIcon />
+                </span>
+                <p className="font-sans text-[0.92rem] text-[var(--ink-soft)] leading-relaxed">
+                  {church.address}
+                </p>
+              </div>
+
+              <p className="mt-2 font-sans text-[0.85rem] text-[var(--ink-faint)]">
+                {distanceText}
+                {church.rating ? (
+                  <>
+                    {" · "}
+                    <span className="text-[var(--ink-soft)]">
+                      ★ {church.rating.toFixed(1)}
+                      {church.userRatingCount
+                        ? ` (${church.userRatingCount})`
+                        : ""}
+                    </span>
+                  </>
+                ) : null}
               </p>
             </div>
 
-            <p className="mt-2 font-sans text-[0.85rem] text-[var(--ink-faint)]">
-              {distanceText}
-              {church.rating ? (
-                <>
-                  {" · "}
-                  <span className="text-[var(--ink-soft)]">
-                    ★ {church.rating.toFixed(1)}
-                    {church.userRatingCount
-                      ? ` (${church.userRatingCount})`
-                      : ""}
-                  </span>
-                </>
-              ) : null}
-            </p>
-
-            <div className="mt-5 flex items-center gap-2">
+            <div
+              className="mt-5 flex items-center gap-2 detail-fade-in"
+              style={{ animationDelay: "120ms" }}
+            >
               <a
                 href={church.mapsUrl}
                 target="_blank"
@@ -217,7 +227,10 @@ function ChurchDetail({ placeId }: { placeId: string }) {
             </div>
 
             {church.openingHours && church.openingHours.length > 0 && (
-              <section className="mt-8">
+              <section
+                className="mt-8 detail-fade-in"
+                style={{ animationDelay: "180ms" }}
+              >
                 <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
                   Próximas misas
                 </p>
@@ -269,7 +282,10 @@ function ChurchDetail({ placeId }: { placeId: string }) {
             )}
 
             {church.description && (
-              <section className="mt-8">
+              <section
+                className="mt-8 detail-fade-in"
+                style={{ animationDelay: "240ms" }}
+              >
                 <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
                   Sobre la parroquia
                 </p>
@@ -280,7 +296,10 @@ function ChurchDetail({ placeId }: { placeId: string }) {
             )}
 
             {church.website && (
-              <section className="mt-6">
+              <section
+                className="mt-6 detail-fade-in"
+                style={{ animationDelay: "300ms" }}
+              >
                 <a
                   href={church.website}
                   target="_blank"
