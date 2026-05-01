@@ -8,6 +8,7 @@ import { HomeAvatar } from "@/components/HomeAvatar";
 import { BottomNav } from "@/components/BottomNav";
 import { Splash } from "@/components/Splash";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import {
   createClient,
   hasSessionCookie,
@@ -24,6 +25,16 @@ export default function HomePage() {
   const [name, setName] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const [verse, setVerse] = useState<Verse | null>(null);
+  const speech = useSpeechRecognition({ lang: "es-ES" });
+
+  // Mirror the live transcript into the input as the user speaks. We
+  // store it as `question` so the form submits the same field whether
+  // the user typed or dictated.
+  useEffect(() => {
+    if (speech.listening || speech.transcript) {
+      setQuestion(speech.transcript);
+    }
+  }, [speech.transcript, speech.listening]);
 
   // Read user name (if signed in) for the personalized greeting.
   useEffect(() => {
@@ -123,18 +134,28 @@ export default function HomePage() {
               <input
                 type="text"
                 value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Escribe tu pregunta…"
+                onChange={(e) => {
+                  setQuestion(e.target.value);
+                  if (speech.listening) speech.stop();
+                  if (!e.target.value) speech.reset();
+                }}
+                placeholder={
+                  speech.listening ? "Escuchando…" : "Escribe tu pregunta…"
+                }
                 className="flex-1 bg-transparent outline-none font-sans text-[0.98rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
                 aria-label="Escribe tu pregunta"
               />
-              <button
-                type="submit"
-                aria-label="Enviar pregunta"
-                className="grid place-items-center w-10 h-10 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] transition-colors"
-              >
-                <MicIcon />
-              </button>
+              <ActionButton
+                speech={speech}
+                hasText={question.trim().length > 0}
+                onSend={() => goToChat(question)}
+                onStartVoice={() => {
+                  speech.reset();
+                  setQuestion("");
+                  speech.start();
+                }}
+                onStopVoice={() => speech.stop()}
+              />
             </div>
           </form>
 
@@ -281,6 +302,102 @@ function MicIcon() {
       <line x1="12" y1="18" x2="12" y2="22" />
       <line x1="9" y1="22" x2="15" y2="22" />
     </svg>
+  );
+}
+
+function StopIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+    </svg>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  );
+}
+
+/**
+ * The single round button at the right edge of the input. Its meaning
+ * depends on context:
+ *   - listening   → stop dictation
+ *   - has text    → send (submit)
+ *   - empty + idle → start dictation
+ * If the browser doesn't support speech recognition, it falls back to
+ * a permanent "send" button (typing only).
+ */
+function ActionButton({
+  speech,
+  hasText,
+  onSend,
+  onStartVoice,
+  onStopVoice,
+}: {
+  speech: ReturnType<typeof useSpeechRecognition>;
+  hasText: boolean;
+  onSend: () => void;
+  onStartVoice: () => void;
+  onStopVoice: () => void;
+}) {
+  if (speech.listening) {
+    return (
+      <button
+        type="button"
+        onClick={onStopVoice}
+        aria-label="Detener dictado"
+        className="relative grid place-items-center w-10 h-10 rounded-full bg-[var(--vino)] text-white hover:opacity-90 active:scale-95 transition-all"
+      >
+        <span aria-hidden="true" className="absolute inset-0 rounded-full bg-[var(--vino)] opacity-40 animate-ping" />
+        <span className="relative">
+          <StopIcon />
+        </span>
+      </button>
+    );
+  }
+  if (hasText) {
+    return (
+      <button
+        type="submit"
+        aria-label="Enviar pregunta"
+        className="grid place-items-center w-10 h-10 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
+        onClick={(e) => {
+          // Use submit handler if inside form; otherwise call directly
+          if (!e.currentTarget.form) {
+            e.preventDefault();
+            onSend();
+          }
+        }}
+      >
+        <SendIcon />
+      </button>
+    );
+  }
+  if (!speech.supported) {
+    // Browser doesn't support speech recognition — only the keyboard
+    // works. Show a passive send icon (no action since there's no text).
+    return (
+      <span
+        aria-hidden="true"
+        className="grid place-items-center w-10 h-10 rounded-full bg-[var(--rule)] text-[var(--ink-faint)]"
+      >
+        <SendIcon />
+      </span>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onStartVoice}
+      aria-label="Dictar pregunta"
+      className="grid place-items-center w-10 h-10 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
+    >
+      <MicIcon />
+    </button>
   );
 }
 

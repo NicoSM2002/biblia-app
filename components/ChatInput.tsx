@@ -2,7 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 
+/**
+ * Chat input — auto-growing textarea + smart action button on the right.
+ *
+ * The button on the right does triple duty depending on context:
+ *   - listening   → stop dictation (red, with pulse)
+ *   - has text    → send (gold)
+ *   - empty + idle → start dictation (gold mic)
+ *
+ * If the browser doesn't expose SpeechRecognition (e.g. desktop Firefox),
+ * the button reverts to a regular send-only mode.
+ */
 export function ChatInput({
   onSubmit,
   disabled,
@@ -16,6 +28,7 @@ export function ChatInput({
 }) {
   const [value, setValue] = useState("");
   const ref = useRef<HTMLTextAreaElement>(null);
+  const speech = useSpeechRecognition({ lang: "es-ES" });
 
   useEffect(() => {
     const el = ref.current;
@@ -28,14 +41,29 @@ export function ChatInput({
     if (autoFocus) ref.current?.focus();
   }, [autoFocus]);
 
+  // Mirror live transcript into the textarea while listening
+  useEffect(() => {
+    if (speech.listening || speech.transcript) {
+      setValue(speech.transcript);
+    }
+  }, [speech.transcript, speech.listening]);
+
   function send() {
     const v = value.trim();
     if (!v || disabled) return;
+    if (speech.listening) speech.stop();
     onSubmit(v);
     setValue("");
+    speech.reset();
   }
 
-  const active = value.trim().length > 0 && !disabled;
+  function startVoice() {
+    speech.reset();
+    setValue("");
+    speech.start();
+  }
+
+  const hasText = value.trim().length > 0;
 
   return (
     <form
@@ -53,7 +81,11 @@ export function ChatInput({
           ref={ref}
           rows={1}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            if (speech.listening) speech.stop();
+            if (!e.target.value) speech.reset();
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -61,7 +93,7 @@ export function ChatInput({
             }
           }}
           disabled={disabled}
-          placeholder={placeholder}
+          placeholder={speech.listening ? "Escuchando…" : placeholder}
           className={cn(
             "flex-1 resize-none bg-transparent outline-none py-2",
             "font-sans text-[1rem] sm:text-[1.02rem] leading-[1.5] text-[var(--ink)]",
@@ -70,35 +102,82 @@ export function ChatInput({
           )}
           aria-label="Escribe tu pregunta"
         />
-        <button
-          type="button"
-          onClick={send}
-          disabled={!active}
-          aria-label="Enviar pregunta"
-          className={cn(
-            "shrink-0 grid place-items-center w-11 h-11 rounded-full",
-            "transition-all duration-200",
-            active
-              ? "bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] shadow-sm"
-              : "bg-[var(--rule)] text-[var(--ink-faint)] cursor-default",
-          )}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+
+        {speech.listening ? (
+          <button
+            type="button"
+            onClick={() => speech.stop()}
+            aria-label="Detener dictado"
+            className="relative shrink-0 grid place-items-center w-11 h-11 rounded-full bg-[var(--vino)] text-white hover:opacity-90 active:scale-95 transition-all"
           >
-            <line x1="6" y1="12" x2="18" y2="12" />
-            <polyline points="13 7 18 12 13 17" />
-          </svg>
-        </button>
+            <span aria-hidden="true" className="absolute inset-0 rounded-full bg-[var(--vino)] opacity-40 animate-ping" />
+            <span className="relative">
+              <StopIcon />
+            </span>
+          </button>
+        ) : hasText ? (
+          <button
+            type="button"
+            onClick={send}
+            disabled={disabled}
+            aria-label="Enviar pregunta"
+            className={cn(
+              "shrink-0 grid place-items-center w-11 h-11 rounded-full",
+              "transition-all duration-200 active:scale-95",
+              !disabled
+                ? "bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] shadow-sm"
+                : "bg-[var(--rule)] text-[var(--ink-faint)] cursor-default",
+            )}
+          >
+            <SendIcon />
+          </button>
+        ) : speech.supported ? (
+          <button
+            type="button"
+            onClick={startVoice}
+            disabled={disabled}
+            aria-label="Dictar pregunta"
+            className="shrink-0 grid place-items-center w-11 h-11 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
+          >
+            <MicIcon />
+          </button>
+        ) : (
+          <span
+            aria-hidden="true"
+            className="shrink-0 grid place-items-center w-11 h-11 rounded-full bg-[var(--rule)] text-[var(--ink-faint)]"
+          >
+            <SendIcon />
+          </span>
+        )}
       </div>
     </form>
+  );
+}
+
+function MicIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0" />
+      <line x1="12" y1="18" x2="12" y2="22" />
+      <line x1="9" y1="22" x2="15" y2="22" />
+    </svg>
+  );
+}
+
+function StopIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+    </svg>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="6" y1="12" x2="18" y2="12" />
+      <polyline points="13 7 18 12 13 17" />
+    </svg>
   );
 }
