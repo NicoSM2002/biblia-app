@@ -270,12 +270,19 @@ body::before {
     .missal-page::after  { right: 1.25rem; }
   }
 
+  /* Cards now share a consistent base elevation so the page has actual
+     Z-depth instead of feeling like a stack of borders on a flat plane.
+     The shadows are intentionally subtle — visible enough to give cards
+     presence, faint enough not to feel like Material Design. */
   .card-verse {
     background: var(--vellum);
     border: 1px solid var(--rule);
     border-left: 3px solid var(--gold);
     border-radius: 12px;
     padding: 1.25rem;
+    box-shadow:
+      0 1px 2px rgba(var(--shadow-color), 0.04),
+      0 4px 12px -4px rgba(var(--shadow-color), 0.06);
   }
 
   .card-response {
@@ -283,6 +290,9 @@ body::before {
     border: 1px solid var(--rule);
     border-radius: 12px;
     padding: 1.1rem 1.25rem;
+    box-shadow:
+      0 1px 2px rgba(var(--shadow-color), 0.04),
+      0 4px 12px -4px rgba(var(--shadow-color), 0.06);
   }
 
   .card-question {
@@ -290,6 +300,33 @@ body::before {
     border: 1px solid rgba(184, 146, 74, 0.22);
     border-radius: 12px;
     padding: 0.85rem 1rem;
+    box-shadow: 0 1px 2px rgba(var(--shadow-color), 0.03);
+  }
+
+  /* lift-on-hover — apply to interactive cards (clickable links/buttons
+     wrapped in a card surface) so the user gets tactile feedback that
+     the surface is touchable. Subtle Y-rise + shadow grow + faster
+     transition than other state changes. The scale-down on active
+     gives a satisfying "press" before navigation. */
+  .lift-on-hover {
+    transition:
+      transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 200ms ease;
+  }
+  .lift-on-hover:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 2px 4px rgba(var(--shadow-color), 0.06),
+      0 12px 28px -8px rgba(var(--shadow-color), 0.12);
+  }
+  .lift-on-hover:active {
+    transform: translateY(0) scale(0.99);
+    transition-duration: 80ms;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lift-on-hover { transition: none !important; }
+    .lift-on-hover:hover, .lift-on-hover:active { transform: none !important; }
   }
 
   .card-input {
@@ -526,17 +563,20 @@ body::before {
   animation: cross-breath 2.6s ease-in-out infinite;
 }
 
-/* Page-content fade — opacity-only entry that reads as "arrival" without
-   lag. History: 380ms felt laggy, 0ms felt snap, 120ms was almost
-   imperceptible. 240ms with a confident decel curve is the sweet spot
-   — matches the per-section duration we use in the parish-detail
-   cascade so the whole app shares one entry rhythm. */
+/* Page-content reveal — content RISES into place (translateY 8px → 0)
+   instead of just fading. Pure opacity reads as "loading", not as
+   animation; the small upward motion gives sections an "arriving"
+   quality. ease-out-expo decelerates aggressively so the move feels
+   confident at the start and quietly settles at the end.
+   8px is small enough that it doesn't feel like the page "jumped"
+   from below — it reads as content materializing into its resting
+   position. */
 @keyframes page-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .page-content-fade {
-  animation: page-fade-in 240ms cubic-bezier(0.2, 0, 0, 1) both;
+  animation: page-fade-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @media (prefers-reduced-motion: reduce) {
   .page-content-fade { animation: none !important; }
@@ -552,23 +592,21 @@ body::before {
   animation: soft-fade-in 220ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
-/* Detail-page stagger entry — each major section fades in independently
-   so the page reads as "assembling" instead of appearing all at once.
-   Pure opacity, no translation (we deliberately avoided Y-shift after
-   it read as "settling/jumping"). Used by the parish detail page;
-   could be reused on any detail/profile screen.
-
-   Caller sets `animationDelay` inline per section (e.g. 0/60/120/180ms)
-   to control the cascade order. The animation runs once on mount —
-   subsequent React re-renders don't replay it, so updating the data
-   later (e.g. when the fetch fills in more fields) doesn't cause a
-   flicker. */
+/* Section reveal — each major block in a page rises from below 8px
+   while fading in. Used in cascades (caller sets animationDelay
+   inline per section: 0/60/120/180ms) so the page assembles section
+   by section like content arriving into place, not like a loader.
+   The pure-opacity version we had before read as "loading" — adding
+   the small Y-translation transforms it into actual motion that the
+   eye registers as animation, not page-load.
+   The animation runs once on mount; subsequent React re-renders
+   don't replay it. */
 @keyframes detail-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .detail-fade-in {
-  animation: detail-fade-in 240ms cubic-bezier(0, 0, 0.2, 1) both;
+  animation: detail-fade-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @media (prefers-reduced-motion: reduce) {
   .detail-fade-in { animation: none !important; }

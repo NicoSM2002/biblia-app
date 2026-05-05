@@ -190,7 +190,7 @@ export default function HomePage() {
             </p>
             <Link
               href="/misas"
-              className="flex items-start gap-3 bg-[var(--surface)] border border-[var(--rule)] rounded-xl p-4 hover:border-[var(--gold)] hover:bg-[var(--vellum)] transition-colors"
+              className="lift-on-hover flex items-start gap-3 bg-[var(--surface)] border border-[var(--rule)] rounded-xl p-4 hover:border-[var(--gold)] hover:bg-[var(--vellum)]"
             >
               <div className="flex-1 min-w-0">
                 <p className="font-serif italic text-[1.05rem] text-[var(--ink)] leading-snug">

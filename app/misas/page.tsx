@@ -314,7 +314,7 @@ function ChurchCard({
   // guaranteed chance to save state before the view transition kicks in.
 
   return (
-    <li className="bg-[var(--surface)] border border-[var(--rule)] rounded-xl overflow-hidden hover:border-[var(--gold)] hover:shadow-[0_4px_16px_-8px_rgba(var(--shadow-color),0.25)] active:scale-[0.99] transition-all duration-200">
+    <li className="lift-on-hover bg-[var(--surface)] border border-[var(--rule)] rounded-xl overflow-hidden hover:border-[var(--gold)]">
       <div className="flex items-stretch">
         {/* Photo column — square. Falls back to a soft placeholder. */}
         <Link
