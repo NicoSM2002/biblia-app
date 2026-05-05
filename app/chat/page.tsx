@@ -409,7 +409,7 @@ export default function ChatPage() {
           activeId={activeConversationId}
         />
 
-        <main className="relative z-10 flex-1 flex flex-col min-h-0">
+        <main className="page-content-fade relative z-10 flex-1 flex flex-col min-h-0">
           <div
             ref={conversationRef}
             className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-10 min-h-0"
