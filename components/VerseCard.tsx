@@ -1,9 +1,14 @@
+import { memo } from "react";
+
 /**
  * The verse cartouche — a quoted scripture passage. Now wrapped in a clear
  * vellum card with a gold left border, with the reference shown ABOVE the
  * quote in small caps for instant scannability.
+ *
+ * memo()'d so previous turns' verse cards don't re-render every time the
+ * chat state changes — important when the conversation gets long.
  */
-export function VerseCard({
+export const VerseCard = memo(function VerseCard({
   reference,
   text,
 }: {
@@ -33,4 +38,4 @@ export function VerseCard({
       </div>
     </figure>
   );
-}
+});

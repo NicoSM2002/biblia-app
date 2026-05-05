@@ -229,8 +229,15 @@ export default function ChatPage() {
     setTurns((prev) => [...prev, newTurn]);
     setPending(true);
 
+    // Cap how much past context we ship to the LLM. The user keeps every
+    // turn visible on screen, but only the most recent N go into the
+    // prompt — sending the full history of a long conversation makes
+    // every send slower and more expensive without meaningfully helping
+    // the answer (Claude rarely needs to recall turn #2 of 80).
+    const RECENT_HISTORY_TURNS = 10;
     const history = turns
       .filter((t) => t.status === "done" && t.response)
+      .slice(-RECENT_HISTORY_TURNS)
       .flatMap((t) => [
         { role: "user" as const, content: t.question },
         {

@@ -1,9 +1,14 @@
+import { memo } from "react";
+
 /**
  * The user's question — rendered as a chat-style bubble aligned to the
  * right, in soft gold-tinged paper. Distinguishes the user's voice from
  * the response without needing an explicit "Tu pregunta" label.
+ *
+ * memo()'d so previous turns don't re-render every time the chat state
+ * changes (e.g. while a new turn is streaming).
  */
-export function QuestionLine({ text }: { text: string }) {
+export const QuestionLine = memo(function QuestionLine({ text }: { text: string }) {
   return (
     <div className="anim-fade-in mb-5 flex justify-end">
       <div
@@ -19,4 +24,4 @@ export function QuestionLine({ text }: { text: string }) {
       </div>
     </div>
   );
-}
+});
