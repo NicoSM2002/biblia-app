@@ -172,15 +172,24 @@ function Misas() {
       </header>
 
       <main className="flex-1 overflow-y-auto pb-36">
-        <div className="page-content-fade max-w-2xl mx-auto px-5 sm:px-6 pt-7">
-          <h2 className="font-serif italic text-page sm:text-hero text-[var(--ink)] leading-[1.25] text-center mb-2">
-            Misa cerca de ti
-          </h2>
-          <p className="font-sans text-[0.92rem] text-[var(--ink-soft)] leading-relaxed text-center max-w-[34ch] mx-auto mb-6">
-            Encuentra iglesias católicas cercanas con horarios actualizados.
-          </p>
+        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-7">
+          <div
+            className="detail-fade-in"
+            style={{ animationDelay: "0ms" }}
+          >
+            <h2 className="font-serif italic text-page sm:text-hero text-[var(--ink)] leading-[1.25] text-center mb-2">
+              Misa cerca de ti
+            </h2>
+            <p className="font-sans text-[0.92rem] text-[var(--ink-soft)] leading-relaxed text-center max-w-[34ch] mx-auto mb-6">
+              Encuentra iglesias católicas cercanas con horarios actualizados.
+            </p>
+          </div>
 
-          <form onSubmit={onSubmit}>
+          <form
+            onSubmit={onSubmit}
+            className="detail-fade-in"
+            style={{ animationDelay: "80ms" }}
+          >
             <div className="flex items-center gap-2 bg-[var(--surface)] border border-[var(--rule)] rounded-full pl-4 pr-1.5 py-1.5 transition-colors focus-within:border-[var(--gold)]">
               <PinIcon className="text-[var(--ink-faint)] shrink-0" />
               <input
@@ -256,7 +265,10 @@ function Misas() {
           )}
 
           {!churches && !pending && !error && (
-            <div className="mt-10 text-center">
+            <div
+              className="mt-10 text-center detail-fade-in"
+              style={{ animationDelay: "160ms" }}
+            >
               <p className="font-serif italic text-body-lg text-[var(--ink)]">
                 Empieza buscando una ubicación
               </p>

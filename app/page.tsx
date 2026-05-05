@@ -123,14 +123,20 @@ export default function HomePage() {
       </header>
 
       <main className="flex-1 overflow-y-auto pb-32">
-        <div className="page-content-fade max-w-2xl mx-auto px-5 sm:px-6 pt-5">
-          <Greeting name={name} />
+        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-5">
+          <div className="detail-fade-in" style={{ animationDelay: "0ms" }}>
+            <Greeting name={name} />
 
-          <h2 className="mt-1.5 font-serif italic text-page leading-[1.25] text-[var(--ink)] mb-4">
-            ¿Qué quieres preguntarle a Dios hoy?
-          </h2>
+            <h2 className="mt-1.5 font-serif italic text-page leading-[1.25] text-[var(--ink)] mb-4">
+              ¿Qué quieres preguntarle a Dios hoy?
+            </h2>
+          </div>
 
-          <form onSubmit={onSubmit}>
+          <form
+            onSubmit={onSubmit}
+            className="detail-fade-in"
+            style={{ animationDelay: "60ms" }}
+          >
             <div className="flex items-center gap-2 bg-[var(--surface)] border border-[var(--rule)] rounded-full pl-5 pr-1.5 py-1.5 transition-colors focus-within:border-[var(--gold)]">
               <input
                 type="text"
@@ -164,13 +170,21 @@ export default function HomePage() {
               doesn't shift when the fetch comes back, and on subsequent
               visits in the same session it's instant via sessionStorage
               cache. */}
-          {verse ? (
-            <DailyVerseSection verse={verse} />
-          ) : (
-            <DailyVerseSkeleton />
-          )}
+          <div
+            className="detail-fade-in"
+            style={{ animationDelay: "120ms" }}
+          >
+            {verse ? (
+              <DailyVerseSection verse={verse} />
+            ) : (
+              <DailyVerseSkeleton />
+            )}
+          </div>
 
-          <section className="mt-6">
+          <section
+            className="mt-6 detail-fade-in"
+            style={{ animationDelay: "180ms" }}
+          >
             <p className="text-eyebrow text-[var(--gold-text)] mb-2.5">
               Misa cerca de ti
             </p>

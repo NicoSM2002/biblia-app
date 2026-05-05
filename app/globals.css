@@ -526,17 +526,17 @@ body::before {
   animation: cross-breath 2.6s ease-in-out infinite;
 }
 
-/* Page-content fade — short opacity-only ramp so route changes feel
-   intentional, not snap. Earlier we had 380ms which read as lag, then
-   removed it entirely which read as a hard cut. 120ms is the sweet
-   spot: perceptible to a calm reader, invisible to one paying
-   attention. No translation, no scale, no blur. */
+/* Page-content fade — opacity-only entry that reads as "arrival" without
+   lag. History: 380ms felt laggy, 0ms felt snap, 120ms was almost
+   imperceptible. 240ms with a confident decel curve is the sweet spot
+   — matches the per-section duration we use in the parish-detail
+   cascade so the whole app shares one entry rhythm. */
 @keyframes page-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 .page-content-fade {
-  animation: page-fade-in 120ms ease-out both;
+  animation: page-fade-in 240ms cubic-bezier(0.2, 0, 0, 1) both;
 }
 @media (prefers-reduced-motion: reduce) {
   .page-content-fade { animation: none !important; }

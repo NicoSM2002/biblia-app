@@ -96,7 +96,7 @@ export default function OracionPage() {
       </header>
 
       <main
-        className="page-content-fade relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center min-h-0"
+        className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center min-h-0"
         style={{ paddingBottom: `calc(${NAV_RESERVE_PX}px + env(safe-area-inset-bottom))` }}
       >
         {phase === "select" && <SelectPhase onStart={start} />}
@@ -128,16 +128,28 @@ export default function OracionPage() {
 function SelectPhase({ onStart }: { onStart: (min: number) => void }) {
   return (
     <div className="max-w-md w-full">
-      <div className="mb-7 grid place-items-center">
+      <div
+        className="mb-7 grid place-items-center detail-fade-in"
+        style={{ animationDelay: "0ms" }}
+      >
         <PrayingHandsIcon />
       </div>
-      <h1 className="font-serif italic text-page sm:text-hero leading-[1.3] text-[var(--ink)] mb-3">
+      <h1
+        className="font-serif italic text-page sm:text-hero leading-[1.3] text-[var(--ink)] mb-3 detail-fade-in"
+        style={{ animationDelay: "60ms" }}
+      >
         Tómate un momento para hablar con Él.
       </h1>
-      <p className="font-sans text-[1rem] text-[var(--ink-soft)] leading-relaxed mb-8">
+      <p
+        className="font-sans text-[1rem] text-[var(--ink-soft)] leading-relaxed mb-8 detail-fade-in"
+        style={{ animationDelay: "120ms" }}
+      >
         Elige cuánto tiempo quieres dedicar al silencio.
       </p>
-      <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+      <div
+        className="grid grid-cols-2 gap-3 max-w-xs mx-auto detail-fade-in"
+        style={{ animationDelay: "180ms" }}
+      >
         {DURATIONS.map((min) => (
           <button
             key={min}
