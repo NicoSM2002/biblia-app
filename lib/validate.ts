@@ -66,10 +66,29 @@ export function validateQuote(reference: string, quotedText: string): Validation
   const a = normalizeForCompare(quotedText);
   const b = normalizeForCompare(verse.texto);
 
-  // Allow the model to omit a trailing ellipsis or quote a substring as long
-  // as it appears literally somewhere inside the verse text.
-  if (b.includes(a) || a.includes(b)) {
-    return { ok: true, reference: `${verse.libro} ${verse.capitulo}:${verse.versiculo}`, text: verse.texto };
+  const accept = () => ({
+    ok: true as const,
+    reference: `${verse.libro} ${verse.capitulo}:${verse.versiculo}`,
+    text: verse.texto,
+  });
+
+  // Exact path — the model quoted a literal substring (or the whole verse).
+  if (b.includes(a) || a.includes(b)) return accept();
+
+  // Tolerant path — the Straubinger edition splits long sentences across
+  // verses, so a faithful quote sometimes spills into the next verse (or drifts
+  // by a word). Accept when the shorter side's content words are almost fully
+  // contained in the longer side, and always display the canonical verse text.
+  // A fabricated quote shares few words and still fails this check.
+  const wordsA = new Set(a.split(" ").filter((w) => w.length > 2));
+  const wordsB = new Set(b.split(" ").filter((w) => w.length > 2));
+  const [small, big] =
+    wordsA.size <= wordsB.size ? [wordsA, wordsB] : [wordsB, wordsA];
+  if (small.size >= 4) {
+    let common = 0;
+    for (const w of small) if (big.has(w)) common++;
+    if (common / small.size >= 0.85) return accept();
   }
+
   return { ok: false, reason: "quoted text does not match Bible verse" };
 }
