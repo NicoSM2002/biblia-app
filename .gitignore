@@ -44,8 +44,9 @@ next-env.d.ts
 data/biblia-raw.txt
 data/biblia-preview.txt
 data/biblia.embeddings.json
-# (data/biblia.json and data/biblia.embeddings.{bin,meta.json} are committed
-#  — they fit in git/Vercel size limits.)
+data/credo.embeddings.json
+# (data/biblia.json, data/credo.json and the *.embeddings.{bin,meta.json} are
+#  committed — they fit in git/Vercel size limits; the full-float *.json do not.)
 
 # Source PDF — copyrighted by Conferencia Episcopal Española / BAC.
 # Not redistributable. Keep out of public repos.

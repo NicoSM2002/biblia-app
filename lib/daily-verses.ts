@@ -2,8 +2,9 @@
  * Curated pool of verses to rotate as the "frase del día" — versículos
  * pastorales y consoladores tomados de toda la Sagrada Escritura.
  *
- * The reference uses the BAC abbreviation as it appears in biblia.json
- * (`abbr` field), so we can look up the exact literal text at runtime.
+ * The reference uses the abbreviation as it appears in biblia.json (`abbr`
+ * field) — the modern naming/numbering of the Straubinger edition — so we can
+ * look up the exact literal text at runtime.
  */
 
 export type DailyRef = {

@@ -1,12 +1,15 @@
 /**
- * Credo: Compendio de la Fe Católica — supplementary catechetical retrieval.
+ * Doctrina complementaria — supplementary catechetical retrieval.
  *
- * The Credo is used to enrich pastoral responses with relevant Catholic
- * doctrine when applicable. The Bible verse remains the only explicitly
- * cited source; Credo content is incorporated naturally into the response
- * without attribution (per the user's product decision).
+ * Two merged sources (see scripts/build_doctrina.py): the Catechism of the
+ * Catholic Church (paragraphs) and Mons. Straubinger's exegetical footnotes.
+ * Used to enrich pastoral responses with relevant Catholic doctrine when
+ * applicable. The Bible verse remains the only explicitly cited source; this
+ * content is incorporated naturally into the response without attribution
+ * (per the user's product decision).
  *
- * Loaded as quantized int8 binary (~1.8 MB) like the Bible embeddings.
+ * Kept under the legacy `credo.*` filenames so the build/quantize pipeline is
+ * unchanged. Loaded as quantized int8 binary like the Bible embeddings.
  */
 
 import fs from "node:fs";

@@ -190,7 +190,10 @@ export function buildVersesContext(retrieved: Retrieved[]): string {
 
 export function buildCredoContext(items: { qa: CredoQA }[]): string {
   return items
-    .map((it, i) => `[${i + 1}] ${it.qa.pregunta}\n${it.qa.respuesta}`)
+    .map((it, i) => {
+      const head = it.qa.pregunta ? `${it.qa.pregunta}\n` : "";
+      return `[${i + 1}] ${head}${it.qa.respuesta}`;
+    })
     .join("\n\n");
 }
 
