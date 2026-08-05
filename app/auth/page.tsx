@@ -110,21 +110,28 @@ function AuthForm() {
   }
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-[var(--paper)] overflow-y-auto">
-      <main className="flex-1 flex items-center justify-center px-5 py-10">
-        <div className="w-full max-w-sm">
-          <div className="flex flex-col items-center mb-8">
+    // The form used to sit in a `flex-1 items-center` box inside a scroller.
+    // When the content is taller than the box — which is exactly what happens
+    // in "crear cuenta", with three fields and two hints — centring pushes the
+    // overflow out BOTH ends, and the part above the top edge can't be
+    // scrolled to. That's why "Volver al inicio" was cut off with no way to
+    // reach it. `min-h-full` + `my-auto` centres when there's room and
+    // behaves like plain flow when there isn't, so nothing is ever unreachable.
+    <div className="h-[100dvh] bg-[var(--paper)] overflow-y-auto">
+      <main className="page-content-fade min-h-full flex flex-col px-5 py-5">
+        <div className="w-full max-w-sm mx-auto my-auto">
+          <div className="flex flex-col items-center mb-5">
             <Link
               href="/"
-              className="flex flex-col items-center gap-3 group"
+              className="flex flex-col items-center gap-2.5 group"
               aria-label="Volver a Habla con la Palabra"
             >
               {/* The cross sits in a niche — the same arch as the verse
                   window, in miniature. Turns a loose icon into an object. */}
               <span
-                className="grid place-items-center w-14 h-16 text-[var(--gold)] transition-colors group-hover:text-[var(--gold-soft)]"
+                className="grid place-items-center w-12 h-14 text-[var(--gold)] transition-colors group-hover:text-[var(--gold-soft)]"
                 style={{
-                  borderRadius: "50% 50% 8px 8px / 28px 28px 8px 8px",
+                  borderRadius: "50% 50% 8px 8px / 24px 24px 8px 8px",
                   background:
                     "radial-gradient(ellipse 120% 80% at 50% 0%, color-mix(in srgb, var(--gold) 20%, transparent), transparent 70%), var(--vellum)",
                   border: "1px solid color-mix(in srgb, var(--gold) 34%, transparent)",
@@ -143,7 +150,7 @@ function AuthForm() {
 
           <form
             onSubmit={onSubmit}
-            className="space-y-3 bg-[var(--surface)] border border-[var(--rule)] rounded-2xl p-5 shadow-[0_1px_0_var(--emboss)_inset,0_10px_26px_-18px_rgba(var(--shadow-color),0.5)]"
+            className="space-y-2 bg-[var(--surface)] border border-[var(--rule)] rounded-2xl p-3.5 shadow-[0_1px_0_var(--emboss)_inset,0_10px_26px_-18px_rgba(var(--shadow-color),0.5)]"
             noValidate
           >
             {mode === "signup" && (
@@ -208,7 +215,7 @@ function AuthForm() {
               type="submit"
               disabled={pending}
               className={cn(
-                "w-full mt-2 py-3 rounded-full font-sans text-[0.95rem] font-medium transition-colors min-h-[44px]",
+                "w-full mt-2 py-2.5 rounded-full font-sans text-[0.95rem] font-semibold transition-colors min-h-[44px]",
                 pending
                   ? "bg-[var(--rule)] text-[var(--ink-faint)] cursor-wait"
                   : "bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)]",
@@ -222,7 +229,7 @@ function AuthForm() {
             </button>
           </form>
 
-          <div className="mt-5 text-center font-sans text-[0.92rem] text-[var(--ink-soft)]">
+          <div className="mt-4 text-center font-sans text-[0.9rem] text-[var(--ink-soft)]">
             {mode === "login" ? (
               <>
                 ¿No tienes cuenta?{" "}
@@ -256,7 +263,7 @@ function AuthForm() {
             )}
           </div>
 
-          <div className="mt-8 flex justify-center">
+          <div className="mt-4 flex justify-center">
             <Link
               href="/"
               className="group inline-flex items-center gap-2 font-sans text-[0.85rem] font-medium text-[var(--ink-soft)] hover:text-[var(--marian)] transition-colors"
@@ -304,7 +311,7 @@ const Field = function FieldImpl({
           The focus state is a marian ring, not a 1px border colour change:
           you should be able to see where you're typing without hunting for
           the caret. */}
-      <div className="mt-1.5 flex items-center gap-1 rounded-xl border-[1.5px] bg-[var(--surface)] border-[var(--rule)] transition-all focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
+      <div className="mt-1 flex items-center gap-1 rounded-xl border-[1.5px] bg-[var(--surface)] border-[var(--rule)] transition-all focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
         <input
           ref={ref}
           type={type}
@@ -313,14 +320,14 @@ const Field = function FieldImpl({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={cn(
-            "flex-1 px-3.5 py-2.5 rounded-xl bg-transparent outline-none",
+            "flex-1 px-3.5 py-2 rounded-xl bg-transparent outline-none",
             "font-sans text-[1rem] text-[var(--ink)]",
           )}
         />
         {suffix}
       </div>
       {hint && (
-        <span className="mt-1 block font-sans text-[0.78rem] text-[var(--ink-soft)]">
+        <span className="mt-1 block font-sans text-[0.74rem] text-[var(--ink-faint)]">
           {hint}
         </span>
       )}

@@ -174,13 +174,13 @@ function ChurchDetail({ placeId }: { placeId: string }) {
     <div className="relative h-[100dvh] flex flex-col bg-[var(--paper)] overflow-hidden">
       <DetailHeader title={church.name} />
 
-      <main className="flex-1 overflow-y-auto pb-36">
+      <main className="page-content-fade flex-1 overflow-y-auto" style={{ paddingBottom: "calc(84px + env(safe-area-inset-bottom))" }}>
         <div className="max-w-2xl mx-auto">
-          {/* Each block of the detail page fades in with a small delay
-              so the page reads as "arriving" instead of just appearing.
-              Pure opacity — no shift — to stay consistent with the rest
-              of the app's animation language. */}
-          <div className="detail-fade-in" style={{ animationDelay: "0ms" }}>
+          {/* The page arrives as one object (see .page-content-fade). It used
+              to stagger five blocks at 0/60/120/180/240ms on top of no header
+              animation at all, so the screen assembled itself in pieces —
+              which reads as loading, not as a transition. */}
+          <div>
             <PhotoCarousel
               photos={photos}
               churchName={church.name}
@@ -191,7 +191,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
           </div>
 
           <div className="px-5 sm:px-6 pt-6">
-            <div className="detail-fade-in" style={{ animationDelay: "60ms" }}>
+            <div>
               <h1 className="font-display font-display-lg text-page sm:text-hero leading-[1.2] text-[var(--ink)]">
                 {church.name}
               </h1>
@@ -222,8 +222,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
             </div>
 
             <div
-              className="mt-5 flex items-center gap-2 detail-fade-in"
-              style={{ animationDelay: "120ms" }}
+              className="mt-5 flex items-center gap-2"
             >
               <a
                 href={church.mapsUrl}
@@ -245,8 +244,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
 
             {church.openingHours && church.openingHours.length > 0 && (
               <section
-                className="mt-8 detail-fade-in"
-                style={{ animationDelay: "180ms" }}
+                className="mt-8"
               >
                 <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
                   Próximas misas
@@ -300,8 +298,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
 
             {church.description && (
               <section
-                className="mt-8 detail-fade-in"
-                style={{ animationDelay: "240ms" }}
+                className="mt-8"
               >
                 <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
                   Sobre la parroquia
@@ -314,8 +311,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
 
             {church.website && (
               <section
-                className="mt-6 detail-fade-in"
-                style={{ animationDelay: "300ms" }}
+                className="mt-6"
               >
                 <a
                   href={church.website}
@@ -395,12 +391,31 @@ function PhotoCarousel({
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
+      {/* Blur-up. The 240px version of the FIRST photo is already in the
+          browser cache — it's the thumbnail from the results list — so it
+          paints the instant this page mounts, and the full-size photo
+          sharpens over it. Before, opening a parish showed an empty vellum
+          rectangle for as long as an 800px JPEG takes on mobile data, which
+          is what read as "se demora en abrir y no hay animación". */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        key={`lo-${photos[index]}`}
+        src={`/api/places-photo?name=${encodeURIComponent(photos[index])}&w=240`}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className="blur-up-lo absolute inset-0 w-full h-full object-cover"
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={`hi-${photos[index]}`}
         src={`/api/places-photo?name=${encodeURIComponent(photos[index])}&w=800`}
         alt={churchName}
         draggable={false}
-        className="absolute inset-0 w-full h-full object-cover"
+        fetchPriority="high"
+        decoding="async"
+        onLoad={(e) => e.currentTarget.classList.add("is-loaded")}
+        className="blur-up-hi absolute inset-0 w-full h-full object-cover"
       />
 
       {photos.length > 1 && (
@@ -469,7 +484,7 @@ function ChevronRight() {
 
 function DetailHeader({ title }: { title: string }) {
   return (
-    <header className="px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] z-10">
+    <header className="page-head-fade px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] z-10">
       <div className="max-w-2xl mx-auto flex items-center gap-2">
         <Link
           href="/misas"

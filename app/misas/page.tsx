@@ -163,20 +163,20 @@ function Misas() {
 
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--paper)]">
-      <header className="px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
+      <header className="page-head-fade px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
         <div className="max-w-2xl mx-auto">
-          <h1 className="font-sans text-[1rem] font-medium text-[var(--ink)]">
+          <h1 className="font-sans text-[1rem] font-semibold text-[var(--ink)]">
             Parroquias
           </h1>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-36">
-        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-7">
-          <div
-            className="detail-fade-in"
-            style={{ animationDelay: "0ms" }}
-          >
+      <main
+        className="page-content-fade flex-1 overflow-y-auto"
+        style={{ paddingBottom: "calc(84px + env(safe-area-inset-bottom))" }}
+      >
+        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-6">
+          <div>
             {/* Left-aligned, not centred. A centred title and subtitle sitting
                 on top of a left-aligned list gave the screen two reading axes
                 at once. One axis, on the left. */}
@@ -188,11 +188,7 @@ function Misas() {
             </p>
           </div>
 
-          <form
-            onSubmit={onSubmit}
-            className="detail-fade-in"
-            style={{ animationDelay: "80ms" }}
-          >
+          <form onSubmit={onSubmit}>
             <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--rule)] rounded-full pl-4 pr-1.5 py-1.5 transition-all shadow-[0_1px_0_var(--emboss)_inset] focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
               <PinIcon className="text-[var(--ink-faint)] shrink-0" />
               <input
@@ -271,10 +267,7 @@ function Misas() {
               centred empty state was the last thing on this screen still
               pulling the eye onto a second axis. */}
           {!churches && !pending && !error && (
-            <div
-              className="mt-8 detail-fade-in"
-              style={{ animationDelay: "160ms" }}
-            >
+            <div className="mt-8">
               <p className="font-display text-body-lg text-[var(--ink)]">
                 Empieza buscando una ubicación
               </p>
@@ -331,11 +324,21 @@ function ChurchCard({
           tabIndex={-1}
         >
           {church.photoName ? (
+            // 240px, not 800. This slot is 110–124 CSS px wide, so even on a
+            // 3x screen 240 is plenty — we were downloading roughly seven
+            // times the pixels we could show, once per result, all at the
+            // same moment. That was most of the "las fotos se demoran".
+            // lazy + async decoding keeps the ones below the fold off the
+            // critical path entirely.
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={`/api/places-photo?name=${encodeURIComponent(church.photoName)}&w=800`}
+              src={`/api/places-photo?name=${encodeURIComponent(church.photoName)}&w=240`}
               alt=""
               draggable={false}
+              loading="lazy"
+              decoding="async"
+              width={124}
+              height={124}
               className="absolute inset-0 w-full h-full object-cover"
             />
           ) : (

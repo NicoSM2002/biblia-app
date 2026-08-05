@@ -456,8 +456,13 @@ body::before {
   .arch-panel {
     position: relative;
     overflow: hidden;
-    border-radius: 50% 50% 14px 14px / 80px 80px 14px 14px;
-    padding: 3.5rem 1.5rem 1.25rem;
+    /* The vertical radius is the rise of the arch; padding-top has to clear
+       it, because the elliptical corner cuts inward at the panel's left and
+       right edges. At a 56px rise the curve reaches ~28px in at the text
+       column, so 2.15rem (34px) is the floor — any less and the first line
+       gets clipped by the arch on narrow phones. */
+    border-radius: 50% 50% 14px 14px / 56px 56px 14px 14px;
+    padding: 2.15rem 1.35rem 0.85rem;
     background:
       radial-gradient(
         ellipse 120% 70% at 50% 0%,
@@ -473,8 +478,8 @@ body::before {
 
   /* The smaller sibling used inside a conversation turn. */
   .arch-panel-sm {
-    border-radius: 50% 50% 12px 12px / 64px 64px 12px 12px;
-    padding: 2.9rem 1.25rem 1rem;
+    border-radius: 50% 50% 12px 12px / 54px 54px 12px 12px;
+    padding: 2.3rem 1.25rem 0.9rem;
   }
 
   /* The quatrefoil tracery used to sit at 12% opacity across the whole
@@ -523,7 +528,7 @@ body::before {
     margin: 0.25rem 0.6rem 0 0;
     font-family: var(--font-display), Georgia, serif;
     font-variation-settings: "SOFT" 60, "WONK" 1, "opsz" 144, "wght" 600;
-    font-size: 3.6rem;
+    font-size: 2.8rem;
     line-height: 0.8;
     color: var(--gold);
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
@@ -545,7 +550,7 @@ body::before {
     align-items: center;
     gap: 0.6rem;
     clear: both;
-    margin-top: 0.9rem;
+    margin-top: 0.7rem;
     font-family: var(--font-sans), system-ui;
     font-weight: 600;
     font-size: 0.68rem;
@@ -842,11 +847,71 @@ body::before {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* -----------------------------------------------------------------------------
+   ROUTE TRANSITIONS — one motion per screen, not five.
+
+   Every route now puts this on its <header> and its <main>, which start
+   together, so a screen arrives as a single object. Before, each route
+   staggered its own blocks with animationDelay 0/60/120/180ms and the header
+   wasn't animated at all: the header snapped, then the page faded in mostly
+   empty, then blocks popped in one at a time. That reads as "still loading",
+   not as a transition — which is exactly why the animation was invisible or
+   felt wrong.
+
+   IMPORTANT: this must never go on an ancestor of the fixed BottomNav. A
+   transform on an ancestor makes it the containing block for position:fixed
+   descendants, and the nav would scroll away with the page. Header and main
+   are siblings of the nav, so they're safe.
+   --------------------------------------------------------------------------- */
 .page-content-fade {
-  animation: page-fade-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: page-fade-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* The header carries the same curve but no travel — a title sliding 8px while
+   the body does the same thing reads as the whole screen sagging. */
+.page-head-fade {
+  animation: fade-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @media (prefers-reduced-motion: reduce) {
-  .page-content-fade { animation: none !important; }
+  .page-content-fade,
+  .page-head-fade { animation: none !important; }
+}
+
+/* -----------------------------------------------------------------------------
+   Menus that open from a corner (the account menu) grow from that corner
+   instead of appearing. 140ms — a menu that takes longer feels laggy.
+   --------------------------------------------------------------------------- */
+@keyframes menu-pop {
+  from { opacity: 0; transform: scale(0.94) translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+.menu-pop {
+  transform-origin: top right;
+  animation: menu-pop 140ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-pop { animation: none !important; }
+}
+
+/* -----------------------------------------------------------------------------
+   Blur-up for the parish photo. The list thumbnail (240px) is already in the
+   browser cache by the time you open a church, so it paints instantly and the
+   full-size hero sharpens over it. Costs one extra <img> tag and turns a blank
+   grey rectangle into the transition the detail page never had.
+   --------------------------------------------------------------------------- */
+.blur-up-lo {
+  filter: blur(14px);
+  transform: scale(1.06);
+}
+.blur-up-hi {
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+.blur-up-hi.is-loaded {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .blur-up-hi { transition: none; }
 }
 
 /* Helper for elements that appear later (e.g. carousel arrows once the

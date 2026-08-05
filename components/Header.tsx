@@ -29,7 +29,7 @@ export function Header({
   shareableTurns?: ExportableTurn[];
 }) {
   return (
-    <header className="relative z-30 px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] no-print">
+    <header className="page-head-fade relative z-30 px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] no-print">
       <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           {onOpenHistory && <HistoryButton onClick={onOpenHistory} />}
@@ -49,7 +49,7 @@ export function Header({
             </span>
             {conversationTitle && (
               <span
-                className="font-serif italic text-[0.78rem] text-[var(--ink-soft)] truncate ml-[22px] sm:ml-[26px] mt-0.5"
+                className="font-serif text-[0.82rem] text-[var(--ink-soft)] truncate ml-[22px] sm:ml-[26px] mt-0.5"
                 title={conversationTitle}
               >
                 {conversationTitle}

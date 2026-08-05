@@ -172,7 +172,11 @@ export async function getChurchDetail(
       "X-Goog-FieldMask": fields,
       "Accept-Language": "es",
     },
-    cache: "no-store",
+    // A parish's photos, phone and mass times don't change between two taps.
+    // This was `no-store`, so every open of a church paid a full round trip
+    // to Google — including going back to one you'd just looked at. An hour
+    // of caching makes a re-open instant and cuts Places API spend.
+    next: { revalidate: 3600 },
   });
 
   if (res.status === 404) return null;

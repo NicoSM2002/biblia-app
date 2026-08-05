@@ -101,8 +101,8 @@ export default function OracionPage() {
         }}
       />
 
-      <header className="relative z-10 px-5 sm:px-6 pt-6 pb-6 flex items-center justify-center">
-        <p className="font-sans text-[0.78rem] tracking-[0.28em] uppercase text-[var(--gold-text)] font-semibold">
+      <header className="page-head-fade relative z-10 px-5 sm:px-6 pt-6 pb-6 flex items-center justify-center">
+        <p className="font-sans text-[0.72rem] tracking-[0.28em] uppercase text-[var(--gold-text)] font-semibold">
           Modo oración
         </p>
       </header>
@@ -111,25 +111,32 @@ export default function OracionPage() {
         className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center min-h-0"
         style={{ paddingBottom: `calc(${NAV_RESERVE_PX}px + env(safe-area-inset-bottom))` }}
       >
-        {phase === "select" && <SelectPhase onStart={start} />}
-        {phase === "praying" && (
-          <PrayingPhase
-            secondsLeft={secondsLeft}
-            durationMin={durationMin}
-            paused={paused}
-            onTogglePause={() => setPaused((p) => !p)}
-            onEnd={() => setPhase("ended")}
-            verse={verse}
-            verseDisplay={display}
-          />
-        )}
-        {phase === "ended" && (
-          <EndedPhase
-            verse={verse}
-            verseDisplay={display}
-            onExtend={extend}
-          />
-        )}
+        {/* key={phase} remounts this on every phase change, so choosing a
+            duration and finishing the silence both get the same arrival the
+            rest of the app has. Before, the three phases swapped instantly —
+            the one screen in the app whose whole point is calm was also the
+            only one that changed with a hard cut. */}
+        <div key={phase} className="page-content-fade w-full flex justify-center">
+          {phase === "select" && <SelectPhase onStart={start} />}
+          {phase === "praying" && (
+            <PrayingPhase
+              secondsLeft={secondsLeft}
+              durationMin={durationMin}
+              paused={paused}
+              onTogglePause={() => setPaused((p) => !p)}
+              onEnd={() => setPhase("ended")}
+              verse={verse}
+              verseDisplay={display}
+            />
+          )}
+          {phase === "ended" && (
+            <EndedPhase
+              verse={verse}
+              verseDisplay={display}
+              onExtend={extend}
+            />
+          )}
+        </div>
       </main>
 
       <BottomNav />
@@ -141,25 +148,25 @@ function SelectPhase({ onStart }: { onStart: (min: number) => void }) {
   return (
     <div className="max-w-md w-full">
       <div
-        className="mb-7 grid place-items-center detail-fade-in"
+        className="mb-7 grid place-items-center"
         style={{ animationDelay: "0ms" }}
       >
         <PrayingHandsIcon />
       </div>
       <h1
-        className="font-display font-display-lg text-page sm:text-hero leading-[1.2] text-[var(--ink)] mb-3 detail-fade-in"
+        className="font-display font-display-lg text-page sm:text-hero leading-[1.2] text-[var(--ink)] mb-3"
         style={{ animationDelay: "60ms" }}
       >
         Tómate un momento para hablar con Él.
       </h1>
       <p
-        className="font-sans text-[1rem] text-[var(--ink-soft)] leading-relaxed mb-8 detail-fade-in"
+        className="font-sans text-[1rem] text-[var(--ink-soft)] leading-relaxed mb-8"
         style={{ animationDelay: "120ms" }}
       >
         Elige cuánto tiempo quieres dedicar al silencio.
       </p>
       <div
-        className="grid grid-cols-2 gap-3 max-w-xs mx-auto detail-fade-in"
+        className="grid grid-cols-2 gap-3 max-w-xs mx-auto"
         style={{ animationDelay: "180ms" }}
       >
         {DURATIONS.map((min) => (

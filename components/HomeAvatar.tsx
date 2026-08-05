@@ -156,7 +156,7 @@ export function HomeAvatar() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-2 w-60 border border-[var(--rule)] rounded-lg overflow-hidden z-50"
+          className="menu-pop absolute right-0 top-full mt-2 w-60 border border-[var(--rule)] rounded-xl overflow-hidden z-50"
           style={{
             backgroundColor: "var(--surface)",
             boxShadow:
@@ -165,7 +165,7 @@ export function HomeAvatar() {
         >
           <div className="px-3.5 py-3 border-b border-[var(--rule)]">
             {name && (
-              <p className="font-serif italic text-[0.95rem] text-[var(--ink)] truncate">
+              <p className="font-serif font-medium text-[0.95rem] text-[var(--ink)] truncate">
                 {name}
               </p>
             )}

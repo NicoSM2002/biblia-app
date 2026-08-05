@@ -41,13 +41,19 @@ export async function GET(req: NextRequest) {
   }
 
   const contentType = upstreamRes.headers.get("content-type") ?? "image/jpeg";
-  const body = await upstreamRes.arrayBuffer();
+  const contentLength = upstreamRes.headers.get("content-length");
 
-  return new Response(body, {
+  // Stream the body straight through instead of awaiting arrayBuffer(). We
+  // were downloading the entire JPEG into memory on the server and only then
+  // starting to send it, so every photo paid its full download time twice
+  // over — once Google→us, once us→browser — with nothing on screen in
+  // between. Piping lets the browser start decoding as bytes arrive.
+  return new Response(upstreamRes.body, {
     status: 200,
     headers: {
       "Content-Type": contentType,
-      "Cache-Control": "public, max-age=86400, s-maxage=86400, immutable",
+      ...(contentLength ? { "Content-Length": contentLength } : {}),
+      "Cache-Control": "public, max-age=86400, s-maxage=604800, immutable",
     },
   });
 }

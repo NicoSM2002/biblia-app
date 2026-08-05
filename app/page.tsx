@@ -108,7 +108,7 @@ export default function HomePage() {
 
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden">
-      <header className="px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
+      <header className="page-head-fade px-5 sm:px-6 pt-3.5 pb-2 border-b border-[var(--rule)] bg-[var(--paper)]">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <LatinCross className="text-[var(--gold)] shrink-0" size={16} />
@@ -123,11 +123,14 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-32">
-        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-5">
-          <div className="detail-fade-in" style={{ animationDelay: "0ms" }}>
-            <Greeting name={name} />
-          </div>
+      {/* pb reserves exactly the nav (52px + 6px top pad + safe area) plus a
+          breath, instead of the old pb-32 which reserved 128px of nothing. */}
+      <main
+        className="page-content-fade flex-1 overflow-y-auto"
+        style={{ paddingBottom: "calc(72px + env(safe-area-inset-bottom))" }}
+      >
+        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-3.5">
+          <Greeting name={name} />
 
           {/* Versículo del día — now the first thing on the page and the only
               thing on it shaped like a window. When you open a devotional app,
@@ -136,10 +139,7 @@ export default function HomePage() {
               worth remembering. Skeleton while loading so the layout doesn't
               shift when the fetch comes back; on subsequent visits in the same
               session it's instant via sessionStorage cache. */}
-          <div
-            className="mt-3 detail-fade-in"
-            style={{ animationDelay: "60ms" }}
-          >
+          <div className="mt-2.5">
             {verse ? (
               <DailyVerseSection verse={verse} />
             ) : (
@@ -147,13 +147,13 @@ export default function HomePage() {
             )}
           </div>
 
-          <div className="detail-fade-in" style={{ animationDelay: "120ms" }}>
-            <h2 className="mt-6 font-display text-page leading-[1.2] text-[var(--ink)] mb-3">
+          <div>
+            <h2 className="mt-4 font-display text-[1.36rem] sm:text-page leading-[1.18] text-[var(--ink)] mb-2.5">
               ¿Qué quieres preguntarle a Dios hoy?
             </h2>
 
             <form onSubmit={onSubmit}>
-              <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--rule)] rounded-full pl-5 pr-1.5 py-1.5 transition-all shadow-[0_1px_0_var(--emboss)_inset] focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
+              <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--rule)] rounded-full pl-5 pr-1.5 py-1 transition-all shadow-[0_1px_0_var(--emboss)_inset] focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
                 <input
                   type="text"
                   value={question}
@@ -183,13 +183,10 @@ export default function HomePage() {
             </form>
           </div>
 
-          <section
-            className="mt-5 detail-fade-in"
-            style={{ animationDelay: "180ms" }}
-          >
+          <section className="mt-3.5">
             <Link
               href="/misas"
-              className="lift-on-hover flex items-center gap-3 bg-[var(--surface)] border border-[var(--rule)] rounded-2xl p-3.5 shadow-[0_1px_0_var(--emboss)_inset] hover:border-[var(--marian)]"
+              className="lift-on-hover flex items-center gap-3 bg-[var(--surface)] border border-[var(--rule)] rounded-2xl p-3 shadow-[0_1px_0_var(--emboss)_inset] hover:border-[var(--marian)]"
             >
               <div
                 className="grid place-items-center w-10 h-10 rounded-xl shrink-0"
@@ -254,7 +251,7 @@ function DailyVerseSection({ verse }: { verse: Verse }) {
           )}
           <blockquote
             cite={verse.reference}
-            className="font-serif text-[1.22rem] sm:text-[1.3rem] leading-[1.5] text-[var(--ink)]"
+            className="font-serif text-[1.08rem] sm:text-[1.24rem] leading-[1.44] text-[var(--ink)]"
             style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
           >
             <span className="sr-only">{initial}</span>

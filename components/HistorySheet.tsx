@@ -142,12 +142,12 @@ export function HistorySheet({
           >
             <header className="px-5 pt-5 pb-3 border-b border-[var(--rule)] flex items-center justify-between">
               <div>
-                <p className="font-sans text-[0.75rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold">
+                <p className="font-sans text-[0.68rem] tracking-[0.2em] uppercase text-[var(--gold-text)] font-semibold">
                   Mi historial
                 </p>
                 <h2
                   id="history-sheet-title"
-                  className="font-serif italic text-quote text-[var(--ink)] mt-0.5"
+                  className="font-display text-[1.24rem] text-[var(--ink)] mt-0.5"
                 >
                   Tus conversaciones
                 </h2>
@@ -187,10 +187,10 @@ export function HistorySheet({
                         animate={{ opacity: 1 }}
                         transition={{ delay: i * 0.02, duration: 0.2 }}
                         className={cn(
-                          "relative flex items-stretch bg-[var(--surface)] border rounded-lg overflow-hidden transition-colors",
+                          "relative flex items-stretch bg-[var(--surface)] border rounded-xl overflow-hidden transition-colors shadow-[0_1px_0_var(--emboss)_inset]",
                           activeId === c.id
-                            ? "border-[var(--gold)] bg-[var(--vellum)]"
-                            : "border-[var(--rule)] hover:border-[var(--gold)]",
+                            ? "border-[var(--marian)] bg-[color-mix(in_srgb,var(--marian)_8%,transparent)]"
+                            : "border-[var(--rule)] hover:border-[var(--marian)]",
                         )}
                       >
                         <button
@@ -198,10 +198,10 @@ export function HistorySheet({
                           className="flex-1 text-left px-3.5 py-3 min-w-0 hover:bg-[var(--vellum)] transition-colors"
                           disabled={isDeleting}
                         >
-                          <p className="font-serif italic text-[0.95rem] text-[var(--ink)] leading-snug line-clamp-2">
+                          <p className="font-serif font-medium text-[1rem] text-[var(--ink)] leading-snug line-clamp-2">
                             {c.title || "(sin título)"}
                           </p>
-                          <p className="font-sans text-[0.78rem] text-[var(--ink-soft)] mt-1">
+                          <p className="font-sans text-[0.76rem] text-[var(--ink-faint)] mt-1">
                             {new Date(c.updated_at).toLocaleDateString("es-ES", {
                               day: "numeric",
                               month: "long",
@@ -257,7 +257,7 @@ function SkeletonList() {
       {[0, 1, 2, 3].map((i) => (
         <li
           key={i}
-          className="bg-[var(--surface)] border border-[var(--rule)] rounded-lg px-3.5 py-3 animate-pulse"
+          className="bg-[var(--surface)] border border-[var(--rule)] rounded-xl px-3.5 py-3 animate-pulse"
         >
           <div className="h-3 bg-[var(--rule)] rounded w-3/4" />
           <div className="h-2 bg-[var(--rule)] rounded w-1/3 mt-2" />
