@@ -1,7 +1,8 @@
 /**
  * POST /api/chat — receives the user's question and conversation history,
- * retrieves relevant verses, asks Claude for a pastoral response, validates
- * the quoted verse against the literal Bible text, and streams the result.
+ * retrieves relevant verses, asks the configured model (see lib/llm.ts) for a
+ * pastoral response, validates the quoted verse against the literal Bible text,
+ * and streams the result.
  *
  * Request body:
  *   {
@@ -18,7 +19,7 @@
 import { NextRequest } from "next/server";
 import { search } from "@/lib/bible";
 import { searchCredo } from "@/lib/credo";
-import { streamPastoralResponse, type ChatMessage } from "@/lib/claude";
+import { streamPastoralResponse, type ChatMessage } from "@/lib/llm";
 import { validateQuote } from "@/lib/validate";
 
 export const runtime = "nodejs"; // need fs access for the bible JSON
@@ -82,7 +83,10 @@ export async function POST(req: NextRequest) {
         // as supplementary context only when actually relevant.
         const credoFiltered = credo.filter((c) => c.score >= 0.5);
 
-        const claudeStream = await streamPastoralResponse({
+        // A plain async iterable of text deltas — lib/llm.ts normalises the
+        // provider's own streaming shape, so nothing here knows or cares
+        // whether DeepSeek or Claude is behind it.
+        const textStream = await streamPastoralResponse({
           question,
           history,
           retrieved,
@@ -93,35 +97,30 @@ export async function POST(req: NextRequest) {
         let lastEmittedVerse: { reference: string; text: string } | null = null;
         let lastEmittedResponse = "";
 
-        for await (const event of claudeStream) {
+        for await (const text of textStream) {
+          accumulated += text;
+          // Try to extract verse + response progressively from the partial JSON.
+          const partial = extractPartialFields(accumulated);
           if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta"
+            partial.verse &&
+            (!lastEmittedVerse ||
+              lastEmittedVerse.reference !== partial.verse.reference ||
+              lastEmittedVerse.text !== partial.verse.text)
           ) {
-            accumulated += event.delta.text;
-            // Try to extract verse + response progressively from the partial JSON.
-            const partial = extractPartialFields(accumulated);
-            if (
-              partial.verse &&
-              (!lastEmittedVerse ||
-                lastEmittedVerse.reference !== partial.verse.reference ||
-                lastEmittedVerse.text !== partial.verse.text)
-            ) {
-              lastEmittedVerse = partial.verse;
-              send("verse", partial.verse);
-            }
-            if (partial.response && partial.response !== lastEmittedResponse) {
-              const delta = partial.response.slice(lastEmittedResponse.length);
-              lastEmittedResponse = partial.response;
-              if (delta) send("response_delta", { text: delta });
-            }
+            lastEmittedVerse = partial.verse;
+            send("verse", partial.verse);
+          }
+          if (partial.response && partial.response !== lastEmittedResponse) {
+            const delta = partial.response.slice(lastEmittedResponse.length);
+            lastEmittedResponse = partial.response;
+            if (delta) send("response_delta", { text: delta });
           }
         }
 
         // Parse the final JSON
         const parsed = parseResponseJSON(accumulated);
         if (!parsed) {
-          // Salvage path — if Claude's response got truncated mid-JSON (usually
+          // Salvage path — if the response got truncated mid-JSON (usually
           // because max_tokens was hit on a long answer), we still want to
           // surface whatever we streamed to the user instead of wiping it
           // with a generic apology that would erase the text they were reading.
@@ -162,8 +161,10 @@ export async function POST(req: NextRequest) {
         if (parsed.verse) {
           const v = validateQuote(parsed.verse.reference, parsed.verse.text);
           if (!v.ok) {
-            // Verse failed validation — return Claude's response without a verse
-            // rather than risk citing something fabricated.
+            // Verse failed validation — return the response without a verse
+            // rather than risk citing something fabricated. This check is what
+            // makes a provider swap safe on the one thing that must never be
+            // wrong: a quote that doesn't match the Bible text never ships.
             send("result", {
               verse: null,
               response: parsed.response,
