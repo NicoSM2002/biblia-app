@@ -11,56 +11,87 @@
    user via [data-theme="light"] / [data-theme="dark"] on <html>.
    =========================================================================== */
 
+/* -----------------------------------------------------------------------------
+   TWO CHORDS, NOT ONE.
+
+   The palette used to hand every job to the gold: rubrics, active tab, focus
+   ring, borders, buttons, icons. When everything is accented at 20%, nothing
+   is at 100% — there was no hierarchy left to read. --marian was declared and
+   never applied to a single component.
+
+   The roles are now split:
+     --gold    the sacred and the decorative — rules, versals, verse frames.
+     --marian  everything interactive — active tab, links, focus ring, the
+               user's own voice in the chat. (Blue and gold is also the
+               canonical Marian pairing, so this costs nothing in tone.)
+     --vino    errors only.
+   --------------------------------------------------------------------------- */
+
 :root {
   /* Surfaces */
-  --paper:        #FAF7F2;  /* blanco hueso — page */
-  --paper-deep:   #F1ECE3;  /* slightly aged page */
-  --vellum:       #EFE8DA;  /* warm cream for verse cartouche */
-  --rule:         #E2D9C5;  /* hairline rule */
+  --paper:        #FAF6EE;  /* blanco hueso — page, a shade warmer than before */
+  --paper-deep:   #F2ECE0;  /* slightly aged page */
+  --vellum:       #F3EADA;  /* warm cream for the verse window */
+  --rule:         #E6DECD;  /* hairline rule */
 
   /* Ink */
-  --ink:          #1F1B16;  /* gris carbón — body */
-  --ink-soft:     #5A5249;  /* secondary text — passes WCAG AA on cream */
-  --ink-faint:    #6B6358;  /* tertiary text — passes WCAG AA */
+  --ink:          #1A1512;  /* gris carbón — body */
+  --ink-soft:     #574E43;  /* secondary text — passes WCAG AA on cream */
+  --ink-faint:    #736A5D;  /* tertiary text — passes WCAG AA */
 
   /* Accents — two tones of gold:
        --gold        decorative use only (lines, borders, dots, bars)
        --gold-text   anything readable as text — passes WCAG AA on cream */
   --gold:         #B8924A;  /* dorado mate — rubric / decoration */
   --gold-soft:    #C8A765;  /* hover accent */
-  --gold-text:    #8B6E37;  /* readable gold for labels & references */
-  --marian:       #1B3A6B;  /* azul mariano */
-  --vino:         #7A1F2B;  /* vino litúrgico (errors / scarce) */
+  --gold-text:    #8A6A2E;  /* readable gold for labels & references */
+  --marian:       #23406F;  /* azul mariano — the interactive accent */
+  --marian-soft:  #35578C;  /* marian hover */
+  --vino:         #7A1F2B;  /* vino litúrgico (errors only) */
 
   /* Adaptive helpers — set per theme so things invert correctly */
-  --surface:      #ffffff;                  /* cards / chips / button bgs */
-  --scrim:        rgba(31, 27, 22, 0.34);   /* modal/sheet backdrop */
-  --shadow-color: 31, 27, 22;               /* RGB for shadow() functions */
-  --button-on-gold: #ffffff;                /* text color on solid gold buttons */
+  --surface:      #FFFCF6;                  /* cards / chips / button bgs —
+                                               warm, not pure white: #fff on
+                                               cream reads as a different
+                                               material stuck on top, not as
+                                               a raised sheet of the same paper */
+  --emboss:       rgba(255, 255, 255, 0.8); /* 1px inner top highlight on cards */
+  --scrim:        rgba(26, 21, 18, 0.34);   /* modal/sheet backdrop */
+  --shadow-color: 60, 44, 20;               /* RGB for shadow() functions —
+                                               warm brown, so shadows on cream
+                                               read as paper depth, not soot */
+  --button-on-gold: #FFFCF6;                /* text color on solid gold buttons */
 }
 
-/* ---------------------------- DARK MODE PALETTE -------------------------- */
+/* --------------------- DARK MODE PALETTE — "Vísperas" --------------------
+   Was a deep marian-navy, which left the app with two unrelated identities
+   (warm by day, cold by night) and made the gold fight the blue ground it
+   sat on. Now it's candlelight on ink: the same warm world at a different
+   hour, and the gold finally reads as a flame instead of a contrast.
+   ------------------------------------------------------------------------ */
 
 :root[data-theme="dark"] {
-  --paper:        #0F1525;  /* deep marian-night — page */
-  --paper-deep:   #161D31;  /* card surface */
-  --vellum:       #1F2941;  /* verse cartouche on dark — slight blue warmth */
-  --rule:         #2C3650;  /* visible separators on dark */
+  --paper:        #14100C;  /* ink black, warm — page */
+  --paper-deep:   #1A150F;  /* card surface */
+  --vellum:       #241D16;  /* the verse window on dark */
+  --rule:         #332A21;  /* visible separators on dark */
 
-  --ink:          #F2EBD9;  /* cream as text — like candlelight on parchment */
-  --ink-soft:     #C5BAA0;  /* secondary text on dark — passes AA */
-  --ink-faint:    #918872;  /* tertiary text — passes AA */
+  --ink:          #F1E7D4;  /* cream as text — candlelight on parchment */
+  --ink-soft:     #BCAE97;  /* secondary text on dark — passes AA */
+  --ink-faint:    #8F836F;  /* tertiary text — passes AA */
 
-  --gold:         #D4AC6A;  /* warmer / brighter for dark — ~7:1 on paper */
-  --gold-soft:    #E2BE82;  /* hover */
-  --gold-text:    #E0BE7C;  /* readable gold for labels — ~8:1 on paper */
-  --marian:       #5C7CB1;  /* lighter blue accent for dark visibility */
-  --vino:         #C16B7A;  /* lighter wine for error visibility */
+  --gold:         #DDB36B;  /* warmer / brighter for dark */
+  --gold-soft:    #E8C489;  /* hover */
+  --gold-text:    #E7C687;  /* readable gold for labels — ~11:1 on paper */
+  --marian:       #8AA6D8;  /* lighter blue accent for dark visibility */
+  --marian-soft:  #A0B8E2;  /* marian hover on dark */
+  --vino:         #C87F8C;  /* lighter wine for error visibility */
 
-  --surface:      #161D31;  /* card surface on dark — slightly above page */
-  --scrim:        rgba(0, 0, 0, 0.6);
+  --surface:      #1D1712;  /* card surface on dark — slightly above page */
+  --emboss:       rgba(255, 255, 255, 0.05);
+  --scrim:        rgba(0, 0, 0, 0.66);
   --shadow-color: 0, 0, 0;
-  --button-on-gold: #1F1B16; /* dark ink on gold button — passes AA */
+  --button-on-gold: #14100C; /* dark ink on gold button — passes AA */
 }
 
 /* No prefers-color-scheme: dark fallback. The user explicitly wants the
@@ -80,10 +111,12 @@
   --color-gold-soft:    var(--gold-soft);
   --color-gold-text:    var(--gold-text);
   --color-marian:       var(--marian);
+  --color-marian-soft:  var(--marian-soft);
   --color-vino:         var(--vino);
 
-  --font-serif: var(--font-garamond);
-  --font-sans:  var(--font-inter);
+  --font-display: var(--font-fraunces);
+  --font-serif:   var(--font-newsreader);
+  --font-sans:    var(--font-instrument);
 }
 
 * { box-sizing: border-box; }
@@ -402,12 +435,183 @@ body::before {
     background: var(--gold);
     border-radius: 1px;
   }
+
+  /* ===========================================================================
+     LA VENTANA — the chapel window.
+
+     Everything on the home used to be the same 12px rectangle at the same
+     width, so nothing was the focal point and the verse — the emotional core
+     of the app — looked exactly like the "misa cerca de ti" CTA.
+
+     The arch is one border-radius value. The horizontal radii are 50%, so the
+     two top corners meet in the middle and the arch spans the full width at
+     ANY container size (phone or the 760px desktop missal page). The vertical
+     radii are fixed at 80px so the arch keeps the same rise instead of growing
+     with a long verse.
+
+     The padding-top is not decorative: at the panel's left edge the elliptical
+     corner cuts inward, so text starting any higher than ~3rem would be
+     clipped by the curve.
+     ========================================================================= */
+  .arch-panel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 50% 50% 14px 14px / 80px 80px 14px 14px;
+    padding: 3.5rem 1.5rem 1.25rem;
+    background:
+      radial-gradient(
+        ellipse 120% 70% at 50% 0%,
+        color-mix(in srgb, var(--gold) 15%, transparent),
+        transparent 68%
+      ),
+      var(--vellum);
+    border: 1px solid color-mix(in srgb, var(--gold) 34%, transparent);
+    box-shadow:
+      0 1px 0 var(--emboss) inset,
+      0 14px 30px -20px rgba(var(--shadow-color), 0.5);
+  }
+
+  /* The smaller sibling used inside a conversation turn. */
+  .arch-panel-sm {
+    border-radius: 50% 50% 12px 12px / 64px 64px 12px 12px;
+    padding: 2.9rem 1.25rem 1rem;
+  }
+
+  /* The quatrefoil tracery used to sit at 12% opacity across the whole
+     desktop background, where it read as washed-out wallpaper. Masked into
+     the head of the arch it becomes what it actually is: the leading of a
+     window. */
+  .arch-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.32;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><g fill='none' stroke='%23B8924A' stroke-width='0.7'><path d='M60 12 Q84 36 60 60 Q36 36 60 12Z'/><path d='M60 60 Q84 84 60 108 Q36 84 60 60Z'/><circle cx='60' cy='60' r='2.4'/></g></svg>");
+    background-size: 120px 120px;
+    -webkit-mask-image: radial-gradient(ellipse 78% 62% at 50% 6%, #000 0%, transparent 72%);
+    mask-image: radial-gradient(ellipse 78% 62% at 50% 6%, #000 0%, transparent 72%);
+  }
+
+  /* Light crossing glass. Fires once when the panel mounts. */
+  .arch-panel::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 52%;
+    pointer-events: none;
+    background: linear-gradient(100deg, transparent, rgba(255, 250, 232, 0.62), transparent);
+    transform: translateX(-160%) skewX(-13deg);
+    opacity: 0;
+    animation: arch-sheen 1500ms cubic-bezier(0.3, 0.1, 0.2, 1) 500ms both;
+  }
+  :root[data-theme="dark"] .arch-panel::after {
+    background: linear-gradient(100deg, transparent, rgba(255, 232, 178, 0.16), transparent);
+  }
+
+  .arch-body {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* LA VERSAL — the illuminated initial. Gives the eye an entry point, gives
+     the gold a decorative job with a reason, and gives every day a different
+     character for free, because the letter changes with the verse. */
+  .versal {
+    float: left;
+    margin: 0.25rem 0.6rem 0 0;
+    font-family: var(--font-display), Georgia, serif;
+    font-variation-settings: "SOFT" 60, "WONK" 1, "opsz" 144, "wght" 600;
+    font-size: 3.6rem;
+    line-height: 0.8;
+    color: var(--gold);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    animation: versal-in 520ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+  }
+  :root[data-theme="dark"] .versal {
+    text-shadow: 0 0 18px color-mix(in srgb, var(--gold) 45%, transparent);
+  }
+  .versal-sm {
+    font-size: 3rem;
+    margin: 0.2rem 0.5rem 0 0;
+  }
+
+  /* The scripture reference, centred between two hairlines. Replaces the
+     left-hand gold dash of .label-section: the rule now says "this closes the
+     window" instead of just decorating a label. */
+  .ref-rule {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    clear: both;
+    margin-top: 0.9rem;
+    font-family: var(--font-sans), system-ui;
+    font-weight: 600;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+  }
+  .ref-rule::before,
+  .ref-rule::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold) 55%, transparent));
+  }
+  .ref-rule::after {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 55%, transparent), transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arch-panel::after { animation: none !important; opacity: 0 !important; }
+    .versal { animation: none !important; }
+  }
+}
+
+@keyframes arch-sheen {
+  0%   { transform: translateX(-160%) skewX(-13deg); opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translateX(280%) skewX(-13deg); opacity: 0; }
+}
+
+@keyframes versal-in {
+  from { opacity: 0; transform: scale(0.72) translateY(6px); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* Typographic refinements */
 .font-serif {
   font-family: var(--font-serif), "Hoefler Text", Garamond, serif;
-  font-feature-settings: "lnum", "kern", "liga", "dlig", "onum";
+  font-feature-settings: "kern", "liga";
+  /* Newsreader is optical-size variable. 20 is the reading grade; 460 is a
+     touch above regular so verses hold their colour at 20px without looking
+     bold. This is the fix for "the verse is hard to read": it was never a
+     contrast problem (ink on vellum is ~14:1), it was stem weight. */
+  font-variation-settings: "opsz" 20, "wght" 460;
+}
+
+/* Fraunces — display only. WONK 1 turns on the angled terminals and the
+   swashy descenders; SOFT 30 rounds the joins just enough to stay warm.
+   Never use this for anything longer than a line or two. */
+.font-display {
+  font-family: var(--font-display), "Hoefler Text", Georgia, serif;
+  font-variation-settings: "SOFT" 30, "WONK" 1, "opsz" 60, "wght" 560;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+.font-display-lg {
+  font-variation-settings: "SOFT" 40, "WONK" 1, "opsz" 96, "wght" 600;
+  letter-spacing: -0.018em;
+}
+/* Numerals that change every second (the prayer timer) must not wobble. */
+.font-display-num {
+  font-family: var(--font-display), Georgia, serif;
+  font-variation-settings: "SOFT" 20, "WONK" 0, "opsz" 72, "wght" 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .tracking-rubric {
@@ -515,10 +719,73 @@ body::before {
   }
 }
 
-/* The "Buscando en la Palabra…" indicator dots */
+/* The "Buscando en la Palabra…" indicator dots — still used by the parish
+   search, where a candle would be the wrong metaphor. */
 .dot-1 { animation: pulse-soft 1.6s ease-in-out infinite; }
 .dot-2 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 200ms; }
 .dot-3 { animation: pulse-soft 1.6s ease-in-out infinite; animation-delay: 400ms; }
+
+/* -----------------------------------------------------------------------------
+   EL CIRIO — the waiting state while Claude searches Scripture. Three pulsing
+   dots say "a computer is busy"; a candle says the same thing and belongs to
+   the world of the app. The flicker is asymmetric on purpose: an even pulse
+   reads as a loading spinner, an uneven one reads as a flame.
+   --------------------------------------------------------------------------- */
+@keyframes flame-flicker {
+  0%, 100% { transform: scale(1) rotate(0deg);          opacity: 1;    }
+  22%      { transform: scale(0.94, 1.06) rotate(-2.5deg); opacity: 0.86; }
+  47%      { transform: scale(1.05, 0.96) rotate(2deg);    opacity: 1;    }
+  71%      { transform: scale(0.97, 1.03) rotate(-1deg);   opacity: 0.9;  }
+}
+.flame {
+  transform-origin: 50% 92%;
+  animation: flame-flicker 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--gold) 60%, transparent));
+}
+
+/* -----------------------------------------------------------------------------
+   EL SPLASH — the cross draws itself, then dissolves into a bloom of light.
+   Same 1.4s of stillness as before, but it now has a beginning and an end.
+   --------------------------------------------------------------------------- */
+@keyframes cross-draw {
+  from { stroke-dashoffset: 60; }
+  to   { stroke-dashoffset: 0; }
+}
+.cross-draw line {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: cross-draw 900ms cubic-bezier(0.5, 0, 0.2, 1) both;
+}
+.cross-draw line:nth-child(2) { animation-delay: 220ms; }
+.cross-draw line:nth-child(3) { animation-delay: 400ms; }
+
+@keyframes bloom-out {
+  from { opacity: 0.85; transform: scale(1); }
+  to   { opacity: 0;    transform: scale(12); }
+}
+.bloom {
+  animation: bloom-out 1100ms cubic-bezier(0.16, 1, 0.3, 1) 820ms both;
+}
+
+/* -----------------------------------------------------------------------------
+   EL HALO — the soft breath inside the prayer timer. 4.8s is deliberately
+   slower than a resting breath so it leads the user down rather than along.
+   --------------------------------------------------------------------------- */
+@keyframes halo-breathe {
+  0%, 100% { opacity: 0.5; transform: scale(0.95); }
+  50%      { opacity: 1;   transform: scale(1.05); }
+}
+.halo-breathe {
+  animation: halo-breathe 4.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flame,
+  .bloom,
+  .halo-breathe { animation: none !important; }
+  .cross-draw line { animation: none !important; stroke-dashoffset: 0 !important; }
+  .bloom { opacity: 0 !important; }
+}
 
 /* ---------------------------------------------------------------------------
    Type scale — a single, named ladder so we stop sprinkling text-[1.05rem],

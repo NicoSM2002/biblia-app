@@ -517,7 +517,7 @@ function PrintHeader() {
   });
   return (
     <div className="print-only mb-8 text-center">
-      <h1 className="font-serif italic text-2xl text-[var(--ink)]">
+      <h1 className="font-display text-2xl text-[var(--ink)]">
         Habla con la Palabra
       </h1>
       <p className="font-sans text-xs uppercase tracking-[0.18em] text-[var(--gold-text)] mt-1">
@@ -532,27 +532,19 @@ function ChatEmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
     <div className="pt-2 pb-6">
       {/* Hero card — gold-tinged background with leaf icon, evoking calm */}
-      <div
-        className="rounded-2xl px-5 py-6 sm:px-6 sm:py-7 mb-7 relative overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.04) 100%)",
-          border: "1px solid rgba(184, 146, 74, 0.18)",
-        }}
-      >
-        <div className="flex items-start gap-4">
-          <p className="font-serif italic text-quote text-[var(--ink)] leading-[1.35] flex-1">
+      {/* The same window as the verse, so the empty state already teaches the
+          shape the answer will arrive in. */}
+      <div className="arch-panel arch-panel-sm mb-7">
+        <div className="arch-body text-center">
+          <p className="font-display text-quote text-[var(--ink)] leading-[1.25]">
             Dile a Dios lo que hay en tu corazón.
             <br />
             Él siempre te escucha.
           </p>
-          <span aria-hidden="true" className="text-[var(--gold-text)] shrink-0 mt-1">
-            <LeafIcon />
-          </span>
         </div>
       </div>
 
-      <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
+      <p className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
         Prueba con
       </p>
       <ul className="space-y-2">
@@ -561,10 +553,13 @@ function ChatEmptyState({ onPick }: { onPick: (q: string) => void }) {
             <button
               onClick={() => onPick(q)}
               type="button"
-              className="w-full text-left bg-[var(--surface)] border border-[var(--rule)] rounded-full px-5 py-3 font-sans text-[0.92rem] text-[var(--ink)] hover:border-[var(--gold)] hover:bg-[var(--vellum)] transition-colors flex items-center justify-between gap-3"
+              className="group w-full text-left bg-[var(--surface)] border border-[var(--rule)] rounded-full px-5 py-3 font-sans text-[0.92rem] text-[var(--ink)] shadow-[0_1px_0_var(--emboss)_inset] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors flex items-center justify-between gap-3"
             >
               <span>{q}</span>
-              <span aria-hidden="true" className="text-[var(--ink-faint)] shrink-0">
+              <span
+                aria-hidden="true"
+                className="text-[var(--ink-faint)] group-hover:text-[var(--marian)] shrink-0 transition-all duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none"
+              >
                 <ArrowRight />
               </span>
             </button>
@@ -575,20 +570,12 @@ function ChatEmptyState({ onPick }: { onPick: (q: string) => void }) {
   );
 }
 
-function LeafIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2c1 1.5 2 4.79 1.5 7-1 3.5-3 5-3 5l-3 3" />
-      <path d="M2 22 17 7" />
-    </svg>
-  );
-}
 
 function ArrowRight() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="5" y1="12" x2="19" y2="12" />
-      <polyline points="12 5 19 12 12 19" />
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="5" y1="12" x2="18" y2="12" />
+      <polyline points="13 6 19 12 13 18" />
     </svg>
   );
 }

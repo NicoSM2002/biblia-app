@@ -177,11 +177,14 @@ function Misas() {
             className="detail-fade-in"
             style={{ animationDelay: "0ms" }}
           >
-            <h2 className="font-serif italic text-page sm:text-hero text-[var(--ink)] leading-[1.25] text-center mb-2">
+            {/* Left-aligned, not centred. A centred title and subtitle sitting
+                on top of a left-aligned list gave the screen two reading axes
+                at once. One axis, on the left. */}
+            <h2 className="font-display font-display-lg text-page sm:text-hero text-[var(--ink)] leading-[1.2] mb-2">
               Misa cerca de ti
             </h2>
-            <p className="font-sans text-[0.92rem] text-[var(--ink-soft)] leading-relaxed text-center max-w-[34ch] mx-auto mb-6">
-              Encuentra iglesias católicas cercanas con horarios actualizados.
+            <p className="font-sans text-[0.9rem] text-[var(--ink-soft)] leading-relaxed max-w-[38ch] mb-6">
+              Iglesias católicas cercanas, con los horarios de hoy.
             </p>
           </div>
 
@@ -190,7 +193,7 @@ function Misas() {
             className="detail-fade-in"
             style={{ animationDelay: "80ms" }}
           >
-            <div className="flex items-center gap-2 bg-[var(--surface)] border border-[var(--rule)] rounded-full pl-4 pr-1.5 py-1.5 transition-colors focus-within:border-[var(--gold)]">
+            <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--rule)] rounded-full pl-4 pr-1.5 py-1.5 transition-all shadow-[0_1px_0_var(--emboss)_inset] focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
               <PinIcon className="text-[var(--ink-faint)] shrink-0" />
               <input
                 value={address}
@@ -205,7 +208,7 @@ function Misas() {
                 onClick={useMyLocation}
                 disabled={pending}
                 aria-label="Usar mi ubicación"
-                className="grid place-items-center w-11 h-11 rounded-full text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors disabled:opacity-50"
+                className="grid place-items-center w-11 h-11 rounded-full text-[var(--marian)] bg-[color-mix(in_srgb,var(--marian)_10%,transparent)] hover:bg-[color-mix(in_srgb,var(--marian)_18%,transparent)] transition-colors disabled:opacity-50"
               >
                 <TargetIcon />
               </button>
@@ -264,15 +267,18 @@ function Misas() {
             </div>
           )}
 
+          {/* Left-aligned like the heading and the results list above it — a
+              centred empty state was the last thing on this screen still
+              pulling the eye onto a second axis. */}
           {!churches && !pending && !error && (
             <div
-              className="mt-10 text-center detail-fade-in"
+              className="mt-8 detail-fade-in"
               style={{ animationDelay: "160ms" }}
             >
-              <p className="font-serif italic text-body-lg text-[var(--ink)]">
+              <p className="font-display text-body-lg text-[var(--ink)]">
                 Empieza buscando una ubicación
               </p>
-              <p className="mt-2 font-sans text-[0.9rem] text-[var(--ink-soft)]">
+              <p className="mt-1.5 font-sans text-[0.9rem] text-[var(--ink-soft)]">
                 Escribe tu ciudad o usa el botón de ubicación.
               </p>
             </div>
@@ -314,7 +320,7 @@ function ChurchCard({
   // guaranteed chance to save state before the view transition kicks in.
 
   return (
-    <li className="lift-on-hover bg-[var(--surface)] border border-[var(--rule)] rounded-xl overflow-hidden hover:border-[var(--gold)]">
+    <li className="lift-on-hover bg-[var(--surface)] border border-[var(--rule)] rounded-2xl overflow-hidden shadow-[0_1px_0_var(--emboss)_inset] hover:border-[var(--marian)]">
       <div className="flex items-stretch">
         {/* Photo column — square. Falls back to a soft placeholder. */}
         <Link
@@ -349,19 +355,26 @@ function ChurchCard({
         <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col">
           <Link href={detailHref} onPointerDown={onPick} className="group min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="font-serif text-[1rem] sm:text-[1.05rem] text-[var(--ink)] leading-[1.25] line-clamp-2 group-hover:text-[var(--gold-text)] transition-colors">
+              <h3 className="font-serif font-medium text-[1rem] sm:text-[1.05rem] text-[var(--ink)] leading-[1.25] line-clamp-2 group-hover:text-[var(--marian)] transition-colors">
                 {church.name}
               </h3>
-              <span className="shrink-0 font-sans text-[0.76rem] text-[var(--ink-faint)]">
+              {/* Distance as a chip, not as grey text of the same weight as
+                  everything else: it's the one value you scan a list of
+                  parishes for, so it should read without being read. */}
+              <span
+                className="shrink-0 font-sans font-semibold text-[0.68rem] px-1.5 py-0.5 rounded-full"
+                style={{
+                  color: "var(--marian)",
+                  backgroundColor: "color-mix(in srgb, var(--marian) 11%, transparent)",
+                }}
+              >
                 {distanceText}
               </span>
             </div>
-            {todayHours && (
-              <p className="mt-1.5 font-sans text-[0.74rem] tracking-[0.06em] uppercase text-[var(--ink-faint)]">
-                Próxima misa
-              </p>
-            )}
-            <p className="font-sans text-[0.86rem] text-[var(--gold-text)] font-medium leading-tight">
+            {/* The "PRÓXIMA MISA" label is gone — a clock next to the hours
+                says the same thing in a glyph and gives back a line per card. */}
+            <p className="mt-1.5 flex items-center gap-1.5 font-sans text-[0.84rem] text-[var(--gold-text)] font-semibold leading-tight">
+              <ClockIcon />
               {todayHours ?? "Ver horarios"}
             </p>
           </Link>
@@ -371,7 +384,7 @@ function ChurchCard({
               <a
                 href={`tel:${church.phone.replace(/\s+/g, "")}`}
                 aria-label={`Llamar a ${church.name}`}
-                className="grid place-items-center w-9 h-9 rounded-full border border-[var(--rule)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors"
+                className="grid place-items-center w-9 h-9 rounded-full border border-[color-mix(in_srgb,var(--marian)_28%,transparent)] text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_10%,transparent)] transition-colors"
               >
                 <PhoneIcon />
               </a>
@@ -381,7 +394,7 @@ function ChurchCard({
               target="_blank"
               rel="noreferrer"
               aria-label={`Cómo llegar a ${church.name}`}
-              className="grid place-items-center w-9 h-9 rounded-full border border-[var(--rule)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors"
+              className="grid place-items-center w-9 h-9 rounded-full border border-[color-mix(in_srgb,var(--marian)_28%,transparent)] text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_10%,transparent)] transition-colors"
             >
               <DirectionsIcon />
             </a>
@@ -436,6 +449,15 @@ function TargetIcon() {
       <line x1="2" y1="12" x2="4" y2="12" />
       <line x1="20" y1="12" x2="22" y2="12" />
       <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0">
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="12 7 12 12 15.5 14" />
     </svg>
   );
 }

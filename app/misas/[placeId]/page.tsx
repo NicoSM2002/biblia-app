@@ -109,15 +109,32 @@ function ChurchDetail({ placeId }: { placeId: string }) {
         <DetailHeader title="Parroquia" />
         <main className="flex-1 grid place-items-center px-6 pb-24 text-center">
           <div className="max-w-sm">
-            <p className="font-serif italic text-quote text-[var(--ink)] mb-2">
+            <p className="font-display text-quote text-[var(--ink)] mb-2">
               No pudimos cargar esta parroquia
             </p>
             <p className="font-sans text-[0.9rem] text-[var(--ink-soft)]">{error}</p>
             <Link
               href="/misas"
-              className="inline-block mt-4 font-sans text-[0.9rem] font-medium text-[var(--gold-text)] hover:underline"
+              className="group inline-flex items-center gap-2 mt-4 font-sans text-[0.9rem] font-semibold text-[var(--marian)] hover:underline"
             >
-              ← Volver a parroquias
+              {/* Was the bare "←" glyph, which renders as a hairline in every
+                  font and looked broken next to the app's 2px stroke icons. */}
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                className="shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5 motion-reduce:transition-none"
+              >
+                <line x1="19" y1="12" x2="6" y2="12" />
+                <polyline points="11 6 5 12 11 18" />
+              </svg>
+              Volver a parroquias
             </Link>
           </div>
         </main>
@@ -175,7 +192,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
 
           <div className="px-5 sm:px-6 pt-6">
             <div className="detail-fade-in" style={{ animationDelay: "60ms" }}>
-              <h1 className="font-serif italic text-page sm:text-hero leading-[1.2] text-[var(--ink)]">
+              <h1 className="font-display font-display-lg text-page sm:text-hero leading-[1.2] text-[var(--ink)]">
                 {church.name}
               </h1>
 

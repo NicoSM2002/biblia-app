@@ -1,19 +1,42 @@
 import type { Metadata, Viewport } from "next";
-import { EB_Garamond, Inter } from "next/font/google";
+import { Fraunces, Instrument_Sans, Newsreader } from "next/font/google";
 import "./globals.css";
 
-const garamond = EB_Garamond({
-  variable: "--font-garamond",
+/**
+ * Three faces, three jobs.
+ *
+ *   Fraunces        — display. Titles, the question on the home, the versal
+ *                     drop caps. Variable old-style with SOFT/WONK axes; with
+ *                     WONK=1 it gets the angled terminals that give it warmth
+ *                     without reading as a period pastiche. Used sparingly
+ *                     and large.
+ *   Newsreader      — scripture and long-form. Drawn for screens (optical
+ *                     size axis, generous x-height, solid stems at 20px),
+ *                     which EB Garamond — a 16th-century print revival — is
+ *                     not. Verses set ROMAN here, not italic: continuous
+ *                     italic is slower to read and was never meant for
+ *                     three-line blocks.
+ *   Instrument Sans — UI chrome. Nav labels, metadata, form labels. Replaces
+ *                     Inter, which is legible and says nothing.
+ */
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  axes: ["SOFT", "WONK", "opsz"],
   display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+  display: "swap",
+});
+
+const instrument = Instrument_Sans({
+  variable: "--font-instrument",
+  subsets: ["latin"],
   display: "swap",
 });
 
@@ -40,7 +63,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#FAF7F2",
+  themeColor: "#FAF6EE",
 };
 
 /**
@@ -60,7 +83,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${garamond.variable} ${inter.variable} h-full`}
+      className={`${fraunces.variable} ${newsreader.variable} ${instrument.variable} h-full`}
       // data-theme="light" is hardcoded into the server-rendered HTML so
       // there's no dependency on the inline script firing before paint
       // and no risk of React removing the attribute during hydration. The

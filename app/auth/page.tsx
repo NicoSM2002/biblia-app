@@ -116,22 +116,34 @@ function AuthForm() {
           <div className="flex flex-col items-center mb-8">
             <Link
               href="/"
-              className="flex flex-col items-center gap-2 group"
+              className="flex flex-col items-center gap-3 group"
               aria-label="Volver a Habla con la Palabra"
             >
-              <LatinCross className="text-[var(--gold)]" size={20} />
-              <h1 className="font-serif italic text-quote text-[var(--ink)]">
+              {/* The cross sits in a niche — the same arch as the verse
+                  window, in miniature. Turns a loose icon into an object. */}
+              <span
+                className="grid place-items-center w-14 h-16 text-[var(--gold)] transition-colors group-hover:text-[var(--gold-soft)]"
+                style={{
+                  borderRadius: "50% 50% 8px 8px / 28px 28px 8px 8px",
+                  background:
+                    "radial-gradient(ellipse 120% 80% at 50% 0%, color-mix(in srgb, var(--gold) 20%, transparent), transparent 70%), var(--vellum)",
+                  border: "1px solid color-mix(in srgb, var(--gold) 34%, transparent)",
+                }}
+              >
+                <LatinCross size={19} />
+              </span>
+              <h1 className="font-display text-[1.3rem] text-[var(--ink)]">
                 Habla con la Palabra
               </h1>
             </Link>
-            <p className="font-sans text-[0.82rem] tracking-[0.14em] uppercase text-[var(--ink-soft)] mt-3">
+            <p className="font-sans font-semibold text-[0.68rem] tracking-[0.2em] uppercase text-[var(--gold-text)] mt-1.5">
               {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
             </p>
           </div>
 
           <form
             onSubmit={onSubmit}
-            className="space-y-3 bg-[var(--surface)] border border-[var(--rule)] rounded-xl p-5 shadow-sm"
+            className="space-y-3 bg-[var(--surface)] border border-[var(--rule)] rounded-2xl p-5 shadow-[0_1px_0_var(--emboss)_inset,0_10px_26px_-18px_rgba(var(--shadow-color),0.5)]"
             noValidate
           >
             {mode === "signup" && (
@@ -221,7 +233,7 @@ function AuthForm() {
                     setError(null);
                     setInfo(null);
                   }}
-                  className="text-[var(--gold-text)] hover:underline font-medium"
+                  className="text-[var(--marian)] hover:underline font-semibold"
                 >
                   Créala aquí
                 </button>
@@ -236,7 +248,7 @@ function AuthForm() {
                     setError(null);
                     setInfo(null);
                   }}
-                  className="text-[var(--gold-text)] hover:underline font-medium"
+                  className="text-[var(--marian)] hover:underline font-semibold"
                 >
                   Inicia sesión
                 </button>
@@ -244,12 +256,13 @@ function AuthForm() {
             )}
           </div>
 
-          <div className="mt-8 text-center">
+          <div className="mt-8 flex justify-center">
             <Link
               href="/"
-              className="font-sans text-[0.85rem] text-[var(--ink-soft)] hover:text-[var(--gold-text)]"
+              className="group inline-flex items-center gap-2 font-sans text-[0.85rem] font-medium text-[var(--ink-soft)] hover:text-[var(--marian)] transition-colors"
             >
-              ← Volver al inicio
+              <BackArrow />
+              Volver al inicio
             </Link>
           </div>
         </div>
@@ -281,10 +294,17 @@ const Field = function FieldImpl({
 }) {
   return (
     <label className="block">
-      <span className="font-sans text-[0.85rem] font-medium text-[var(--ink-soft)]">
+      {/* Small gold caps, not 13px grey: the label was competing with the
+          value you're typing into it. */}
+      <span className="font-sans font-semibold text-[0.66rem] tracking-[0.13em] uppercase text-[var(--gold-text)]">
         {label}
       </span>
-      <div className="mt-1 flex items-center gap-1 rounded-md border bg-[var(--surface)] border-[var(--rule)] focus-within:border-[var(--gold)] transition-colors">
+      {/* 12px radius. These inputs were the only 6px corners in the app —
+          the one screen whose radius matched nothing else in the system.
+          The focus state is a marian ring, not a 1px border colour change:
+          you should be able to see where you're typing without hunting for
+          the caret. */}
+      <div className="mt-1.5 flex items-center gap-1 rounded-xl border-[1.5px] bg-[var(--surface)] border-[var(--rule)] transition-all focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
         <input
           ref={ref}
           type={type}
@@ -293,7 +313,7 @@ const Field = function FieldImpl({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={cn(
-            "flex-1 px-3 py-2.5 rounded-md bg-transparent outline-none",
+            "flex-1 px-3.5 py-2.5 rounded-xl bg-transparent outline-none",
             "font-sans text-[1rem] text-[var(--ink)]",
           )}
         />
@@ -307,6 +327,32 @@ const Field = function FieldImpl({
     </label>
   );
 };
+
+/**
+ * "← Volver al inicio" used to be the literal arrow glyph, which renders as a
+ * hairline in every serif and sans on the system and looked broken next to
+ * the app's 1.6–2px stroke icons. This is a real icon at the same weight,
+ * and it nudges left on hover so the direction is felt as well as read.
+ */
+function BackArrow() {
+  return (
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5 motion-reduce:transition-none"
+    >
+      <line x1="19" y1="12" x2="6" y2="12" />
+      <polyline points="11 6 5 12 11 18" />
+    </svg>
+  );
+}
 
 function EyeIcon() {
   return (

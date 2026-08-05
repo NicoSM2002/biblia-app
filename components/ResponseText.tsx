@@ -1,7 +1,18 @@
 import { memo } from "react";
 
 /**
- * The pastoral response — labeled "REFLEXIÓN" above a clean white card.
+ * The pastoral response.
+ *
+ * It used to be a white card under a "REFLEXIÓN" rubric. Between the question
+ * bubble, the verse card and this one, every single turn was four stacked
+ * rectangles — and the two rubrics repeated the same gold dash twice per turn
+ * until it stopped carrying information.
+ *
+ * With the verse inside its window, the reflection doesn't need a container to
+ * be told apart from it. Set in Newsreader directly on the paper, it reads
+ * like a book instead of like a chat bubble — which is what this app is
+ * actually for. This is also the longest text in the whole app and it was in
+ * Inter.
  *
  * Two render modes by status:
  *
@@ -26,22 +37,19 @@ export const ResponseText = memo(function ResponseText({
   streaming?: boolean;
 }) {
   return (
-    <div className="anim-fade-in mb-2" style={{ animationDelay: "120ms" }}>
-      <span className="label-section">Reflexión</span>
-      <div className="card-response">
-        <p
-          className="font-sans text-[0.98rem] sm:text-[1.02rem] leading-[1.7] text-[var(--ink)]"
-          style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
-        >
-          {streaming ? <StreamingTokens text={text} /> : text}
-          {streaming && (
-            <span
-              aria-hidden="true"
-              className="ml-1 inline-block w-[2px] h-[1.05em] align-middle bg-[var(--gold)] dot-1"
-            />
-          )}
-        </p>
-      </div>
+    <div className="anim-fade-in mb-1 px-0.5" style={{ animationDelay: "120ms" }}>
+      <p
+        className="font-serif text-[1.02rem] sm:text-[1.06rem] leading-[1.62] text-[var(--ink)]"
+        style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
+      >
+        {streaming ? <StreamingTokens text={text} /> : text}
+        {streaming && (
+          <span
+            aria-hidden="true"
+            className="ml-1 inline-block w-[2px] h-[1.05em] align-middle bg-[var(--gold)] dot-1"
+          />
+        )}
+      </p>
     </div>
   );
 });

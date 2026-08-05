@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LatinCross } from "@/components/Cross";
+import { formatReference, splitVersal } from "@/components/VerseCard";
 import { HomeAvatar } from "@/components/HomeAvatar";
 import { BottomNav } from "@/components/BottomNav";
 import { Splash } from "@/components/Splash";
@@ -126,53 +127,18 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-5">
           <div className="detail-fade-in" style={{ animationDelay: "0ms" }}>
             <Greeting name={name} />
-
-            <h2 className="mt-1.5 font-serif italic text-page leading-[1.25] text-[var(--ink)] mb-4">
-              ¿Qué quieres preguntarle a Dios hoy?
-            </h2>
           </div>
 
-          <form
-            onSubmit={onSubmit}
-            className="detail-fade-in"
-            style={{ animationDelay: "60ms" }}
-          >
-            <div className="flex items-center gap-2 bg-[var(--surface)] border border-[var(--rule)] rounded-full pl-5 pr-1.5 py-1.5 transition-colors focus-within:border-[var(--gold)]">
-              <input
-                type="text"
-                value={question}
-                onChange={(e) => {
-                  setQuestion(e.target.value);
-                  if (speech.listening) speech.stop();
-                  if (!e.target.value) speech.reset();
-                }}
-                placeholder={
-                  speech.listening ? "Escuchando…" : "Escribe tu pregunta…"
-                }
-                className="flex-1 bg-transparent outline-none font-sans text-[0.98rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
-                aria-label="Escribe tu pregunta"
-              />
-              <ActionButton
-                speech={speech}
-                hasText={question.trim().length > 0}
-                onSend={() => goToChat(question)}
-                onStartVoice={() => {
-                  speech.reset();
-                  setQuestion("");
-                  speech.start();
-                }}
-                onStopVoice={() => speech.stop()}
-              />
-            </div>
-          </form>
-
-          {/* Versículo del día — skeleton while loading so the layout
-              doesn't shift when the fetch comes back, and on subsequent
-              visits in the same session it's instant via sessionStorage
-              cache. */}
+          {/* Versículo del día — now the first thing on the page and the only
+              thing on it shaped like a window. When you open a devotional app,
+              receiving comes before asking; putting the verse third, in the
+              same 12px rectangle as the parish CTA, buried the one moment
+              worth remembering. Skeleton while loading so the layout doesn't
+              shift when the fetch comes back; on subsequent visits in the same
+              session it's instant via sessionStorage cache. */}
           <div
-            className="detail-fade-in"
-            style={{ animationDelay: "120ms" }}
+            className="mt-3 detail-fade-in"
+            style={{ animationDelay: "60ms" }}
           >
             {verse ? (
               <DailyVerseSection verse={verse} />
@@ -181,33 +147,66 @@ export default function HomePage() {
             )}
           </div>
 
+          <div className="detail-fade-in" style={{ animationDelay: "120ms" }}>
+            <h2 className="mt-6 font-display text-page leading-[1.2] text-[var(--ink)] mb-3">
+              ¿Qué quieres preguntarle a Dios hoy?
+            </h2>
+
+            <form onSubmit={onSubmit}>
+              <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--rule)] rounded-full pl-5 pr-1.5 py-1.5 transition-all shadow-[0_1px_0_var(--emboss)_inset] focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
+                <input
+                  type="text"
+                  value={question}
+                  onChange={(e) => {
+                    setQuestion(e.target.value);
+                    if (speech.listening) speech.stop();
+                    if (!e.target.value) speech.reset();
+                  }}
+                  placeholder={
+                    speech.listening ? "Escuchando…" : "Escribe o dicta tu pregunta…"
+                  }
+                  className="flex-1 bg-transparent outline-none font-sans text-[0.96rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
+                  aria-label="Escribe tu pregunta"
+                />
+                <ActionButton
+                  speech={speech}
+                  hasText={question.trim().length > 0}
+                  onSend={() => goToChat(question)}
+                  onStartVoice={() => {
+                    speech.reset();
+                    setQuestion("");
+                    speech.start();
+                  }}
+                  onStopVoice={() => speech.stop()}
+                />
+              </div>
+            </form>
+          </div>
+
           <section
-            className="mt-6 detail-fade-in"
+            className="mt-5 detail-fade-in"
             style={{ animationDelay: "180ms" }}
           >
-            <p className="text-eyebrow text-[var(--gold-text)] mb-2.5">
-              Misa cerca de ti
-            </p>
             <Link
               href="/misas"
-              className="lift-on-hover flex items-start gap-3 bg-[var(--surface)] border border-[var(--rule)] rounded-xl p-4 hover:border-[var(--gold)] hover:bg-[var(--vellum)]"
+              className="lift-on-hover flex items-center gap-3 bg-[var(--surface)] border border-[var(--rule)] rounded-2xl p-3.5 shadow-[0_1px_0_var(--emboss)_inset] hover:border-[var(--marian)]"
             >
-              <div className="flex-1 min-w-0">
-                <p className="font-serif italic text-[1.05rem] text-[var(--ink)] leading-snug">
-                  Encuentra una iglesia cerca de ti
-                </p>
-                <p className="mt-1 font-sans text-[0.85rem] text-[var(--ink-soft)]">
-                  Horarios de misa y cómo llegar.
-                </p>
-              </div>
               <div
-                className="grid place-items-center w-10 h-10 rounded-full shrink-0"
+                className="grid place-items-center w-10 h-10 rounded-xl shrink-0"
                 style={{
-                  backgroundColor: "rgba(184, 146, 74, 0.10)",
-                  color: "var(--gold-text)",
+                  backgroundColor: "color-mix(in srgb, var(--marian) 11%, transparent)",
+                  color: "var(--marian)",
                 }}
               >
                 <PinIcon />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-sans font-semibold text-[0.95rem] text-[var(--ink)] leading-snug">
+                  Misa cerca de ti
+                </p>
+                <p className="mt-0.5 font-sans text-[0.82rem] text-[var(--ink-soft)]">
+                  Horarios y cómo llegar.
+                </p>
               </div>
             </Link>
           </section>
@@ -221,56 +220,48 @@ export default function HomePage() {
   );
 }
 
+/** Same arch, same padding, so nothing shifts when the verse arrives. */
 function DailyVerseSkeleton() {
   return (
-    <section className="mt-6">
-      <p className="text-eyebrow text-[var(--gold-text)] mb-2.5">
-        Versículo del día
-      </p>
-      <div
-        className="rounded-xl px-5 py-5"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.03) 100%)",
-          border: "1px solid rgba(184, 146, 74, 0.22)",
-        }}
-      >
-        <div className="space-y-2">
+    <section aria-label="Cargando el versículo del día">
+      <div className="arch-panel">
+        <div className="arch-body space-y-2.5">
           <div className="h-5 skeleton-shimmer w-full" />
-          <div className="h-5 skeleton-shimmer w-[90%]" />
-          <div className="h-5 skeleton-shimmer w-[70%]" />
+          <div className="h-5 skeleton-shimmer w-[92%]" />
+          <div className="h-5 skeleton-shimmer w-[68%]" />
+          <div className="h-3 skeleton-shimmer w-28 mx-auto !mt-5" />
         </div>
-        <div className="mt-3 h-3 skeleton-shimmer w-24" />
       </div>
     </section>
   );
 }
 
 function DailyVerseSection({ verse }: { verse: Verse }) {
-  const display = `“${verse.text.replace(ACROSTIC, "").replace(/\s*\|\s*/g, " — ").trim()}”`;
+  const display = verse.text
+    .replace(ACROSTIC, "")
+    .replace(/\s*\|\s*/g, " — ")
+    .trim();
+  const { initial, rest } = splitVersal(display);
+
   return (
-    <section className="mt-6">
-      <p className="text-eyebrow text-[var(--gold-text)] mb-2.5">
-        Versículo del día
-      </p>
-      <div
-        className="rounded-xl px-5 py-5"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(184,146,74,0.08) 0%, rgba(184,146,74,0.03) 100%)",
-          border: "1px solid rgba(184, 146, 74, 0.22)",
-        }}
-      >
-        <blockquote
-          cite={verse.reference}
-          className="font-serif italic text-quote leading-[1.45] text-[var(--ink)]"
-          style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
-        >
-          {display}
-        </blockquote>
-        <p className="mt-3 text-eyebrow text-[var(--gold-text)]">
-          {verse.reference}
-        </p>
+    <section aria-label="Versículo del día">
+      <div className="arch-panel">
+        <div className="arch-body">
+          {initial && (
+            <span aria-hidden="true" className="versal">
+              {initial}
+            </span>
+          )}
+          <blockquote
+            cite={verse.reference}
+            className="font-serif text-[1.22rem] sm:text-[1.3rem] leading-[1.5] text-[var(--ink)]"
+            style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
+          >
+            <span className="sr-only">{initial}</span>
+            {rest}
+          </blockquote>
+          <p className="ref-rule">{formatReference(verse.reference)}</p>
+        </div>
       </div>
     </section>
   );
@@ -285,7 +276,7 @@ function Greeting({ name }: { name: string | null }) {
         ? "¡Buenas tardes"
         : "¡Buenas noches";
   return (
-    <p className="font-sans text-[1rem] text-[var(--ink-soft)]">
+    <p className="font-sans text-[0.88rem] text-[var(--ink-soft)]">
       {text}
       {name ? `, ${name}` : ""}!
     </p>
