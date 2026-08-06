@@ -19,7 +19,7 @@
 import { NextRequest } from "next/server";
 import { search } from "@/lib/bible";
 import { searchCredo } from "@/lib/credo";
-import { streamPastoralResponse, type ChatMessage } from "@/lib/llm";
+import { activeProvider, streamPastoralResponse, type ChatMessage } from "@/lib/llm";
 import { validateQuote } from "@/lib/validate";
 
 export const runtime = "nodejs"; // need fs access for the bible JSON
@@ -196,6 +196,12 @@ export async function POST(req: NextRequest) {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      // Which model actually answered. Without this there is no way to tell
+      // from the outside whether a deploy picked up DEEPSEEK_API_KEY or
+      // quietly fell back to Claude — the two produce different prose, but
+      // different prose is not evidence. Needed to A/B tone and latency
+      // honestly, and to catch a key that never reached the environment.
+      "X-LLM-Provider": activeProvider(),
     },
   });
 }
