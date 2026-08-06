@@ -21,6 +21,28 @@
  *    stray code fence that mode would prevent — and parseResponseJSON in the
  *    chat route already strips fences and slices from the first `{` to the last
  *    `}`. If DeepSeek fixes that caveat, turning the mode on is one line.
+ *
+ * 3. Thinking is OFF. This one is not a preference — leaving DeepSeek's
+ *    default in place broke the app in production, measurably:
+ *
+ *      - Thinking is enabled by default at "high" effort on both v4 models.
+ *      - The chain of thought streams on `reasoning_content`, a sibling of
+ *        `content`. A client that reads only `content` therefore emits nothing
+ *        at all while the model thinks: measured median time-to-first-token was
+ *        ~16s of dead air, then the whole answer at once in under a second.
+ *        The per-word reveal and the candle this app is built around never got
+ *        a chance to do anything.
+ *      - Reasoning tokens are drawn from the same max_tokens budget as the
+ *        answer. At high effort they routinely ate all 1500, so `content` came
+ *        back empty or truncated and parseResponseJSON returned null —
+ *        3 of 10 production requests fell through to "hubo un momento de
+ *        silencio".
+ *
+ *    This app does not want a chain of thought. It wants one short pastoral
+ *    paragraph in a fixed JSON envelope, and the system prompt already does
+ *    the reasoning work. `thinking: {type: "disabled"}` is DeepSeek's
+ *    documented off switch for the OpenAI-compatible format; it isn't in the
+ *    OpenAI type surface, hence the spread below.
  */
 
 import OpenAI from "openai";
@@ -76,6 +98,10 @@ export async function streamPastoral(args: PastoralArgs): Promise<TextStream> {
       ...history.map((m) => ({ role: m.role, content: m.content }) as const),
       { role: "user", content: parts.join("\n\n") },
     ],
+    // DeepSeek-only parameter (see note 3 above). Spread rather than written
+    // inline because it isn't part of the OpenAI request type; the SDK
+    // forwards unknown body keys as-is.
+    ...({ thinking: { type: "disabled" } } as Record<string, unknown>),
   });
 
   return (async function* () {
