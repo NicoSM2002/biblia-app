@@ -190,7 +190,7 @@ function AuthForm() {
                   aria-label={
                     showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                   }
-                  className="grid place-items-center w-9 h-9 -mr-1 rounded-full bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--gold-text)] hover:bg-[var(--rule)] transition-colors"
+                  className="grid place-items-center w-8 h-8 mr-1.5 shrink-0 rounded-lg bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--gold-text)] hover:bg-[var(--rule)] transition-colors"
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
