@@ -145,7 +145,7 @@ export default function HomePage() {
         className="page-content-fade flex-1 overflow-y-auto"
         style={{ paddingBottom: `calc(${NAV_H} + 8px)` }}
       >
-        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-3.5 min-h-full flex flex-col">
+        <div className="max-w-2xl mx-auto px-[20px] sm:px-6 pt-3.5">
           <Greeting name={name} />
 
           {/* Evangelio del día — now the first thing on the page and the only
@@ -158,7 +158,7 @@ export default function HomePage() {
               feed is down we get a single pool verse instead. */}
           <div className="mt-2.5">
             {daily?.gospel ? (
-              <DailyGospelSection gospel={daily.gospel} />
+              <DailyGospelSection gospel={daily.gospel} scroller={mainRef} />
             ) : daily ? (
               <DailyVerseSection verse={daily.verse} />
             ) : (
@@ -170,7 +170,7 @@ export default function HomePage() {
             {/* text-wrap: balance splits the question into two even lines
                 instead of "¿Qué quieres" alone on top and the rest below. */}
             <h2
-              className="mt-4 text-center font-display text-[1.24rem] sm:text-page leading-[1.2] text-[var(--ink)] mb-2.5"
+              className="mt-4 text-center font-display text-[min(1.24rem,22px)] sm:text-page leading-[1.2] text-[var(--ink)] mb-2.5"
               style={{ textWrap: "balance" as React.CSSProperties["textWrap"] }}
             >
               ¿Qué quieres preguntarle a la Palabra de Dios hoy?
@@ -243,16 +243,32 @@ function cleanVerse(text: string): string {
 }
 
 /**
- * Collapsed Gospel text: ~3 lines at phone width, cut on a word boundary, so
- * the card leaves room for the input and the "what is this app" note below.
- * Trailing punctuation is swapped for the ellipsis ("país.…" → "país…").
+ * Collapsed Gospel: show as many lines of the opening verse as fit, so the
+ * question box below is ALWAYS on screen without scrolling — bigger text
+ * (Ajustes) or a shorter phone just means fewer lines of Gospel. Measures
+ * the real layout instead of guessing a character count:
+ *   room for the text = visible height of the page − everything else.
+ * At least 2 lines (on a tiny screen with huge text the page may still
+ * scroll). DailyGospelSection re-runs it whenever the page or its content
+ * changes size; it writes max-height straight to the element, no re-render.
  */
-function teaser(text: string, continues: boolean, max = 115): string {
-  if (text.length <= max + 20) {
-    return continues ? `${text.replace(/[.,;:]\s*$/, "")}…` : text;
+function fitQuote(bq: HTMLElement, main: HTMLElement, column: HTMLElement) {
+  bq.style.maxHeight = "none";
+  bq.classList.remove("teaser-fade");
+  const lh = parseFloat(getComputedStyle(bq).lineHeight);
+  const cs = getComputedStyle(main);
+  const visible = main.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const others = column.offsetHeight - bq.offsetHeight;
+  const lines = Math.max(2, Math.floor((visible - others - 4) / lh));
+  if (lines * lh < bq.scrollHeight - 1) {
+    bq.style.maxHeight = `${lines * lh}px`;
+    bq.classList.add("teaser-fade");
   }
-  const cut = text.slice(0, text.lastIndexOf(" ", max));
-  return `${cut.replace(/[.,;:—\s]+$/, "")}…`;
+}
+
+function clearFit(bq: HTMLElement) {
+  bq.style.maxHeight = "";
+  bq.classList.remove("teaser-fade");
 }
 
 /**
@@ -260,8 +276,12 @@ function teaser(text: string, continues: boolean, max = 115): string {
  * has to keep the question box above the fold — and expands in place to the
  * whole pericope, so reading it never takes you away from the page.
  */
+// Interface text on the home (labels, buttons, headings) is capped with
+// min(rem, px): Ajustes → Tamaño del texto is for READING. Letting the chrome
+// grow too pushed the question box off-screen at 130% even with the Gospel
+// cut to two lines. The verse itself and the input still scale fully.
 const PILL =
-  "flex items-center gap-1.5 min-h-[40px] px-4 whitespace-nowrap rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] font-sans text-[0.84rem] font-medium text-[var(--gold-text)] shadow-[0_1px_0_var(--emboss)_inset,0_1px_3px_rgba(0,0,0,0.06)] hover:border-[var(--gold)] active:scale-95 transition-all";
+  "flex items-center gap-[6px] min-h-[40px] px-[12px] whitespace-nowrap rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] font-sans text-[min(0.84rem,14px)] font-medium text-[var(--gold-text)] shadow-[0_1px_0_var(--emboss)_inset,0_1px_3px_rgba(0,0,0,0.06)] hover:border-[var(--gold)] active:scale-95 transition-all";
 
 /** What "Escuchar" reads: the liturgical frame around the pericope. */
 function gospelSpeech(gospel: DailyGospel): string {
@@ -272,8 +292,36 @@ function gospelSpeech(gospel: DailyGospel): string {
   );
 }
 
-function DailyGospelSection({ gospel }: { gospel: DailyGospel }) {
+function DailyGospelSection({
+  gospel,
+  scroller,
+}: {
+  gospel: DailyGospel;
+  scroller: RefObject<HTMLElement | null>;
+}) {
   const [open, setOpen] = useState(false);
+  const quoteRef = useRef<HTMLQuoteElement>(null);
+
+  // Collapsed: fit the opening verse to the screen (see fitQuote above).
+  useEffect(() => {
+    const bq = quoteRef.current;
+    const main = scroller.current;
+    const column = main?.firstElementChild as HTMLElement | null;
+    if (!bq || !main || !column) return;
+    if (open) {
+      clearFit(bq);
+      return;
+    }
+    const fit = () => fitQuote(bq, main, column);
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(main);
+    ro.observe(column);
+    return () => {
+      ro.disconnect();
+      clearFit(bq);
+    };
+  }, [open, scroller]);
   const tts = useTts();
   const ttsId = `gospel:${gospel.reference}`;
   const reading = tts.id === ttsId ? tts.status : "idle";
@@ -284,10 +332,10 @@ function DailyGospelSection({ gospel }: { gospel: DailyGospel }) {
     <section aria-label="Evangelio del día">
       <div className="arch-panel">
         <div className="arch-body">
-          <p className="text-center font-sans text-[0.68rem] font-semibold tracking-[0.2em] uppercase text-[var(--gold-text)]">
+          <p className="text-center font-sans text-[min(0.68rem,11px)] font-semibold tracking-[0.2em] uppercase text-[var(--gold-text)]">
             Evangelio del día
           </p>
-          <p className="mt-0.5 mb-2.5 text-center font-sans text-[0.8rem] text-[var(--ink-soft)]">
+          <p className="mt-0.5 mb-2.5 text-center font-sans text-[min(0.8rem,13px)] text-[var(--ink-soft)]">
             {gospel.title}
           </p>
           {initial && (
@@ -296,12 +344,16 @@ function DailyGospelSection({ gospel }: { gospel: DailyGospel }) {
             </span>
           )}
           <blockquote
+            ref={quoteRef}
             cite={gospel.reference}
-            className="font-serif text-[1.08rem] sm:text-[1.24rem] leading-[1.44] text-[var(--ink)]"
+            className="overflow-hidden font-serif text-[1.08rem] sm:text-[1.24rem] leading-[1.44] text-[var(--ink)]"
             style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
           >
             <span className="sr-only">{initial}</span>
-            {open ? rest : teaser(rest, more.length > 0)}
+            {open || more.length === 0
+              ? rest
+              : // "país." + "…" read as "país.…" — swap the stop for the ellipsis.
+                `${rest.replace(/[.,;:]\s*$/, "")}…`}
             {open &&
               more.map((v) => (
                 <span key={`${v.capitulo}:${v.versiculo}`}>
@@ -317,7 +369,7 @@ function DailyGospelSection({ gospel }: { gospel: DailyGospel }) {
           <p className="ref-rule">{gospel.reference}</p>
           {/* Bordered pills with icons, not bare text — gold text alone read
               as a caption, and nobody tapped it. */}
-          <div className="mt-3 flex flex-wrap justify-center gap-2">
+          <div className="mt-3 flex flex-wrap justify-center gap-[8px]">
             {tts.supported && (
               <button
                 type="button"
@@ -388,7 +440,7 @@ function Greeting({ name }: { name: string | null }) {
         ? "¡Buenas tardes"
         : "¡Buenas noches";
   return (
-    <p className="font-sans text-[0.88rem] text-[var(--ink-soft)]">
+    <p className="font-sans text-[min(0.88rem,15px)] text-[var(--ink-soft)]">
       {text}
       {name ? `, ${name}` : ""}!
     </p>
@@ -468,7 +520,7 @@ function ActionButton({
         type="button"
         onClick={onStopVoice}
         aria-label="Detener dictado"
-        className="relative grid place-items-center w-11 h-11 rounded-full bg-[var(--vino)] text-white hover:opacity-90 active:scale-95 transition-all"
+        className="relative grid place-items-center w-[44px] h-[44px] shrink-0 rounded-full bg-[var(--vino)] text-white hover:opacity-90 active:scale-95 transition-all"
       >
         <span aria-hidden="true" className="absolute inset-0 rounded-full bg-[var(--vino)] opacity-40 animate-ping" />
         <span className="relative">
@@ -482,7 +534,7 @@ function ActionButton({
       <button
         type="submit"
         aria-label="Enviar pregunta"
-        className="grid place-items-center w-11 h-11 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
+        className="grid place-items-center w-[44px] h-[44px] shrink-0 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
         onClick={(e) => {
           // Use submit handler if inside form; otherwise call directly
           if (!e.currentTarget.form) {
@@ -501,7 +553,7 @@ function ActionButton({
     return (
       <span
         aria-hidden="true"
-        className="grid place-items-center w-11 h-11 rounded-full bg-[var(--rule)] text-[var(--ink-faint)]"
+        className="grid place-items-center w-[44px] h-[44px] shrink-0 rounded-full bg-[var(--rule)] text-[var(--ink-faint)]"
       >
         <SendIcon />
       </span>
@@ -512,7 +564,7 @@ function ActionButton({
       type="button"
       onClick={onStartVoice}
       aria-label="Dictar pregunta"
-      className="grid place-items-center w-11 h-11 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
+      className="grid place-items-center w-[44px] h-[44px] shrink-0 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
     >
       <MicIcon />
     </button>

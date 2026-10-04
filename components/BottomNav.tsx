@@ -150,7 +150,7 @@ export function BottomNav() {
                       className={cn(
                         // Capped: Ajustes → Tamaño del texto is for reading. At 130%
                         // five labels no longer fit and "Parroquias" ran off-screen.
-                        "max-w-full truncate font-sans text-[min(0.68rem,11px)] tracking-[-0.01em]",
+                        "max-w-full truncate font-sans text-[min(0.68rem,11px)] tracking-[-0.02em]",
                       )}
                     >
                       {item.label}
