@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import { LatinCross } from "@/components/Cross";
 import { formatReference, splitVersal } from "@/components/VerseCard";
 import { localDateKey } from "@/lib/daily-verses";
 import type { DailyGospel } from "@/lib/daily-gospel";
-import { speakable, toggle, useTts } from "@/lib/tts";
+import { toggle, useTts } from "@/lib/tts";
+import { cleanVerse, gospelSpeech, liturgicalSeason, reflectQuestion, type Season } from "@/lib/gospel-text";
+import { GospelReader } from "@/components/GospelReader";
 import { PauseIcon, ReadAloudPlayer, SpeakerIcon } from "@/components/ReadAloudPlayer";
 import { HomeAvatar } from "@/components/HomeAvatar";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
@@ -19,9 +21,6 @@ import {
   hasLocalSession,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
-
-const ACROSTIC =
-  /\((?:Alef|Bet|Guímel|Guimel|Dálet|Dalet|He|Vau|Zain|Jet|Tet|Yod|Kaf|Lámed|Lamed|Mem|Nun|Sámec|Samec|Ain|Pe|Sade|Kof|Cof|Res|Sin|Sín|Shin|Tau)\)\s*/gi;
 
 type Verse = { reference: string; text: string };
 type Daily = { verse: Verse; gospel?: DailyGospel };
@@ -146,7 +145,7 @@ export default function HomePage() {
         style={{ paddingBottom: `calc(${NAV_H} + 8px)` }}
       >
         <div className="max-w-2xl mx-auto px-[20px] sm:px-6 pt-3.5">
-          <Greeting name={name} />
+          <Greeting name={name} season={liturgicalSeason(daily?.gospel?.title)} />
 
           {/* Evangelio del día — now the first thing on the page and the only
               thing on it shaped like a window. When you open a devotional app,
@@ -158,7 +157,11 @@ export default function HomePage() {
               feed is down we get a single pool verse instead. */}
           <div className="mt-2.5">
             {daily?.gospel ? (
-              <DailyGospelSection gospel={daily.gospel} scroller={mainRef} />
+              <DailyGospelSection
+                gospel={daily.gospel}
+                scroller={mainRef}
+                onAsk={() => goToChat(reflectQuestion(daily.gospel!))}
+              />
             ) : daily ? (
               <DailyVerseSection verse={daily.verse} />
             ) : (
@@ -235,15 +238,8 @@ function DailyVerseSkeleton() {
   );
 }
 
-function cleanVerse(text: string): string {
-  return text
-    .replace(ACROSTIC, "")
-    .replace(/\s*\|\s*/g, " — ")
-    .trim();
-}
-
 /**
- * Collapsed Gospel: show as many lines of the opening verse as fit, so the
+ * Home Gospel: show as many lines of the pericope as fit, so the
  * question box below is ALWAYS on screen without scrolling — bigger text
  * (Ajustes) or a shorter phone just means fewer lines of Gospel. Measures
  * the real layout instead of guessing a character count:
@@ -271,11 +267,6 @@ function clearFit(bq: HTMLElement) {
   bq.classList.remove("teaser-fade");
 }
 
-/**
- * The Gospel of the day. Collapsed it shows only the opening verse — the home
- * has to keep the question box above the fold — and expands in place to the
- * whole pericope, so reading it never takes you away from the page.
- */
 // Interface text on the home (labels, buttons, headings) is capped with
 // min(rem, px): Ajustes → Tamaño del texto is for READING. Letting the chrome
 // grow too pushed the question box off-screen at 130% even with the Gospel
@@ -283,37 +274,33 @@ function clearFit(bq: HTMLElement) {
 const PILL =
   "flex items-center gap-[6px] min-h-[40px] px-[12px] whitespace-nowrap rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] font-sans text-[min(0.84rem,14px)] font-medium text-[var(--gold-text)] shadow-[0_1px_0_var(--emboss)_inset,0_1px_3px_rgba(0,0,0,0.06)] hover:border-[var(--gold)] active:scale-95 transition-all";
 
-/** What "Escuchar" reads: the liturgical frame around the pericope. */
-function gospelSpeech(gospel: DailyGospel): string {
-  const book = gospel.reference.split(" ")[0];
-  const body = gospel.verses.map((v) => cleanVerse(v.texto)).join(" ");
-  return speakable(
-    `Lectura del santo Evangelio según san ${book}. ${body} Palabra del Señor.`,
-  );
-}
-
+/**
+ * The Gospel of the day on the home. Shows the pericope itself, clipped to
+ * whatever fits above the question box (fitQuote) — so a tall phone reads
+ * several verses instead of one plus blank space. "Leer completo" opens the
+ * full-screen reader (it used to stretch this card), and "Reflexionar sobre
+ * este Evangelio" carries it into the conversation.
+ */
 function DailyGospelSection({
   gospel,
   scroller,
+  onAsk,
 }: {
   gospel: DailyGospel;
   scroller: RefObject<HTMLElement | null>;
+  onAsk: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [readerOpen, setReaderOpen] = useState(false);
   const quoteRef = useRef<HTMLQuoteElement>(null);
 
-  // Collapsed: fit the opening verse to the screen (see fitQuote above).
   useEffect(() => {
     const bq = quoteRef.current;
     const main = scroller.current;
     const column = main?.firstElementChild as HTMLElement | null;
     if (!bq || !main || !column) return;
-    if (open) {
-      clearFit(bq);
-      return;
-    }
     const fit = () => fitQuote(bq, main, column);
     fit();
+    void document.fonts?.ready.then(fit);
     const ro = new ResizeObserver(fit);
     ro.observe(main);
     ro.observe(column);
@@ -321,7 +308,8 @@ function DailyGospelSection({
       ro.disconnect();
       clearFit(bq);
     };
-  }, [open, scroller]);
+  }, [scroller]);
+
   const tts = useTts();
   const ttsId = `gospel:${gospel.reference}`;
   const reading = tts.id === ttsId ? tts.status : "idle";
@@ -350,25 +338,16 @@ function DailyGospelSection({
             style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
           >
             <span className="sr-only">{initial}</span>
-            {open || more.length === 0
-              ? rest
-              : // "país." + "…" read as "país.…" — swap the stop for the ellipsis.
-                `${rest.replace(/[.,;:]\s*$/, "")}…`}
-            {open &&
-              more.map((v) => (
-                <span key={`${v.capitulo}:${v.versiculo}`}>
-                  {" "}
-                  <sup className="font-sans text-[0.62em] text-[var(--gold-text)]">
-                    {v.versiculo}
-                  </sup>
-                  {" "}
-                  {cleanVerse(v.texto)}
-                </span>
-              ))}
+            {rest}
+            {more.map((v) => (
+              <span key={`${v.capitulo}:${v.versiculo}`}>
+                {" "}
+                <sup className="font-sans text-[0.62em] text-[var(--gold-text)]">{v.versiculo}</sup>{" "}
+                {cleanVerse(v.texto)}
+              </span>
+            ))}
           </blockquote>
           <p className="ref-rule">{gospel.reference}</p>
-          {/* Bordered pills with icons, not bare text — gold text alone read
-              as a caption, and nobody tapped it. */}
           <div className="mt-3 flex flex-wrap justify-center gap-[8px]">
             {tts.supported && (
               <button
@@ -383,22 +362,34 @@ function DailyGospelSection({
                 {reading === "playing" ? "Pausar" : reading === "paused" ? "Continuar" : "Escuchar"}
               </button>
             )}
-            {more.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setOpen((o) => !o)}
-                aria-expanded={open}
-                className={PILL}
-              >
-                {open ? "Mostrar menos" : tts.supported ? "Leer completo" : "Leer el Evangelio completo"}
-                <ChevronDown
-                  className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}
-                />
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setReaderOpen(true)}
+              aria-haspopup="dialog"
+              className={PILL}
+            >
+              {tts.supported ? "Leer completo" : "Leer el Evangelio completo"}
+              <ChevronDown />
+            </button>
           </div>
         </div>
       </div>
+      <div className="mt-3 flex justify-center">
+        <button
+          type="button"
+          onClick={onAsk}
+          className="inline-flex items-center gap-1.5 min-h-[40px] px-[14px] rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[var(--surface)] font-sans text-[min(0.86rem,14px)] font-medium text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] active:scale-95 transition-all"
+        >
+          Reflexionar sobre este Evangelio
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="18" y2="12" />
+            <polyline points="13 6 19 12 13 18" />
+          </svg>
+        </button>
+      </div>
+      {readerOpen && (
+        <GospelReader gospel={gospel} onClose={() => setReaderOpen(false)} onAsk={onAsk} />
+      )}
     </section>
   );
 }
@@ -431,8 +422,28 @@ function DailyVerseSection({ verse }: { verse: Verse }) {
   );
 }
 
-function Greeting({ name }: { name: string | null }) {
+const noSubscribe = () => () => {};
+
+/** "Domingo 4 de octubre". Client-only (the server's clock/timezone isn't
+ *  the viewer's), so it renders empty on the server and fills on hydrate. */
+function useTodayLabel(): string {
+  return useSyncExternalStore(
+    noSubscribe,
+    () => {
+      const s = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }).replace(",", "");
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    },
+    () => "",
+  );
+}
+
+/**
+ * Date + liturgical season (with its colour: green in Ordinary Time…) above
+ * a warmer greeting. It used to be a lone grey "¡Buenas tardes!".
+ */
+function Greeting({ name, season }: { name: string | null; season: Season | null }) {
   const period = useGreetingPeriod();
+  const today = useTodayLabel();
   const text =
     period === "morning"
       ? "¡Buenos días"
@@ -440,10 +451,19 @@ function Greeting({ name }: { name: string | null }) {
         ? "¡Buenas tardes"
         : "¡Buenas noches";
   return (
-    <p className="font-sans text-[min(0.88rem,15px)] text-[var(--ink-soft)]">
-      {text}
-      {name ? `, ${name}` : ""}!
-    </p>
+    <div>
+      <p className="flex items-center gap-1.5 min-h-[1.2em] font-sans text-[min(0.8rem,13px)] text-[var(--ink-faint)]">
+        {season && (
+          <span aria-hidden="true" className="inline-block w-2 h-2 rounded-full" style={{ background: season.color }} />
+        )}
+        {today}
+        {today && season ? ` · ${season.name}` : ""}
+      </p>
+      <p className="mt-0.5 font-display text-[min(1.2rem,20px)] leading-tight text-[var(--ink)]">
+        {text}
+        {name ? `, ${name}` : ""}!
+      </p>
+    </div>
   );
 }
 

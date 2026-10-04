@@ -65,10 +65,15 @@ export default function FavoritasPage() {
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden">
       <header className="page-head-fade px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] z-10">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="font-sans text-[1rem] font-semibold text-[var(--ink)]">
+        <div className="max-w-2xl mx-auto flex items-baseline justify-between gap-3">
+          <h1 className="font-display text-[min(1.5rem,26px)] leading-tight text-[var(--ink)]">
             Mis favoritas
           </h1>
+          {status === "ready" && items.length > 0 && (
+            <span className="font-sans text-[0.84rem] text-[var(--ink-faint)]">
+              {items.length} guardada{items.length === 1 ? "" : "s"}
+            </span>
+          )}
         </div>
       </header>
 
@@ -146,76 +151,78 @@ function restore(prev: Favorite[], f: Favorite): Favorite[] {
   return [...prev, f].sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
+/**
+ * One saved answer. The heart sits by the date (it's the card's state, not
+ * one more action); tapping the text opens it in full; one row of actions.
+ * It used to have four buttons wrapping onto two rows.
+ */
 function FavoriteCard({ f, onUnlike }: { f: Favorite; onUnlike: () => void }) {
   const [open, setOpen] = useState(false);
   const tts = useTts();
   const ttsId = `fav:${f.conversation_id}:${f.ord}`;
   const reading = tts.id === ttsId ? tts.status : "idle";
-  const long = f.response.length > 260;
+  const long = f.response.length > 220;
 
   return (
     <li className="rounded-2xl border border-[var(--rule)] bg-[var(--surface)] p-4 shadow-[0_1px_0_var(--emboss)_inset]">
-      <p className="font-sans text-[0.8rem] text-[var(--ink-faint)]">
-        {new Date(f.created_at).toLocaleDateString("es-ES", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        })}
-      </p>
-      <p className="mt-1 font-sans text-[0.95rem] font-semibold text-[var(--ink)] leading-snug">
-        {f.question}
-      </p>
-
-      {f.verse_text && f.verse_reference && (
-        <blockquote className="mt-3 border-l-2 border-[var(--gold)] pl-3">
-          <p className="font-serif text-[1rem] leading-[1.45] text-[var(--ink)]">
-            {f.verse_text}
-          </p>
-          <p className="mt-1 font-sans text-[0.68rem] font-semibold tracking-[0.18em] uppercase text-[var(--gold-text)]">
-            {formatReference(f.verse_reference)}
-          </p>
-        </blockquote>
-      )}
-
-      <p
-        className={`mt-3 font-serif text-[1rem] leading-[1.5] text-[var(--ink-soft)] ${
-          long && !open ? "line-clamp-4" : ""
-        }`}
-      >
-        {f.response}
-      </p>
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {long && (
-          <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={PILL}>
-            {open ? "Ver menos" : "Ver completa"}
-          </button>
-        )}
-        {tts.supported && (
-          <button
-            type="button"
-            onClick={() => toggle(ttsId, "Favorita", speakable(f.response))}
-            aria-label={reading === "playing" ? "Pausar lectura" : "Escuchar respuesta"}
-            className={`${PILL} ${reading !== "idle" ? "!border-[var(--gold)] !text-[var(--gold-text)]" : ""}`}
-          >
-            {reading === "playing" ? <PauseIcon size={13} /> : <SpeakerIcon size={15} />}
-            {reading === "playing" ? "Pausar" : "Escuchar"}
-          </button>
-        )}
-        <Link href={`/chat?c=${f.conversation_id}`} className={PILL}>
-          Abrir conversación
-        </Link>
+      <div className="flex items-center justify-between gap-3">
+        <p className="font-sans text-[0.8rem] text-[var(--ink-faint)]">
+          {new Date(f.created_at).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
+        </p>
         <button
           type="button"
           onClick={onUnlike}
           aria-label="Quitar de favoritas"
           title="Quitar de favoritas"
-          className="ml-auto grid place-items-center w-9 h-9 rounded-full border border-[var(--vino)]/40 bg-[var(--vino)]/8 text-[var(--vino)] hover:bg-[var(--vino)]/15 transition-colors"
+          className="grid place-items-center w-9 h-9 shrink-0 rounded-full border border-[var(--vino)]/40 bg-[var(--vino)]/8 text-[var(--vino)] hover:bg-[var(--vino)]/15 transition-colors"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => long && setOpen((o) => !o)}
+        aria-expanded={long ? open : undefined}
+        className={`block w-full text-left ${long ? "cursor-pointer" : "cursor-default"}`}
+      >
+        <p className="font-sans text-[0.95rem] font-semibold text-[var(--ink)] leading-snug">{f.question}</p>
+        {f.verse_text && f.verse_reference && (
+          <span className="mt-3 block border-l-2 border-[var(--gold)] pl-3">
+            <span className="block font-serif text-[1rem] leading-[1.45] text-[var(--ink)]">{f.verse_text}</span>
+            <span className="mt-1 block font-sans text-[0.68rem] font-semibold tracking-[0.18em] uppercase text-[var(--gold-text)]">
+              {formatReference(f.verse_reference)}
+            </span>
+          </span>
+        )}
+        <span
+          className={`mt-3 block font-serif text-[1rem] leading-[1.5] text-[var(--ink-soft)] ${long && !open ? "line-clamp-3" : ""}`}
+        >
+          {f.response}
+        </span>
+        {long && (
+          <span className="mt-1 block font-sans text-[0.8rem] font-medium text-[var(--gold-text)]">
+            {open ? "Toca para resumir" : "Toca para leer todo"}
+          </span>
+        )}
+      </button>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {tts.supported && (
+          <button
+            type="button"
+            onClick={() => toggle(ttsId, "Favorita", speakable(f.response))}
+            className={`${PILL} ${reading !== "idle" ? "!border-[var(--gold)] !text-[var(--gold-text)]" : ""}`}
+          >
+            {reading === "playing" ? <PauseIcon size={13} /> : <SpeakerIcon size={15} />}
+            {reading === "playing" ? "Pausar" : reading === "paused" ? "Continuar" : "Escuchar"}
+          </button>
+        )}
+        <Link href={`/chat?c=${f.conversation_id}`} className={PILL}>
+          Abrir conversación
+        </Link>
       </div>
     </li>
   );

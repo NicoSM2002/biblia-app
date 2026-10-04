@@ -718,6 +718,15 @@ html[data-font="sencilla"] .font-serif {
   mask-image: linear-gradient(to bottom, #000 calc(100% - 1.3em), transparent);
 }
 
+/* Full-screen Gospel reader (components/GospelReader.tsx). */
+.reader-in {
+  animation: reader-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes reader-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Ajustes sheet: slides up from the bottom edge. */
 .settings-sheet {
   animation: sheet-up 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -725,14 +734,6 @@ html[data-font="sencilla"] .font-serif {
 @keyframes sheet-up {
   from { transform: translateY(100%); }
   to   { transform: translateY(0); }
-}
-
-/* Text-size slider: native range (keyboard + screen-reader for free),
-   tinted gold, with a thumb big enough for a thumb. */
-.settings-range {
-  accent-color: var(--gold);
-  height: 32px;
-  cursor: pointer;
 }
 
 /* Read-aloud mini player: drops in under the header; three gold bars bounce

@@ -10,12 +10,14 @@ import { ChatInput } from "@/components/ChatInput";
 import { HistorySheet } from "@/components/HistorySheet";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
 import { TurnActions } from "@/components/TurnActions";
+import { ShareConversation } from "@/components/ShareConversation";
 import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
 import { apiUrl } from "@/lib/api-url";
 import { authFetch } from "@/lib/auth-fetch";
 import {
   createClient,
   hasLocalSession,
+  useHasLocalSession,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
 
@@ -46,7 +48,10 @@ export default function ChatPage() {
   // Seed signed-in state from the Supabase auth-token cookie so the header
   // doesn't flicker between renders (history button appearing late after
   // the async getUser() check).
-  const [signedIn, setSignedIn] = useState<boolean>(() => hasLocalSession());
+  // Stored session first (hydration-safe), replaced by the auth check below.
+  const hasSession = useHasLocalSession();
+  const [authSignedIn, setSignedIn] = useState<boolean | null>(null);
+  const signedIn = authSignedIn ?? hasSession;
   const [historyOpen, setHistoryOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     null,
@@ -425,13 +430,6 @@ export default function ChatPage() {
           onOpenHistory={signedIn ? () => setHistoryOpen(true) : undefined}
           onReset={turns.length > 0 ? reset : undefined}
           conversationTitle={activeConversationTitle}
-          shareableTurns={turns
-            .filter((t) => t.status === "done" && (t.response || t.verse))
-            .map((t) => ({
-              question: t.question,
-              verse: t.verse ?? null,
-              response: t.response,
-            }))}
         />
         <ReadAloudPlayer />
         <HistorySheet
@@ -518,6 +516,17 @@ export default function ChatPage() {
                     )}
                   </article>
                 ))
+              )}
+              {/* Whole-conversation share, once there's more than one answer
+                  (each answer has its own Compartir). */}
+              {!pending && turns.filter((t) => t.status === "done" && (t.response || t.verse)).length > 1 && (
+                <div className="mb-6 flex justify-center no-print">
+                  <ShareConversation
+                    turns={turns
+                      .filter((t) => t.status === "done" && (t.response || t.verse))
+                      .map((t) => ({ question: t.question, verse: t.verse ?? null, response: t.response }))}
+                  />
+                </div>
               )}
             </div>
           </div>

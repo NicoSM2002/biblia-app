@@ -34,7 +34,7 @@ export default function OracionPage() {
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    fetch(apiUrl(`/api/daily-verse?date=${localDateKey()}`))
+    fetch(apiUrl(`/api/daily-verse?date=${localDateKey()}&tipo=oracion`))
       .then((r) => r.json())
       .then((d: { verse?: Verse }) => {
         if (d.verse) setVerse(d.verse);
@@ -106,8 +106,14 @@ export default function OracionPage() {
     setPaused(false);
   }
 
+  // Straubinger text often carries its own opening/closing quote marks;
+  // strip them before wrapping, or it reads ““Escuchad…”.
   const display = verse
-    ? `“${verse.text.replace(ACROSTIC, "").replace(/\s*\|\s*/g, " — ").trim()}”`
+    ? `“${verse.text
+        .replace(ACROSTIC, "")
+        .replace(/\s*\|\s*/g, " — ")
+        .trim()
+        .replace(/^[“"«]+|[”"»]+$/g, "")}”`
     : "";
 
   return (
@@ -261,21 +267,25 @@ function PrayingPhase({
       </ProgressRing>
 
       <div className="mt-6 flex items-center gap-3">
+        {/* Labelled: a gold circle with ❚❚ and a small square didn't say
+            "pause" and "finish" to everyone. */}
         <button
+          type="button"
           onClick={onTogglePause}
-          aria-label={paused ? "Reanudar" : "Pausar"}
-          className="grid place-items-center w-14 h-14 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
+          className="inline-flex items-center gap-2 min-h-[48px] px-5 rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] font-sans text-[0.95rem] font-semibold hover:bg-[var(--gold-soft)] active:scale-95 transition-all"
           style={{ touchAction: "manipulation" }}
         >
           {paused ? <PlayIcon /> : <PauseIcon />}
+          {paused ? "Continuar" : "Pausar"}
         </button>
         <button
+          type="button"
           onClick={onEnd}
-          aria-label="Terminar"
-          className="grid place-items-center w-12 h-12 rounded-full border border-[color-mix(in_srgb,var(--marian)_32%,transparent)] text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_10%,transparent)] active:scale-95 transition-all"
+          className="inline-flex items-center gap-2 min-h-[48px] px-5 rounded-full border border-[color-mix(in_srgb,var(--marian)_32%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-sans text-[0.95rem] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_10%,transparent)] active:scale-95 transition-all"
           style={{ touchAction: "manipulation" }}
         >
           <StopIcon />
+          Terminar
         </button>
       </div>
 
@@ -458,7 +468,7 @@ function PrayingHandsIcon() {
 
 function PlayIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <polygon points="6 4 20 12 6 20 6 4" />
     </svg>
   );
@@ -466,7 +476,7 @@ function PlayIcon() {
 
 function PauseIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <rect x="6" y="4" width="4" height="16" rx="1" />
       <rect x="14" y="4" width="4" height="16" rx="1" />
     </svg>

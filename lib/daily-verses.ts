@@ -99,3 +99,36 @@ export function getDailyReference(date = new Date()): DailyRef {
   const dayOfYear = Math.floor((now - start) / 86_400_000);
   return DAILY_VERSE_POOL[dayOfYear % DAILY_VERSE_POOL.length];
 }
+
+/**
+ * Verses for the prayer screen: short, complete on their own and suited to
+ * silence. The general pool above has entries that start mid-sentence
+ * ("enseñándoles a conservar…", Mt 28:20) or carry psalm headings ("Salmo
+ * de David."), which read badly as the one line you rest on while praying.
+ */
+export const PRAYER_POOL: DailyRef[] = [
+  { abbr: "Sal", capitulo: 46, versiculo: 11 },
+  { abbr: "Sal", capitulo: 62, versiculo: 2 },
+  { abbr: "Mt", capitulo: 11, versiculo: 28 },
+  { abbr: "Sal", capitulo: 34, versiculo: 19 },
+  { abbr: "Jn", capitulo: 14, versiculo: 27 },
+  { abbr: "Sal", capitulo: 103, versiculo: 8 },
+  { abbr: "1 Pe", capitulo: 5, versiculo: 7 },
+  { abbr: "Sal", capitulo: 145, versiculo: 18 },
+  { abbr: "Prov", capitulo: 3, versiculo: 5 },
+  { abbr: "Sal", capitulo: 27, versiculo: 14 },
+  { abbr: "Flp", capitulo: 4, versiculo: 13 },
+  { abbr: "Sal", capitulo: 121, versiculo: 8 },
+  { abbr: "Lam", capitulo: 3, versiculo: 22 },
+  { abbr: "Sal", capitulo: 23, versiculo: 4 },
+  { abbr: "1 Jn", capitulo: 4, versiculo: 8 },
+  { abbr: "Sal", capitulo: 118, versiculo: 24 },
+];
+
+/** The prayer verse of the day — same day-of-year rotation as above. */
+export function getPrayerReference(date = new Date()): DailyRef {
+  const start = Date.UTC(date.getFullYear(), 0, 0);
+  const now = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayOfYear = Math.floor((now - start) / 86_400_000);
+  return PRAYER_POOL[dayOfYear % PRAYER_POOL.length];
+}

@@ -141,21 +141,44 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
         <div className="px-5 space-y-6">
           {/* Tamaño del texto */}
           <section>
-            <Label htmlFor="settings-scale">Tamaño del texto</Label>
-            <div className="mt-3 flex items-center gap-3">
-              <span aria-hidden="true" className="font-display text-[0.85rem] text-[var(--ink-soft)] w-4 text-center">A</span>
-              <input
-                id="settings-scale"
-                type="range"
-                min={0}
-                max={SCALE_STEPS.length - 1}
-                step={1}
-                value={stepIndex}
-                onChange={(e) => update({ scale: SCALE_STEPS[Number(e.target.value)] })}
-                aria-valuetext={`${Math.round(settings.scale * 100)} %`}
-                className="settings-range flex-1"
-              />
-              <span aria-hidden="true" className="font-display text-[1.35rem] text-[var(--ink-soft)] w-4 text-center">A</span>
+            {/* Five tap targets instead of a range slider: the native slider
+                drew a near-black track that matched nothing in the app, and
+                dragging a small thumb is hardest for exactly the people who
+                need bigger text. */}
+            <Label id="settings-scale">Tamaño del texto</Label>
+            <div
+              role="radiogroup"
+              aria-labelledby="settings-scale"
+              className="mt-3 grid grid-cols-5 gap-1 rounded-2xl bg-[var(--vellum)] p-1"
+            >
+              {SCALE_STEPS.map((step, i) => {
+                const selected = i === stepIndex;
+                return (
+                  <button
+                    key={step}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    aria-label={`${Math.round(step * 100)} %`}
+                    onClick={() => update({ scale: step })}
+                    className={`grid place-items-center h-[48px] rounded-xl font-display transition-all active:scale-[0.96] ${
+                      selected
+                        ? "bg-[var(--surface)] text-[var(--gold-text)] border border-[color-mix(in_srgb,var(--gold)_50%,transparent)] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                        : "border border-transparent text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                    }`}
+                    style={{ fontSize: `${13 + i * 3.5}px` }}
+                  >
+                    A
+                  </button>
+                );
+              })}
+            </div>
+            <div aria-hidden="true" className="mt-1.5 grid grid-cols-5 font-sans text-[12px] text-[var(--ink-faint)]">
+              <span className="text-center">Pequeña</span>
+              <span className="text-center">Normal</span>
+              <span />
+              <span />
+              <span className="text-center whitespace-nowrap">Muy grande</span>
             </div>
             <p className="mt-3 rounded-2xl border border-[var(--rule)] bg-[var(--surface)] px-4 py-3 font-serif text-[1.08rem] leading-[1.44] text-[var(--ink)]">
               Antorcha para mis pies es tu palabra, y luz para mi senda.

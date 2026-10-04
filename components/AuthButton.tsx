@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   createClient,
   hasLocalSession,
+  useHasLocalSession,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -16,9 +17,11 @@ export function AuthButton() {
   // Seed signed-in flag from the auth-token cookie (sync) so the correct
   // shape (avatar vs. "Entrar" button) renders on first paint and the
   // header doesn't shift when the async getUser() resolves a moment later.
-  const [signedIn, setSignedIn] = useState<boolean>(() =>
-    isSupabaseConfigured() ? hasLocalSession() : false,
-  );
+  // Stored session first (hydration-safe: see useHasLocalSession), then
+  // whatever the auth check below decides.
+  const hasSession = useHasLocalSession();
+  const [authSignedIn, setSignedIn] = useState<boolean | null>(null);
+  const signedIn = authSignedIn ?? (isSupabaseConfigured() && hasSession);
   const [email, setEmail] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

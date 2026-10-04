@@ -108,7 +108,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
   if (error) {
     return (
       <div className="relative h-[100dvh] flex flex-col bg-[var(--paper)]">
-        <DetailHeader title="Parroquia" />
+        <DetailHeader title="Parroquias" />
         <main className="flex-1 grid place-items-center px-6 pb-24 text-center">
           <div className="max-w-sm">
             <p className="font-display text-quote text-[var(--ink)] mb-2">
@@ -148,7 +148,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
   if (!church) {
     return (
       <div className="relative h-[100dvh] flex flex-col bg-[var(--paper)]">
-        <DetailHeader title="Parroquia" />
+        <DetailHeader title="Parroquias" />
         <main className="flex-1 grid place-items-center px-6 pb-24">
           <div className="flex items-center gap-2">
             <span className="dot-1 inline-block w-[6px] h-[6px] rounded-full bg-[var(--gold)]" />
@@ -174,7 +174,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
 
   return (
     <div className="relative h-[100dvh] flex flex-col bg-[var(--paper)] overflow-hidden">
-      <DetailHeader title={church.name} />
+      <DetailHeader title="Parroquias" />
 
       <main className="page-content-fade flex-1 overflow-y-auto" style={{ paddingBottom: `calc(${NAV_H} + 16px)` }}>
         <div className="max-w-2xl mx-auto">
@@ -323,7 +323,7 @@ function PhotoCarousel({
 
   if (photos.length === 0) {
     return (
-      <div className="relative bg-[var(--vellum)] aspect-[4/3] sm:aspect-[16/10] overflow-hidden">
+      <div className="relative bg-[var(--vellum)] aspect-[16/10] sm:aspect-[2/1] overflow-hidden">
         <div className="absolute inset-0 grid place-items-center text-[var(--gold-text)] opacity-50">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="2" x2="12" y2="5" />
@@ -340,7 +340,7 @@ function PhotoCarousel({
   return (
     <div
       ref={containerRef}
-      className="relative bg-[var(--vellum)] aspect-[4/3] sm:aspect-[16/10] overflow-hidden select-none"
+      className="relative bg-[var(--vellum)] aspect-[16/10] sm:aspect-[2/1] overflow-hidden select-none"
       style={{ touchAction: "pan-x" }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
@@ -469,6 +469,96 @@ function formatTime(t: string): string {
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${suffix}`;
 }
 
+type Next = { day: string; offset: number; time: string; minutesAway: number; later: string[] };
+
+/**
+ * The next mass from now, looking up to a week ahead. "Hoy" only counts
+ * times still to come; the phone's clock is the parish's clock (same city).
+ */
+function nextMass(days: MassTimes["days"], now: Date): Next | null {
+  const todayIdx = (now.getDay() + 6) % 7; // lunes = 0
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  for (let offset = 0; offset < 7; offset++) {
+    const day = WEEK[(todayIdx + offset) % 7];
+    const times = days.find((d) => d.day === day)?.times ?? [];
+    const upcoming = offset === 0 ? times.filter((t) => toMinutes(t) > nowMin) : times;
+    if (upcoming.length) {
+      const [time, ...later] = upcoming;
+      const minutesAway = offset * 1440 + toMinutes(time) - nowMin;
+      return { day, offset, time, minutesAway, later };
+    }
+  }
+  return null;
+}
+
+function toMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+/** Consecutive days with identical times collapse: "Martes a viernes". */
+function groupDays(days: MassTimes["days"]): { label: string; days: string[]; times: string[] }[] {
+  const groups: { days: string[]; times: string[] }[] = [];
+  for (const day of WEEK) {
+    const times = days.find((d) => d.day === day)?.times ?? [];
+    const last = groups[groups.length - 1];
+    if (last && last.times.join() === times.join()) last.days.push(day);
+    else groups.push({ days: [day], times });
+  }
+  return groups.map((g) => ({
+    ...g,
+    label:
+      g.days.length === 1
+        ? capitalize(g.days[0])
+        : g.days.length === 2
+          ? `${capitalize(g.days[0])} y ${g.days[1]}`
+          : `${capitalize(g.days[0])} a ${g.days[g.days.length - 1]}`,
+  }));
+}
+
+/**
+ * What people open a parish for: "when is the next mass?" — answered
+ * before the weekly table, with how long until it starts.
+ */
+function NextMassCard({ next }: { next: Next }) {
+  const h = Math.floor(next.minutesAway / 60);
+  const m = next.minutesAway % 60;
+  const when =
+    next.offset === 0
+      ? h
+        ? `en ${h} h${m ? ` ${m} min` : ""}`
+        : `en ${m} min`
+      : next.offset === 1
+        ? "Mañana"
+        : capitalize(next.day);
+  const sub =
+    next.offset === 0
+      ? `Hoy, ${next.day}${next.later.length ? ` · Después: ${next.later.map(formatTime).join(" · ")}` : " · Es la última de hoy"}`
+      : next.offset === 1
+        ? `Mañana, ${next.day}`
+        : capitalize(next.day);
+  return (
+    <div
+      className="rounded-2xl border p-4"
+      style={{
+        borderColor: "color-mix(in srgb, var(--gold) 40%, transparent)",
+        background: "var(--vellum)",
+      }}
+    >
+      <p className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold">
+        Próxima misa
+      </p>
+      <div className="mt-1.5 flex items-baseline justify-between gap-3">
+        <p className="font-display text-[min(1.9rem,32px)] leading-none text-[var(--ink)]">
+          {formatTime(next.time)}
+        </p>
+        <p className="font-sans text-[0.9rem] font-semibold text-[var(--marian)] text-right">{when}</p>
+      </div>
+      <p className="mt-2 font-sans text-[0.86rem] text-[var(--ink-soft)]">{sub}</p>
+    </div>
+  );
+}
+
 /**
  * Horarios de misa — read from the parish's own website by
  * /api/iglesias/[placeId]/misas (Google has no mass times; its hours are
@@ -496,6 +586,7 @@ function MassTimesSection({ placeId }: { placeId: string }) {
   }, [placeId]);
 
   const today = todayName();
+  const next = masses?.found ? nextMass(masses.days, new Date()) : null;
 
   return (
     <section className="mt-8" aria-busy={!masses && !failed}>
@@ -523,14 +614,14 @@ function MassTimesSection({ placeId }: { placeId: string }) {
 
       {masses?.found && (
         <>
+          {next && <NextMassCard next={next} />}
           {masses.days.length > 0 && (
-            <ul>
-              {WEEK.map((day) => {
-                const times = masses.days.find((d) => d.day === day)?.times ?? [];
-                const isToday = day === today;
+            <ul className={next ? "mt-4" : ""}>
+              {groupDays(masses.days).map((g) => {
+                const isToday = g.days.includes(today);
                 return (
                   <li
-                    key={day}
+                    key={g.label}
                     className="flex items-baseline justify-between gap-3 py-2 border-b border-[var(--rule)] last:border-b-0"
                   >
                     <span
@@ -538,7 +629,7 @@ function MassTimesSection({ placeId }: { placeId: string }) {
                         isToday ? "text-[var(--ink)] font-medium" : "text-[var(--ink-soft)]"
                       }`}
                     >
-                      {capitalize(day)}
+                      {g.label}
                       {isToday && (
                         <span className="ml-2 font-sans text-[0.7rem] tracking-[0.1em] uppercase text-[var(--gold-text)]">
                           Hoy
@@ -549,12 +640,12 @@ function MassTimesSection({ placeId }: { placeId: string }) {
                       className={`font-sans text-[0.88rem] text-right ${
                         isToday
                           ? "text-[var(--gold-text)] font-medium"
-                          : times.length
+                          : g.times.length
                             ? "text-[var(--ink-soft)]"
                             : "text-[var(--ink-faint)]"
                       }`}
                     >
-                      {times.length ? times.map(formatTime).join(" · ") : "Sin misa"}
+                      {g.times.length ? g.times.map(formatTime).join(" · ") : "Sin misa"}
                     </span>
                   </li>
                 );

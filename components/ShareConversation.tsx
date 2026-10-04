@@ -9,8 +9,9 @@ type Turn = {
 };
 
 /**
- * Share-the-whole-conversation button. Lives in the chat header, only
- * visible when there's at least one completed turn. Uses Web Share API
+ * Share-the-whole-conversation button. Sits at the end of the conversation
+ * (it used to be an unlabelled icon in the header) once there are two or
+ * more answers — a single answer has its own Compartir. Uses Web Share API
  * where available (iOS / Android share sheet), falls back to copying
  * the formatted transcript to the clipboard.
  */
@@ -48,16 +49,11 @@ export function ShareConversation({ turns }: { turns: Turn[] }) {
     <button
       type="button"
       onClick={onShare}
-      aria-label={
-        state === "copied"
-          ? "Conversación copiada"
-          : "Compartir conversación"
-      }
-      title="Compartir conversación"
-      className="grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-all duration-200 shrink-0"
+      className="inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors"
       style={{ touchAction: "manipulation" }}
     >
       {state === "copied" ? <CheckIcon /> : <ShareIcon />}
+      {state === "copied" ? "Conversación copiada" : "Compartir conversación"}
     </button>
   );
 }

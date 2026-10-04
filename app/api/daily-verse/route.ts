@@ -4,6 +4,11 @@
  * LOCAL date. Because the date is part of the URL, each response can be
  * cached safely (a cached entry can never be "yesterday's" Gospel).
  *
+ * ?tipo=oracion skips the Gospel and returns the day's verse from
+ * PRAYER_POOL (lib/daily-verses.ts): the prayer screen needs a
+ * line to rest on in silence, not the first verse of a pericope (which can
+ * start mid-parable: "Escuchad otra parábola…").
+ *
  * Response:
  *   verse   — always present: the Gospel's first verse (or, if the liturgical
  *             feed is unreachable, a verse from the curated pool). The prayer
@@ -13,7 +18,7 @@
 
 import { findByRef } from "@/lib/bible";
 import { getDailyGospel } from "@/lib/daily-gospel";
-import { getDailyReference, localDateKey } from "@/lib/daily-verses";
+import { getDailyReference, getPrayerReference, localDateKey } from "@/lib/daily-verses";
 
 export const runtime = "nodejs";
 
@@ -24,8 +29,9 @@ export async function GET(req: Request) {
     ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
     : new Date();
   const dateKey = localDateKey(date);
+  const forPrayer = new URL(req.url).searchParams.get("tipo") === "oracion";
 
-  const gospel = await getDailyGospel(dateKey);
+  const gospel = forPrayer ? null : await getDailyGospel(dateKey);
   if (gospel) {
     const first = gospel.verses[0];
     return Response.json(
@@ -47,9 +53,9 @@ export async function GET(req: Request) {
     );
   }
 
-  // Fallback: liturgical feed down — rotate the curated pool so the home
-  // still has something to show. Short cache so we retry the feed soon.
-  const ref = getDailyReference(date);
+  // Prayer verse, or fallback when the liturgical feed is down: the curated
+  // pool. Short cache in the fallback case so we retry the feed soon.
+  const ref = forPrayer ? getPrayerReference(date) : getDailyReference(date);
   const verse = findByRef(`${ref.abbr} ${ref.capitulo}:${ref.versiculo}`);
   if (!verse) {
     return Response.json({ error: "verse not found" }, { status: 500 });
@@ -61,6 +67,11 @@ export async function GET(req: Request) {
         text: verse.texto,
       },
     },
-    { headers: { "Cache-Control": "public, max-age=300, s-maxage=300" } },
+    {
+      headers: {
+        "Cache-Control":
+          forPrayer && match ? "public, max-age=86400, s-maxage=86400" : "public, max-age=300, s-maxage=300",
+      },
+    },
   );
 }

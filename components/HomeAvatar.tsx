@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   createClient,
   hasLocalSession,
+  useHasLocalSession,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -45,9 +46,11 @@ function writeCachedUser(user: CachedUser) {
 
 export function HomeAvatar() {
   const router = useRouter();
-  const [signedIn, setSignedIn] = useState<boolean>(() =>
-    isSupabaseConfigured() ? hasLocalSession() : false,
-  );
+  // Stored session first (hydration-safe: see useHasLocalSession), then
+  // whatever the auth check below decides.
+  const hasSession = useHasLocalSession();
+  const [authSignedIn, setSignedIn] = useState<boolean | null>(null);
+  const signedIn = authSignedIn ?? (isSupabaseConfigured() && hasSession);
   // Read cached user data synchronously on first render so the avatar
   // shows the correct initial immediately, no placeholder flash.
   const [name, setName] = useState<string | null>(

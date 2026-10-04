@@ -91,62 +91,58 @@ export function TurnActions({
     }
   }
 
+  // Labelled pills, not bare icons: a speaker, a heart and a share glyph
+  // in circles didn't say what they did to the people this app is for.
+  const base =
+    "inline-flex items-center gap-1.5 min-h-[38px] px-3.5 rounded-full border font-sans text-[min(0.84rem,14px)] font-medium transition-colors";
+  const neutral =
+    "border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)]";
+
   return (
-    <div className="flex items-center gap-2 mt-3 mb-1">
+    <div className="flex flex-wrap items-center gap-2 mt-3 mb-1">
       {tts.supported && response && (
         <button
           type="button"
           onClick={() => toggle(ttsId, "Respuesta", speakable(response))}
-          aria-label={
-            reading === "playing" ? "Pausar lectura" : reading === "paused" ? "Continuar lectura" : "Escuchar respuesta"
-          }
           aria-pressed={reading !== "idle"}
-          className={`grid place-items-center w-9 h-9 rounded-full border transition-colors ${
+          className={`${base} ${
             reading !== "idle"
               ? "border-[var(--gold)] bg-[var(--vellum)] text-[var(--gold-text)]"
-              : "border-[var(--rule)] text-[var(--ink-faint)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)]"
+              : neutral
           }`}
         >
           {reading === "playing" ? <PauseIcon size={13} /> : <SpeakerIcon size={15} />}
+          {reading === "playing" ? "Pausar" : reading === "paused" ? "Continuar" : "Escuchar"}
         </button>
       )}
       {canLike && (
-      <button
-        type="button"
-        onClick={() => {
-          setJustLiked(!liked);
-          onToggleLike();
-        }}
-        aria-label={liked ? "Quitar de favoritas" : "Guardar en favoritas"}
-        aria-pressed={liked}
-        className={`grid place-items-center w-9 h-9 rounded-full border transition-colors ${
-          liked
-            ? "border-[var(--vino)]/40 bg-[var(--vino)]/8 text-[var(--vino)]"
-            : "border-[var(--rule)] text-[var(--ink-faint)] hover:border-[var(--vino)]/40 hover:text-[var(--vino)] hover:bg-[var(--vino)]/5"
-        }`}
-      >
-        <HeartIcon filled={liked} />
-      </button>
+        <button
+          type="button"
+          onClick={() => {
+            setJustLiked(!liked);
+            onToggleLike();
+          }}
+          aria-pressed={liked}
+          className={`${base} ${
+            liked
+              ? "border-[var(--vino)]/40 bg-[var(--vino)]/8 text-[var(--vino)]"
+              : "border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--vino)]/40 hover:text-[var(--vino)] hover:bg-[var(--vino)]/5"
+          }`}
+        >
+          <HeartIcon filled={liked} />
+          {liked ? "Guardada" : "Guardar"}
+        </button>
       )}
-      <button
-        type="button"
-        onClick={onShare}
-        aria-label={shareState === "copied" ? "Copiado" : "Compartir"}
-        className="grid place-items-center w-9 h-9 rounded-full border border-[var(--rule)] text-[var(--ink-faint)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors"
-      >
+      <button type="button" onClick={onShare} className={`${base} ${neutral}`}>
         {shareState === "copied" ? <CheckIcon /> : <ShareIcon />}
+        {shareState === "copied" ? "Copiado" : "Compartir"}
       </button>
-      {shareState === "copied" && (
-        <span className="font-sans text-[0.78rem] text-[var(--ink-soft)]">
-          Copiado
-        </span>
-      )}
       {canLike && liked && justLiked && (
         <Link
           href="/favoritas"
-          className="anim-fade-in inline-flex items-center gap-1 min-h-[36px] px-3 rounded-full border border-[var(--vino)]/30 bg-[var(--surface)] font-sans text-[0.78rem] font-medium text-[var(--vino)] hover:bg-[var(--vino)]/[0.06] transition-colors"
+          className="anim-fade-in inline-flex items-center gap-1 min-h-[38px] px-3.5 rounded-full border border-[var(--vino)]/30 bg-[var(--surface)] font-sans text-[min(0.84rem,14px)] font-medium text-[var(--vino)] hover:bg-[var(--vino)]/[0.06] transition-colors"
         >
-          Guardada · Ver favoritas
+          Ver favoritas
         </Link>
       )}
     </div>

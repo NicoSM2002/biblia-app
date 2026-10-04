@@ -111,7 +111,7 @@ function Misas() {
       const newChurches = json.churches as Church[];
       const newSearchedFrom =
         json.formattedAddress ||
-        (args.coords ? "Tu ubicación actual" : args.address || "");
+        (args.coords ? "tu ubicación actual" : args.address || "");
       const newOrigin: SearchOrigin = json.center
         ? { lat: json.center.lat, lng: json.center.lng }
         : args.coords ?? null;
@@ -164,10 +164,12 @@ function Misas() {
 
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-[var(--paper)]">
+      {/* One title. It used to be "Parroquias" in the header and then
+          "Misa cerca de ti" again as a heading right below it. */}
       <header className="page-head-fade px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
         <div className="max-w-2xl mx-auto">
-          <h1 className="font-sans text-[1rem] font-semibold text-[var(--ink)]">
-            Parroquias
+          <h1 className="font-display text-[min(1.5rem,26px)] leading-tight text-[var(--ink)]">
+            Misa cerca de ti
           </h1>
         </div>
       </header>
@@ -179,18 +181,87 @@ function Misas() {
         style={{ paddingBottom: `calc(${NAV_H} + 16px)` }}
       >
         <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-6">
-          <div>
-            {/* Left-aligned, not centred. A centred title and subtitle sitting
-                on top of a left-aligned list gave the screen two reading axes
-                at once. One axis, on the left. */}
-            <h2 className="font-display font-display-lg text-page sm:text-hero text-[var(--ink)] leading-[1.2] mb-2">
-              Misa cerca de ti
-            </h2>
-            <p className="font-sans text-[0.9rem] text-[var(--ink-soft)] leading-relaxed max-w-[38ch] mb-6">
-              Iglesias católicas cercanas. Toca una para ver sus horarios de misa.
-            </p>
-          </div>
+          {/* Before the first search: "use my location" is THE action, so it
+              is a big labelled button — it used to be an unlabelled target
+              icon tucked inside the address field. Typing an address is the
+              alternative, below it. */}
+          {!churches && !pending && (
+            <div className="flex flex-col items-center text-center pt-2">
+              <span
+                aria-hidden="true"
+                className="grid place-items-center w-[72px] h-[84px] text-[var(--gold)]"
+                style={{
+                  borderRadius: "50% 50% 10px 10px / 34px 34px 10px 10px",
+                  background:
+                    "radial-gradient(ellipse 120% 80% at 50% 0%, color-mix(in srgb, var(--gold) 20%, transparent), transparent 70%), var(--vellum)",
+                  border: "1px solid color-mix(in srgb, var(--gold) 34%, transparent)",
+                }}
+              >
+                <ChurchGlyph />
+              </span>
+              <h2 className="mt-4 font-display text-[min(1.3rem,22px)] leading-[1.25] text-[var(--ink)] max-w-[22ch]" style={{ textWrap: "balance" }}>
+                Encuentra parroquias y sus horarios de misa
+              </h2>
+              <p className="mt-2 font-sans text-[0.9rem] leading-relaxed text-[var(--ink-soft)] max-w-[34ch]">
+                Usamos tu ubicación solo para buscar iglesias cercanas. No se guarda.
+              </p>
+              <button
+                type="button"
+                onClick={useMyLocation}
+                className="mt-6 w-full max-w-sm inline-flex items-center justify-center gap-2 min-h-[52px] rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] font-sans text-[1rem] font-semibold hover:bg-[var(--gold-soft)] active:scale-[0.98] transition-all"
+              >
+                <TargetIcon />
+                Usar mi ubicación
+              </button>
+              <p className="mt-5 mb-2 font-sans text-[0.84rem] text-[var(--ink-faint)]">
+                o escribe una dirección
+              </p>
+              <div className="w-full max-w-sm text-left">
+              <form onSubmit={onSubmit}>
+                <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--rule)] rounded-full pl-4 pr-1.5 py-1.5 transition-all shadow-[0_1px_0_var(--emboss)_inset] focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
+                  <PinIcon className="text-[var(--ink-faint)] shrink-0" />
+                  <input
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    disabled={pending}
+                    placeholder={churches ? "Otra dirección o ciudad" : "Ciudad, barrio o dirección"}
+                    enterKeyHint="search"
+                    className="flex-1 min-w-0 bg-transparent outline-none font-sans text-[0.95rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
+                    aria-label="Dirección o ciudad"
+                  />
+                  {address.trim() ? (
+                    <button
+                      type="submit"
+                      disabled={pending}
+                      className="inline-flex items-center min-h-[40px] px-4 rounded-full bg-[var(--marian)] text-white font-sans text-[0.88rem] font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                    >
+                      Buscar
+                    </button>
+                  ) : (
+                    churches && (
+                      <button
+                        type="button"
+                        onClick={useMyLocation}
+                        disabled={pending}
+                        className="inline-flex items-center gap-1.5 min-h-[40px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] text-[var(--marian)] font-sans text-[0.86rem] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_14%,transparent)] transition-colors disabled:opacity-50"
+                      >
+                        <TargetIcon />
+                        Cerca de mí
+                      </button>
+                    )
+                  )}
+                </div>
+              </form>
+              </div>
+              {error && (
+                <p role="alert" className="mt-4 font-sans text-[0.92rem] text-[var(--vino)]">
+                  {error}
+                </p>
+              )}
+            </div>
+          )}
 
+          {(churches || pending) && (
           <form onSubmit={onSubmit}>
             <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--rule)] rounded-full pl-4 pr-1.5 py-1.5 transition-all shadow-[0_1px_0_var(--emboss)_inset] focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
               <PinIcon className="text-[var(--ink-faint)] shrink-0" />
@@ -198,23 +269,37 @@ function Misas() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 disabled={pending}
-                placeholder="Escribe tu dirección o ciudad"
-                className="flex-1 bg-transparent outline-none font-sans text-[0.95rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
+                placeholder={churches ? "Otra dirección o ciudad" : "Ciudad, barrio o dirección"}
+                enterKeyHint="search"
+                className="flex-1 min-w-0 bg-transparent outline-none font-sans text-[0.95rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
                 aria-label="Dirección o ciudad"
               />
-              <button
-                type="button"
-                onClick={useMyLocation}
-                disabled={pending}
-                aria-label="Usar mi ubicación"
-                className="grid place-items-center w-11 h-11 rounded-full text-[var(--marian)] bg-[color-mix(in_srgb,var(--marian)_10%,transparent)] hover:bg-[color-mix(in_srgb,var(--marian)_18%,transparent)] transition-colors disabled:opacity-50"
-              >
-                <TargetIcon />
-              </button>
+              {address.trim() ? (
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="inline-flex items-center min-h-[40px] px-4 rounded-full bg-[var(--marian)] text-white font-sans text-[0.88rem] font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  Buscar
+                </button>
+              ) : (
+                churches && (
+                  <button
+                    type="button"
+                    onClick={useMyLocation}
+                    disabled={pending}
+                    className="inline-flex items-center gap-1.5 min-h-[40px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] text-[var(--marian)] font-sans text-[0.86rem] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_14%,transparent)] transition-colors disabled:opacity-50"
+                  >
+                    <TargetIcon />
+                    Cerca de mí
+                  </button>
+                )
+              )}
             </div>
           </form>
+          )}
 
-          {error && (
+          {(churches || pending) && error && (
             <p role="alert" className="mt-4 font-sans text-[0.92rem] text-[var(--vino)]">
               {error}
             </p>
@@ -236,7 +321,7 @@ function Misas() {
           {churches && (
             <div className="mt-7">
               <p className="font-sans text-[0.82rem] text-[var(--ink-soft)] mb-4">
-                {churches.length} resultado{churches.length === 1 ? "" : "s"} encontrado{churches.length === 1 ? "" : "s"}
+                {churches.length} parroquia{churches.length === 1 ? "" : "s"}
                 {searchedFrom && (
                   <>
                     {" cerca de "}
@@ -265,25 +350,22 @@ function Misas() {
               </ul>
             </div>
           )}
-
-          {/* Left-aligned like the heading and the results list above it — a
-              centred empty state was the last thing on this screen still
-              pulling the eye onto a second axis. */}
-          {!churches && !pending && !error && (
-            <div className="mt-8">
-              <p className="font-display text-body-lg text-[var(--ink)]">
-                Empieza buscando una ubicación
-              </p>
-              <p className="mt-1.5 font-sans text-[0.9rem] text-[var(--ink-soft)]">
-                Escribe tu ciudad o usa el botón de ubicación.
-              </p>
-            </div>
-          )}
         </div>
       </main>
 
       <BottomNav />
     </div>
+  );
+}
+
+function ChurchGlyph() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2v4M10 4h4" />
+      <path d="M5 21V11l7-5 7 5v10" />
+      <path d="M3 21h18" />
+      <rect x="10" y="14" width="4" height="7" />
+    </svg>
   );
 }
 

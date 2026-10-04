@@ -14,6 +14,7 @@
  * machine — this matters for `onAuthStateChange` listeners.
  */
 
+import { useSyncExternalStore } from "react";
 import {
   createClient as createSupabaseClient,
   type SupabaseClient,
@@ -66,4 +67,18 @@ export function hasLocalSession(): boolean {
     // ignore
   }
   return false;
+}
+
+const noSubscribe = () => () => {};
+
+/**
+ * hasLocalSession() as a hook that is safe to render with: the server and
+ * the hydration pass both see `false` (the server can't read localStorage),
+ * then React re-renders with the real value. Seeding useState with
+ * hasLocalSession() directly made the first client render differ from the
+ * server HTML whenever someone was signed in — a hydration error that
+ * threw away and re-drew the whole page.
+ */
+export function useHasLocalSession(): boolean {
+  return useSyncExternalStore(noSubscribe, hasLocalSession, () => false);
 }
