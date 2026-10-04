@@ -11,8 +11,8 @@ import { speakable, toggle, useTts } from "@/lib/tts";
 
 /**
  * Mis favoritas — every response the user hearted in the chat, newest first.
- * Reached from the avatar menu and from the "Ver favoritas" pill that shows
- * right after hearting a response. Only meaningful with an account (the
+ * Its own tab in BottomNav (also the avatar menu, and the "Ver favoritas"
+ * pill that shows right after hearting a response). Only meaningful with an account (the
  * heart is hidden for guests), so without a session this page explains that
  * and links to sign-in.
  */
@@ -29,8 +29,6 @@ type Favorite = {
 
 type Status = "loading" | "anon" | "ready" | "error";
 
-const ROUND =
-  "grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors shrink-0";
 const PILL =
   "inline-flex items-center gap-1.5 min-h-[38px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.82rem] font-medium text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] transition-colors";
 
@@ -67,18 +65,10 @@ export default function FavoritasPage() {
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden">
       <header className="page-head-fade px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] z-10">
-        <div className="max-w-2xl mx-auto flex items-center gap-2">
-          <Link href="/" aria-label="Volver al inicio" className={`${ROUND} -ml-1`}>
-            <BackIcon />
-          </Link>
-          <div className="min-w-0">
-            <p className="font-sans text-[0.66rem] tracking-[0.2em] uppercase text-[var(--gold-text)] font-semibold">
-              Guardadas
-            </p>
-            <h1 className="font-display text-[1.28rem] leading-tight text-[var(--ink)]">
-              Mis favoritas
-            </h1>
-          </div>
+        <div className="max-w-2xl mx-auto">
+          <h1 className="font-sans text-[1rem] font-semibold text-[var(--ink)]">
+            Mis favoritas
+          </h1>
         </div>
       </header>
 
@@ -245,14 +235,5 @@ function Empty({ title, body, action }: { title: string; body: string; action: R
       </p>
       <div className="mt-5 flex justify-center">{action}</div>
     </div>
-  );
-}
-
-function BackIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="19" y1="12" x2="5" y2="12" />
-      <polyline points="12 19 5 12 12 5" />
-    </svg>
   );
 }

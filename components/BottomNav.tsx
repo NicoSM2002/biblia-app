@@ -6,8 +6,12 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * Persistent bottom navigation — four sections:
- *   Inicio · Conversación · Oración · Parroquias
+ * Persistent bottom navigation — five sections:
+ *   Inicio · Conversación · Favoritas · Oración · Parroquias
+ *
+ * Favoritas sits next to Conversación because that's where hearts are given.
+ * It's a tab (not a menu entry) so saved answers are one tap away; for
+ * guests it explains that saving needs an account.
  *
  * The active tab gets three cues working together:
  *   1. A marian-blue pill that TRAVELS between tabs instead of appearing and
@@ -31,6 +35,7 @@ type Item = {
 const items: Item[] = [
   { href: "/", label: "Inicio", icon: (a) => <HomeIcon active={a} /> },
   { href: "/chat", label: "Conversación", icon: (a) => <ChatIcon active={a} /> },
+  { href: "/favoritas", label: "Favoritas", icon: (a) => <HeartIcon active={a} /> },
   { href: "/oracion", label: "Oración", icon: (a) => <MicIcon active={a} /> },
   { href: "/misas", label: "Parroquias", icon: (a) => <ChurchIcon active={a} /> },
 ];
@@ -82,11 +87,12 @@ export function BottomNav() {
             <span
               aria-hidden="true"
               className={cn(
-                "pointer-events-none absolute inset-y-0 left-0 w-1/4 rounded-2xl",
+                "pointer-events-none absolute inset-y-0 left-0 rounded-2xl",
                 "transition-transform duration-[380ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
                 "motion-reduce:transition-none",
               )}
               style={{
+                width: `${100 / items.length}%`,
                 transform: `translateX(${activeIndex * 100}%)`,
                 backgroundColor: "color-mix(in srgb, var(--marian) 11%, transparent)",
                 boxShadow:
@@ -104,7 +110,7 @@ export function BottomNav() {
                     aria-current={active ? "page" : undefined}
                     style={{ touchAction: "manipulation" }}
                     className={cn(
-                      "flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-2xl min-h-[52px] active:scale-95",
+                      "flex flex-col items-center gap-0.5 px-0.5 py-1.5 rounded-2xl min-h-[52px] active:scale-95",
                       "transition-colors duration-200 ease-out",
                       active
                         ? "text-[var(--marian)] font-medium"
@@ -112,7 +118,7 @@ export function BottomNav() {
                     )}
                   >
                     <span aria-hidden="true">{item.icon(active)}</span>
-                    <span className="font-sans text-[0.72rem] tracking-[0.01em]">
+                    <span className="font-sans text-[0.68rem] tracking-[0.005em] whitespace-nowrap">
                       {item.label}
                     </span>
                   </Link>
@@ -142,6 +148,18 @@ function HomeIcon({ active }: { active: boolean }) {
       <path d="M3 11.5 12 4l9 7.5" />
       <path
         d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"
+        fill={active ? "currentColor" : "none"}
+        fillOpacity={active ? 0.16 : 0}
+      />
+    </svg>
+  );
+}
+
+function HeartIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path
+        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
         fill={active ? "currentColor" : "none"}
         fillOpacity={active ? 0.16 : 0}
       />

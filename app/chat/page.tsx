@@ -58,7 +58,16 @@ export default function ChatPage() {
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+    // getSession(), not getUser(): getUser() asks Supabase over the network,
+    // and when that fails (project paused, bad signal, timeout) it returns no
+    // user — which made the app show you as signed OUT while your session was
+    // still saved. getSession() reads the stored session (refreshing the
+    // token when due); only a real sign-out or a revoked session clears it.
+    // If the refresh itself can't reach Supabase, it returns an error but
+    // keeps the stored session — so stay signed in and retry next time.
+    supabase.auth
+      .getSession()
+      .then(({ data, error }) => setSignedIn(!!data.session?.user || (!!error && hasLocalSession())));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       setSignedIn(!!session?.user);
     });

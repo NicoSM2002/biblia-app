@@ -47,8 +47,9 @@ export default function HomePage() {
   useEffect(() => {
     if (!isSupabaseConfigured() || !hasLocalSession()) return;
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      const meta = data.user?.user_metadata as
+    // Stored session, no network round-trip (see the note in chat/page.tsx).
+    supabase.auth.getSession().then(({ data }) => {
+      const meta = data.session?.user?.user_metadata as
         | { full_name?: string; name?: string }
         | undefined;
       const n = meta?.full_name ?? meta?.name ?? null;

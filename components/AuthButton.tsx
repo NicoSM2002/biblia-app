@@ -29,9 +29,17 @@ export function AuthButton() {
       return;
     }
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      setEmail(data.user?.email ?? null);
-      setSignedIn(!!data.user);
+    // getSession(), not getUser(): getUser() asks Supabase over the network,
+    // and when that fails (project paused, bad signal, timeout) it returns no
+    // user — which made the app show you as signed OUT while your session was
+    // still saved. getSession() reads the stored session (refreshing the
+    // token when due); only a real sign-out or a revoked session clears it.
+    // If the refresh itself can't reach Supabase, it returns an error but
+    // keeps the stored session — so stay signed in and retry next time.
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!data.session && error && hasLocalSession()) return;
+      setEmail(data.session?.user?.email ?? null);
+      setSignedIn(!!data.session?.user);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setEmail(session?.user?.email ?? null);

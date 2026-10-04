@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
  */
 // Cache the user's name + email in sessionStorage so the avatar shows
 // the right initial INSTANTLY on every page mount, instead of flashing a
-// placeholder ("·") while supabase.auth.getUser() resolves async.
+// placeholder ("·") while the stored session is read.
 const CACHE_KEY = "homeAvatarUser";
 
 type CachedUser = { name: string | null; email: string | null };
@@ -62,8 +62,16 @@ export function HomeAvatar() {
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      const user = data.user;
+    // getSession(), not getUser(): getUser() asks Supabase over the network,
+    // and when that fails (project paused, bad signal, timeout) it returns no
+    // user — which made the app show you as signed OUT while your session was
+    // still saved. getSession() reads the stored session (refreshing the
+    // token when due); only a real sign-out or a revoked session clears it.
+    // If the refresh itself can't reach Supabase, it returns an error but
+    // keeps the stored session — so stay signed in and retry next time.
+    supabase.auth.getSession().then(({ data, error }) => {
+      const user = data.session?.user ?? null;
+      if (!user && error && hasLocalSession()) return; // keep cached state
       const newName =
         (user?.user_metadata?.full_name as string | undefined) ??
         (user?.user_metadata?.name as string | undefined) ??
