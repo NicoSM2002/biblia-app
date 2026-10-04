@@ -67,6 +67,8 @@ export default function MisasPage() {
 
 function Misas() {
   const [address, setAddress] = useState("");
+  // With results on screen, the search is a "where" bar; "Cambiar" opens it.
+  const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [churches, setChurches] = useState<Church[] | null>(null);
@@ -137,7 +139,7 @@ function Misas() {
     void search({ address: address.trim() });
   }
 
-  function useMyLocation() {
+  function searchNearMe() {
     if (!("geolocation" in navigator)) {
       setError("Tu navegador no soporta geolocalización.");
       return;
@@ -207,7 +209,7 @@ function Misas() {
               </p>
               <button
                 type="button"
-                onClick={useMyLocation}
+                onClick={searchNearMe}
                 className="mt-6 w-full max-w-sm inline-flex items-center justify-center gap-2 min-h-[52px] rounded-full bg-[var(--gold)] text-[var(--button-on-gold)] font-sans text-[1rem] font-semibold hover:bg-[var(--gold-soft)] active:scale-[0.98] transition-all"
               >
                 <TargetIcon />
@@ -241,7 +243,7 @@ function Misas() {
                     churches && (
                       <button
                         type="button"
-                        onClick={useMyLocation}
+                        onClick={searchNearMe}
                         disabled={pending}
                         className="inline-flex items-center gap-1.5 min-h-[40px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] text-[var(--marian)] font-sans text-[0.86rem] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_14%,transparent)] transition-colors disabled:opacity-50"
                       >
@@ -261,42 +263,83 @@ function Misas() {
             </div>
           )}
 
-          {(churches || pending) && (
-          <form onSubmit={onSubmit}>
-            <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--rule)] rounded-full pl-4 pr-1.5 py-1.5 transition-all shadow-[0_1px_0_var(--emboss)_inset] focus-within:border-[var(--marian)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
-              <PinIcon className="text-[var(--ink-faint)] shrink-0" />
-              <input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+          {/* With results, this is a "where am I searching" bar, not an open
+              field: an input + "Cerca de mí" squeezed into one row cut the
+              placeholder off ("Otra dirección o c…") and repeated what the
+              line below already said. "Cambiar" opens the full search. */}
+          {(churches || pending) && !editing && (
+            <div className="flex items-center gap-3 rounded-2xl border border-[var(--rule)] bg-[var(--surface)] pl-4 pr-2 py-2 shadow-[0_1px_0_var(--emboss)_inset]">
+              <PinIcon className="text-[var(--gold)] shrink-0" />
+              <div className="flex-1 min-w-0">
+                {pending ? (
+                  <p className="font-sans text-[0.92rem] text-[var(--ink-soft)] py-2">Buscando parroquias…</p>
+                ) : (
+                  <>
+                    <p className="font-sans text-[0.74rem] text-[var(--ink-faint)]">Buscando cerca de</p>
+                    <p className="font-sans text-[0.95rem] font-medium text-[var(--ink)] truncate">
+                      {searchedFrom ? searchedFrom.charAt(0).toUpperCase() + searchedFrom.slice(1) : "Tu ubicación"}
+                    </p>
+                  </>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
                 disabled={pending}
-                placeholder={churches ? "Otra dirección o ciudad" : "Ciudad, barrio o dirección"}
-                enterKeyHint="search"
-                className="flex-1 min-w-0 bg-transparent outline-none font-sans text-[0.95rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
-                aria-label="Dirección o ciudad"
-              />
-              {address.trim() ? (
+                className="inline-flex items-center min-h-[40px] px-4 shrink-0 rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[var(--surface)] font-sans text-[0.86rem] font-semibold text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors disabled:opacity-50"
+              >
+                Cambiar
+              </button>
+            </div>
+          )}
+
+          {editing && (
+            <form
+              onSubmit={(e) => {
+                onSubmit(e);
+                if (address.trim()) setEditing(false);
+              }}
+            >
+              <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--marian)] rounded-full px-4 py-1.5 shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
+                <PinIcon className="text-[var(--ink-faint)] shrink-0" />
+                <input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  autoFocus
+                  placeholder="Ciudad, barrio o dirección"
+                  enterKeyHint="search"
+                  className="flex-1 min-w-0 bg-transparent outline-none font-sans text-[0.95rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
+                  aria-label="Dirección o ciudad"
+                />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="submit"
-                  disabled={pending}
-                  className="inline-flex items-center min-h-[40px] px-4 rounded-full bg-[var(--marian)] text-white font-sans text-[0.88rem] font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                  disabled={!address.trim()}
+                  className="inline-flex items-center min-h-[42px] px-5 rounded-full bg-[var(--marian)] text-white font-sans text-[0.9rem] font-semibold hover:opacity-90 transition-opacity disabled:opacity-40"
                 >
                   Buscar
                 </button>
-              ) : (
-                churches && (
-                  <button
-                    type="button"
-                    onClick={useMyLocation}
-                    disabled={pending}
-                    className="inline-flex items-center gap-1.5 min-h-[40px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] text-[var(--marian)] font-sans text-[0.86rem] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_14%,transparent)] transition-colors disabled:opacity-50"
-                  >
-                    <TargetIcon />
-                    Cerca de mí
-                  </button>
-                )
-              )}
-            </div>
-          </form>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditing(false);
+                    searchNearMe();
+                  }}
+                  className="inline-flex items-center gap-1.5 min-h-[42px] px-4 rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-sans text-[0.88rem] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
+                >
+                  <TargetIcon />
+                  Usar mi ubicación
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="inline-flex items-center min-h-[42px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--ink-faint)] transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
           )}
 
           {(churches || pending) && error && (
@@ -319,15 +362,9 @@ function Misas() {
           )}
 
           {churches && (
-            <div className="mt-7">
+            <div className="mt-5">
               <p className="font-sans text-[0.82rem] text-[var(--ink-soft)] mb-4">
-                {churches.length} parroquia{churches.length === 1 ? "" : "s"}
-                {searchedFrom && (
-                  <>
-                    {" cerca de "}
-                    <span className="text-[var(--ink)]">{searchedFrom}</span>
-                  </>
-                )}
+                {churches.length} parroquia{churches.length === 1 ? "" : "s"}, de la más cercana a la más lejana
               </p>
               <ul className="space-y-3">
                 {churches.map((c) => (

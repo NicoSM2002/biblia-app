@@ -1064,8 +1064,12 @@ html[data-font="sencilla"] .font-serif {
   color: var(--ink);
 }
 
-/* Focus ring tuned to the palette */
-:focus-visible {
+/* Focus ring tuned to the palette. Not on elements that opt out with
+   `outline-none`: those are text inputs whose rounded container already
+   draws a marian focus ring (focus-within). This rule is unlayered, so it
+   used to beat Tailwind's outline-none and drew a second, square gold box
+   inside every search/question field while typing. */
+:focus-visible:not(.outline-none) {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
   border-radius: 2px;
