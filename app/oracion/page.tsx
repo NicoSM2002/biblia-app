@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { BottomNav } from "@/components/BottomNav";
+import { BottomNav, NAV_H } from "@/components/BottomNav";
 import { formatReference } from "@/components/VerseCard";
 import { apiUrl } from "@/lib/api-url";
 import { localDateKey } from "@/lib/daily-verses";
 
-const NAV_RESERVE_PX = 88;
 
 type Verse = { reference: string; text: string };
 
@@ -61,6 +60,38 @@ export default function OracionPage() {
     };
   }, [phase, paused]);
 
+  // Keep the screen on while the timer runs — the moment it dims is exactly
+  // when someone praying with their eyes closed would lose the countdown.
+  // Only here, not app-wide, so it never drains battery elsewhere. The OS
+  // drops the lock when the tab is hidden, so re-request on return.
+  // Unsupported browsers (pre-16.4 iOS) just skip it.
+  useEffect(() => {
+    if (phase !== "praying" || paused || !("wakeLock" in navigator)) return;
+    let lock: WakeLockSentinel | null = null;
+    let cancelled = false;
+    const acquire = () => {
+      navigator.wakeLock
+        .request("screen")
+        .then((l) => {
+          if (cancelled) l.release();
+          else lock = l;
+        })
+        .catch(() => {
+          // denied (low battery mode, etc.) — the timer still works
+        });
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") acquire();
+    };
+    acquire();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      lock?.release().catch(() => {});
+    };
+  }, [phase, paused]);
+
   function start(min: number) {
     setDurationMin(min);
     setSecondsLeft(min * 60);
@@ -110,7 +141,7 @@ export default function OracionPage() {
 
       <main
         className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center min-h-0"
-        style={{ paddingBottom: `calc(${NAV_RESERVE_PX}px + env(safe-area-inset-bottom))` }}
+        style={{ paddingBottom: `calc(${NAV_H} + 20px)` }}
       >
         {/* key={phase} remounts this on every phase change, so choosing a
             duration and finishing the silence both get the same arrival the

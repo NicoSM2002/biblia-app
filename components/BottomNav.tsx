@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -34,14 +35,43 @@ const items: Item[] = [
   { href: "/misas", label: "Parroquias", icon: (a) => <ChurchIcon active={a} /> },
 ];
 
+/**
+ * Space a page must reserve for the nav: the measured height BottomNav
+ * publishes as --nav-h (it grows with Ajustes → Tamaño del texto), with the
+ * 100%-size formula as the first-paint fallback (1px border + 6px top pad +
+ * 52px items + max(0.5rem, safe-area) bottom pad).
+ */
+export const NAV_H = "var(--nav-h, calc(59px + max(0.5rem, env(safe-area-inset-bottom))))";
+
 export function BottomNav() {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+
+  // Publish the nav's real height as --nav-h on <html>. It's not a constant:
+  // the labels are in rem, so Ajustes → Tamaño del texto makes the nav
+  // taller. Pages reserve space with var(--nav-h, <fallback>) instead of
+  // hardcoding 58/59px, which left the chat input under the nav at 130%.
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const ro = new ResizeObserver(() =>
+      root.style.setProperty("--nav-h", `${el.offsetHeight}px`),
+    );
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty("--nav-h");
+    };
+  }, [pathname]);
+
   if (pathname?.startsWith("/auth")) return null;
 
   const activeIndex = items.findIndex((item) => isActive(pathname, item.href));
 
   return (
     <nav
+      ref={navRef}
       aria-label="Navegación principal"
       className="fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print"
     >

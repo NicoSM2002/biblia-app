@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LatinCross } from "@/components/Cross";
@@ -8,9 +8,9 @@ import { formatReference, splitVersal } from "@/components/VerseCard";
 import { localDateKey } from "@/lib/daily-verses";
 import type { DailyGospel } from "@/lib/daily-gospel";
 import { HomeAvatar } from "@/components/HomeAvatar";
-import { BottomNav } from "@/components/BottomNav";
+import { BottomNav, NAV_H } from "@/components/BottomNav";
 import { Splash } from "@/components/Splash";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SettingsButton } from "@/components/SettingsSheet";
 import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { apiUrl } from "@/lib/api-url";
 import {
@@ -30,6 +30,7 @@ export default function HomePage() {
   const [name, setName] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const [daily, setDaily] = useState<Daily | null>(null);
+  const mainRef = useRef<HTMLElement>(null);
   const speech = useSpeechRecognition({ lang: "es-ES" });
 
   // Mirror the live transcript into the input as the user speaks. We
@@ -124,7 +125,7 @@ export default function HomePage() {
             </h1>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <ThemeToggle />
+            <SettingsButton />
             <HomeAvatar />
           </div>
         </div>
@@ -133,8 +134,9 @@ export default function HomePage() {
       {/* pb reserves exactly the nav (52px + 6px top pad + safe area) plus a
           breath, instead of the old pb-32 which reserved 128px of nothing. */}
       <main
+        ref={mainRef}
         className="page-content-fade flex-1 overflow-y-auto"
-        style={{ paddingBottom: "calc(72px + env(safe-area-inset-bottom))" }}
+        style={{ paddingBottom: `calc(${NAV_H} + 8px)` }}
       >
         <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-3.5 min-h-full flex flex-col">
           <Greeting name={name} />
@@ -158,8 +160,13 @@ export default function HomePage() {
           </div>
 
           <div>
-            <h2 className="mt-4 font-display text-[1.36rem] sm:text-page leading-[1.18] text-[var(--ink)] mb-2.5">
-              ¿Qué quieres preguntarle a Dios hoy?
+            {/* text-wrap: balance splits the question into two even lines
+                instead of "¿Qué quieres" alone on top and the rest below. */}
+            <h2
+              className="mt-4 font-display text-[1.24rem] sm:text-page leading-[1.2] text-[var(--ink)] mb-2.5"
+              style={{ textWrap: "balance" as React.CSSProperties["textWrap"] }}
+            >
+              ¿Qué quieres preguntarle a la Palabra de Dios hoy?
             </h2>
 
             <form onSubmit={onSubmit}>
@@ -236,6 +243,8 @@ export default function HomePage() {
           </section>
         </div>
       </main>
+
+      <ScrollHint target={mainRef} />
 
       <BottomNav />
 
@@ -326,13 +335,18 @@ function DailyGospelSection({ gospel }: { gospel: DailyGospel }) {
           </blockquote>
           <p className="ref-rule">{gospel.reference}</p>
           {more.length > 0 && (
+            // A bordered pill with a chevron, not bare text — gold text alone
+            // read as a caption, and nobody tapped it.
             <button
               type="button"
               onClick={() => setOpen((o) => !o)}
               aria-expanded={open}
-              className="mt-1.5 mx-auto block px-3 py-2 font-sans text-[0.82rem] font-medium text-[var(--gold-text)] hover:underline underline-offset-4"
+              className="mt-3 mx-auto flex items-center gap-1.5 min-h-[40px] px-4 whitespace-nowrap rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] font-sans text-[0.84rem] font-medium text-[var(--gold-text)] shadow-[0_1px_0_var(--emboss)_inset,0_1px_3px_rgba(0,0,0,0.06)] hover:border-[var(--gold)] active:scale-95 transition-all"
             >
               {open ? "Mostrar menos" : "Leer el Evangelio completo"}
+              <ChevronDown
+                className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+              />
             </button>
           )}
         </div>
@@ -506,6 +520,64 @@ function ActionButton({
     >
       <MicIcon />
     </button>
+  );
+}
+
+/**
+ * Blinking chevron above the bottom nav that says "there's more below".
+ * Shown only while the page actually has content past the fold (the expanded
+ * Gospel, or small phones), hidden once you're near the end. Tapping it
+ * scrolls most of a screen down. ResizeObserver catches content growing
+ * (expanding the Gospel) without a scroll event; it also fires once on
+ * observe, which gives us the initial measurement.
+ */
+function ScrollHint({ target }: { target: RefObject<HTMLElement | null> }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const el = target.current;
+    if (!el) return;
+    const update = () =>
+      setShow(el.scrollHeight - el.clientHeight - el.scrollTop > 48);
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    el.addEventListener("scroll", update, { passive: true });
+    return () => {
+      ro.disconnect();
+      el.removeEventListener("scroll", update);
+    };
+  }, [target]);
+
+  return (
+    <button
+      type="button"
+      aria-label="Seguir bajando"
+      aria-hidden={!show}
+      tabIndex={show ? 0 : -1}
+      onClick={() =>
+        target.current?.scrollBy({
+          top: target.current.clientHeight * 0.7,
+          behavior: "smooth",
+        })
+      }
+      className={`fixed left-1/2 -translate-x-1/2 z-30 grid place-items-center w-10 h-10 rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] text-[var(--gold-text)] shadow-[0_2px_10px_rgba(0,0,0,0.12)] transition-opacity duration-300 ${
+        show ? "opacity-100" : "opacity-0 pointer-events-none"
+      }`}
+      // Sits just above BottomNav (same height formula as its padding).
+      style={{ bottom: `calc(${NAV_H} + 12px)` }}
+    >
+      <span className="scroll-hint-bob">
+        <ChevronDown size={18} />
+      </span>
+    </button>
+  );
+}
+
+function ChevronDown({ size = 16, className = "" }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
   );
 }
 

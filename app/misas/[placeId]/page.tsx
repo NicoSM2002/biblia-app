@@ -3,7 +3,7 @@
 import { Suspense, use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { BottomNav } from "@/components/BottomNav";
+import { BottomNav, NAV_H } from "@/components/BottomNav";
 
 type ChurchDetail = {
   id: string;
@@ -174,7 +174,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
     <div className="relative h-[100dvh] flex flex-col bg-[var(--paper)] overflow-hidden">
       <DetailHeader title={church.name} />
 
-      <main className="page-content-fade flex-1 overflow-y-auto" style={{ paddingBottom: "calc(84px + env(safe-area-inset-bottom))" }}>
+      <main className="page-content-fade flex-1 overflow-y-auto" style={{ paddingBottom: `calc(${NAV_H} + 16px)` }}>
         <div className="max-w-2xl mx-auto">
           {/* The page arrives as one object (see .page-content-fade). It used
               to stagger five blocks at 0/60/120/180/240ms on top of no header

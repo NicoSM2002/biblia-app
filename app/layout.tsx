@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Instrument_Sans, Newsreader } from "next/font/google";
 import "./globals.css";
+import { SETTINGS_INIT_SCRIPT } from "@/lib/settings";
+import { SettingsSync } from "@/components/SettingsSync";
 
 /**
  * Three faces, three jobs.
@@ -70,11 +72,15 @@ export const viewport: Viewport = {
  * Defensive cleanup — earlier builds of the app persisted the theme
  * choice in localStorage. Wipe that so a returning user from those
  * builds doesn't get dark-mode by accident.
+ *
+ * Then apply the user's explicit Ajustes (lib/settings.ts) before first
+ * paint. With nothing saved this is a no-op, so the default stays light.
  */
 const initScript = `
 (function() {
   try { localStorage.removeItem('theme'); } catch (e) {}
 })();
+${SETTINGS_INIT_SCRIPT}
 `;
 
 export default function RootLayout({
@@ -97,6 +103,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: initScript }} />
       </head>
       <body className="relative min-h-full antialiased">
+        <SettingsSync />
         {children}
       </body>
     </html>

@@ -8,7 +8,7 @@ import { QuestionLine } from "@/components/QuestionLine";
 import { Loading } from "@/components/Loading";
 import { ChatInput } from "@/components/ChatInput";
 import { HistorySheet } from "@/components/HistorySheet";
-import { BottomNav } from "@/components/BottomNav";
+import { BottomNav, NAV_H } from "@/components/BottomNav";
 import { TurnActions } from "@/components/TurnActions";
 import { apiUrl } from "@/lib/api-url";
 import { authFetch } from "@/lib/auth-fetch";
@@ -380,7 +380,10 @@ export default function ChatPage() {
       // max(0.5rem, safe-area) — NOT safe-area alone. Reserving only
       // 58px + safe-area let the nav cover ~9px of the input area, so the
       // pill looked glued to the nav. Mirror BottomNav's padding here.
-      style={{ paddingBottom: "calc(59px + max(0.5rem, env(safe-area-inset-bottom)))" }}
+      // --nav-h is the measured height published by BottomNav (it grows
+      // with Ajustes → Tamaño del texto); the calc is the first-paint
+      // fallback at 100%.
+      style={{ paddingBottom: NAV_H }}
     >
       <div className="missal-page">
         <Header

@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useLayoutEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { BottomNav } from "@/components/BottomNav";
+import { BottomNav, NAV_H } from "@/components/BottomNav";
 import { apiUrl } from "@/lib/api-url";
 
 // useLayoutEffect on the client (runs sync before paint), useEffect on the
@@ -173,7 +173,7 @@ function Misas() {
 
       <main
         className="page-content-fade flex-1 overflow-y-auto"
-        style={{ paddingBottom: "calc(84px + env(safe-area-inset-bottom))" }}
+        style={{ paddingBottom: `calc(${NAV_H} + 16px)` }}
       >
         <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-6">
           <div>
