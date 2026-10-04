@@ -540,12 +540,12 @@ export default function ChatPage() {
   );
 }
 
+// Three, phrased as the questions people actually bring: growing in the
+// faith and fighting a concrete sin, not just a mood.
 const EXAMPLES = [
-  "Me siento solo, ¿qué hago?",
-  "Tengo miedo del futuro",
-  "¿Cómo perdono a alguien?",
-  "Acabo de perder a un ser querido",
-  "Necesito esperanza hoy",
+  "¿Cómo perdonar y encontrar paz en mi corazón?",
+  "¿Cómo trabajo en mí para evitar el pecado de la ira?",
+  "¿Cómo acercarme más a Dios en mi día a día?",
 ];
 
 function PrintHeader() {

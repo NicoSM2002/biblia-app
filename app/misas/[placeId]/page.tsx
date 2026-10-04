@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
 import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
+import type { MassTimes } from "@/lib/mass-times";
 
 type ChurchDetail = {
   id: string;
@@ -243,58 +244,10 @@ function ChurchDetail({ placeId }: { placeId: string }) {
               )}
             </div>
 
+            <MassTimesSection placeId={placeId} />
+
             {church.openingHours && church.openingHours.length > 0 && (
-              <section
-                className="mt-8"
-              >
-                <p className="font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
-                  Próximas misas
-                </p>
-                <ul className="space-y-2">
-                  {church.openingHours.map((line) => {
-                    const idx = line.indexOf(":");
-                    const day = idx >= 0 ? line.slice(0, idx) : line;
-                    const hours = idx >= 0 ? line.slice(idx + 1).trim() : "";
-                    const isToday = day.toLowerCase() === todayName();
-                    return (
-                      <li
-                        key={line}
-                        className={`flex items-baseline justify-between gap-3 py-2 border-b border-[var(--rule)] last:border-b-0 ${
-                          isToday ? "" : ""
-                        }`}
-                      >
-                        <span
-                          className={`font-sans text-[0.92rem] ${
-                            isToday
-                              ? "text-[var(--ink)] font-medium"
-                              : "text-[var(--ink-soft)]"
-                          }`}
-                        >
-                          {capitalize(day)}
-                          {isToday && (
-                            <span className="ml-2 font-sans text-[0.7rem] tracking-[0.1em] uppercase text-[var(--gold-text)]">
-                              Hoy
-                            </span>
-                          )}
-                        </span>
-                        <span
-                          className={`font-sans text-[0.88rem] text-right ${
-                            isToday
-                              ? "text-[var(--gold-text)] font-medium"
-                              : "text-[var(--ink-soft)]"
-                          }`}
-                        >
-                          {hours || "—"}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <p className="mt-3 font-sans text-[0.72rem] text-[var(--ink-faint)] italic">
-                  Estos son los horarios que la parroquia publicó en Google.
-                  Confirma con su web o teléfono antes de ir.
-                </p>
-              </section>
+              <OfficeHours lines={church.openingHours} />
             )}
 
             {church.description && (
@@ -502,6 +455,192 @@ function DetailHeader({ title }: { title: string }) {
     </header>
     <ReadAloudPlayer />
     </>
+  );
+}
+
+const LABEL = "font-sans text-[0.72rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3";
+const WEEK = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"] as const;
+
+/** "18:30" → "6:30 p.m.", "12:00" → "12:00 m." (Colombian usage). */
+function formatTime(t: string): string {
+  const [h, m] = t.split(":").map(Number);
+  if (h === 12 && m === 0) return "12:00 m.";
+  const suffix = h < 12 ? "a.m." : "p.m.";
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${suffix}`;
+}
+
+/**
+ * Horarios de misa — read from the parish's own website by
+ * /api/iglesias/[placeId]/misas (Google has no mass times; its hours are
+ * office hours, which this section used to show by mistake). Loads after the
+ * rest of the page because it fetches the site and runs a small model.
+ */
+function MassTimesSection({ placeId }: { placeId: string }) {
+  const [masses, setMasses] = useState<MassTimes | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/iglesias/${encodeURIComponent(placeId)}/misas`)
+      .then(async (r) => {
+        if (!r.ok) throw new Error(String(r.status));
+        const json = (await r.json()) as { masses: MassTimes };
+        if (!cancelled) setMasses(json.masses);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [placeId]);
+
+  const today = todayName();
+
+  return (
+    <section className="mt-8" aria-busy={!masses && !failed}>
+      <p className={LABEL}>Horarios de misa</p>
+
+      {!masses && !failed && (
+        <div>
+          <div className="space-y-2.5" aria-hidden="true">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-5 skeleton-shimmer rounded" />
+            ))}
+          </div>
+          <p className="mt-3 font-sans text-[0.82rem] text-[var(--ink-faint)]">
+            Buscando los horarios en la web de la parroquia…
+          </p>
+        </div>
+      )}
+
+      {(failed || (masses && !masses.found)) && (
+        <p className="font-sans text-[0.92rem] leading-relaxed text-[var(--ink-soft)]">
+          No encontramos los horarios de misa publicados en internet. Te
+          recomendamos llamar a la parroquia o revisar su web.
+        </p>
+      )}
+
+      {masses?.found && (
+        <>
+          {masses.days.length > 0 && (
+            <ul>
+              {WEEK.map((day) => {
+                const times = masses.days.find((d) => d.day === day)?.times ?? [];
+                const isToday = day === today;
+                return (
+                  <li
+                    key={day}
+                    className="flex items-baseline justify-between gap-3 py-2 border-b border-[var(--rule)] last:border-b-0"
+                  >
+                    <span
+                      className={`shrink-0 font-sans text-[0.92rem] ${
+                        isToday ? "text-[var(--ink)] font-medium" : "text-[var(--ink-soft)]"
+                      }`}
+                    >
+                      {capitalize(day)}
+                      {isToday && (
+                        <span className="ml-2 font-sans text-[0.7rem] tracking-[0.1em] uppercase text-[var(--gold-text)]">
+                          Hoy
+                        </span>
+                      )}
+                    </span>
+                    <span
+                      className={`font-sans text-[0.88rem] text-right ${
+                        isToday
+                          ? "text-[var(--gold-text)] font-medium"
+                          : times.length
+                            ? "text-[var(--ink-soft)]"
+                            : "text-[var(--ink-faint)]"
+                      }`}
+                    >
+                      {times.length ? times.map(formatTime).join(" · ") : "Sin misa"}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {masses.notes.length > 0 && (
+            <div className="mt-3">
+              <p className="font-sans text-[0.82rem] font-medium text-[var(--ink-soft)]">
+                En otras sedes:
+              </p>
+              <ul className="mt-1 space-y-0.5">
+                {masses.notes.map((n) => (
+                  <li key={n} className="font-sans text-[0.85rem] text-[var(--ink-soft)]">
+                    {n.replace(/\b([01]?\d|2[0-3]):([0-5]\d)\b/g, (t) => formatTime(t))}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <p className="mt-3 font-sans text-[0.72rem] text-[var(--ink-faint)] italic">
+            Tomados de la web de la parroquia. Pueden cambiar en fiestas o
+            vacaciones: confirma antes de ir.
+          </p>
+          {/* The exact page they came from — sometimes a news post, which
+              can be dated, so it must always be one tap to check. */}
+          {masses.source && (
+            <a
+              href={masses.source}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex items-center gap-2 min-h-[36px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.82rem] font-medium text-[var(--gold-text)] hover:border-[var(--gold)] transition-colors"
+            >
+              Ver en su web
+            </a>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Google's hours for the place — the parish's ATTENTION/office hours, not
+ * masses. Kept, correctly labelled, behind a toggle so it doesn't compete
+ * with the mass times.
+ */
+function OfficeHours({ lines }: { lines: string[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="mt-6">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
+      >
+        {open ? "Ocultar horario de atención" : "Ver horario de atención"}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`transition-transform ${open ? "rotate-180" : ""}`}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="mt-3">
+          <ul>
+            {lines.map((line) => {
+              const idx = line.indexOf(":");
+              const day = idx >= 0 ? line.slice(0, idx) : line;
+              const hours = idx >= 0 ? line.slice(idx + 1).trim() : "";
+              return (
+                <li
+                  key={line}
+                  className="flex items-baseline justify-between gap-3 py-1.5 border-b border-[var(--rule)] last:border-b-0"
+                >
+                  <span className="font-sans text-[0.88rem] text-[var(--ink-soft)]">{capitalize(day)}</span>
+                  <span className="font-sans text-[0.85rem] text-right text-[var(--ink-soft)]">{hours || "—"}</span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-2 font-sans text-[0.72rem] text-[var(--ink-faint)] italic">
+            Horario de oficina publicado en Google. No son horarios de misa.
+          </p>
+        </div>
+      )}
+    </section>
   );
 }
 

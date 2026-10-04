@@ -187,7 +187,7 @@ function Misas() {
               Misa cerca de ti
             </h2>
             <p className="font-sans text-[0.9rem] text-[var(--ink-soft)] leading-relaxed max-w-[38ch] mb-6">
-              Iglesias católicas cercanas, con los horarios de hoy.
+              Iglesias católicas cercanas. Toca una para ver sus horarios de misa.
             </p>
           </div>
 
@@ -301,7 +301,6 @@ function ChurchCard({
       ? `${Math.round(church.distanceMeters)} m`
       : `${(church.distanceMeters / 1000).toFixed(1)} km`;
 
-  const todayHours = pickTodayHours(church.openingHours);
 
   const detailHref = origin
     ? `/misas/${church.id}?lat=${origin.lat}&lng=${origin.lng}`
@@ -377,11 +376,13 @@ function ChurchCard({
                 {distanceText}
               </span>
             </div>
-            {/* The "PRÓXIMA MISA" label is gone — a clock next to the hours
-                says the same thing in a glyph and gives back a line per card. */}
+            {/* Used to show Google's hours for today next to a clock — but
+                those are OFFICE hours, not masses. Mass times are read from
+                the parish website on the detail page (too slow/costly to do
+                for every card), so the card just points there. */}
             <p className="mt-1.5 flex items-center gap-1.5 font-sans text-[0.84rem] text-[var(--gold-text)] font-semibold leading-tight">
               <ClockIcon />
-              {todayHours ?? "Ver horarios"}
+              Ver horarios de misa
             </p>
           </Link>
 
@@ -409,32 +410,6 @@ function ChurchCard({
       </div>
     </li>
   );
-}
-
-/**
- * Try to extract today's opening line from Google's weekdayDescriptions array.
- * Format is e.g. "miércoles: 8:00 - 19:00" or "jueves: cerrado".
- * Falls back to null if we can't find a line for today.
- */
-function pickTodayHours(lines?: string[] | null): string | null {
-  if (!lines || lines.length === 0) return null;
-  const days = [
-    "domingo",
-    "lunes",
-    "martes",
-    "miércoles",
-    "jueves",
-    "viernes",
-    "sábado",
-  ];
-  const today = days[new Date().getDay()];
-  const line = lines.find((l) => l.toLowerCase().startsWith(today));
-  if (!line) return null;
-  // Strip the "today:" prefix to leave just the hours.
-  const idx = line.indexOf(":");
-  const rest = idx >= 0 ? line.slice(idx + 1).trim() : line;
-  if (/cerrado|closed/i.test(rest)) return null;
-  return `Hoy ${rest}`;
 }
 
 function PinIcon({ className }: { className?: string }) {
