@@ -318,8 +318,13 @@ function ChurchCard({
     <li className="lift-on-hover bg-[var(--surface)] border border-[var(--rule)] rounded-2xl overflow-hidden shadow-[0_1px_0_var(--emboss)_inset] hover:border-[var(--marian)]">
       <div className="flex items-stretch">
         {/* Photo column — square. Falls back to a soft placeholder. */}
+        {/* prefetch: fetch the detail route as soon as the card is on
+            screen. Without it, tapping waited for a server round-trip
+            (~0.3–0.9 s on 4G, more on a cold start) before ANYTHING moved,
+            even though the card's data is already handed over. */}
         <Link
           href={detailHref}
+          prefetch
           onPointerDown={onPick}
           className="block w-[110px] sm:w-[124px] shrink-0 bg-[var(--vellum)] relative"
           aria-hidden="true"
@@ -358,7 +363,7 @@ function ChurchCard({
 
         {/* Content column */}
         <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col">
-          <Link href={detailHref} onPointerDown={onPick} className="group min-w-0">
+          <Link href={detailHref} prefetch onPointerDown={onPick} className="group min-w-0">
             <div className="flex items-start justify-between gap-2">
               <h3 className="font-serif font-medium text-[1rem] sm:text-[1.05rem] text-[var(--ink)] leading-[1.25] line-clamp-2 group-hover:text-[var(--marian)] transition-colors">
                 {church.name}
