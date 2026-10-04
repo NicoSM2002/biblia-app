@@ -482,7 +482,7 @@ body::before {
   /* The smaller sibling used inside a conversation turn. */
   .arch-panel-sm {
     border-radius: 50% 50% 12px 12px / 54px 54px 12px 12px;
-    padding: 2.3rem 1.25rem 0.9rem;
+    padding: 36px 20px 14px; /* px: see .arch-panel */
   }
 
   /* The quatrefoil tracery used to sit at 12% opacity across the whole

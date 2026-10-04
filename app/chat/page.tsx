@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { Header } from "@/components/Header";
 import { VerseCard } from "@/components/VerseCard";
 import { ResponseText } from "@/components/ResponseText";
@@ -455,7 +455,7 @@ export default function ChatPage() {
             <div className="max-w-2xl mx-auto py-4 sm:py-6">
               <PrintHeader />
               {empty ? (
-                <ChatEmptyState onPick={ask} />
+                <ChatEmptyState onPick={ask} scroller={conversationRef} />
               ) : (
                 turns.map((t, i) => (
                   <article
@@ -568,15 +568,58 @@ function PrintHeader() {
   );
 }
 
-function ChatEmptyState({ onPick }: { onPick: (q: string) => void }) {
+/** Never show fewer than this, even if the page then has to scroll. */
+const MIN_EXAMPLES = 2;
+
+/**
+ * Show only the suggestions that fit above the input without scrolling —
+ * a half-hidden chip under the input read as broken. Small phones or large
+ * text (Ajustes) just get fewer; hidden ones are dropped from the end.
+ * Measures the real scroll container, re-checks whenever it resizes, and
+ * toggles `hidden` on the <li>s directly (no re-render).
+ */
+function fitExamples(list: HTMLElement, scroller: HTMLElement) {
+  const items = Array.from(list.children) as HTMLElement[];
+  items.forEach((li) => (li.hidden = false));
+  for (let i = items.length - 1; i >= MIN_EXAMPLES; i--) {
+    if (scroller.scrollHeight <= scroller.clientHeight + 1) break;
+    items[i].hidden = true;
+  }
+}
+
+function ChatEmptyState({
+  onPick,
+  scroller,
+}: {
+  onPick: (q: string) => void;
+  scroller: RefObject<HTMLDivElement | null>;
+}) {
+  const listRef = useRef<HTMLUListElement>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    const box = scroller.current;
+    if (!list || !box) return;
+    const fit = () => fitExamples(list, box);
+    fit();
+    // Web fonts change line heights after first paint — measure again then.
+    void document.fonts?.ready.then(fit);
+    const ro = new ResizeObserver(fit);
+    ro.observe(box);
+    if (box.firstElementChild) ro.observe(box.firstElementChild);
+    return () => ro.disconnect();
+  }, [scroller]);
+
   return (
     <div className="pt-2 pb-6">
       {/* Hero card — gold-tinged background with leaf icon, evoking calm */}
       {/* The same window as the verse, so the empty state already teaches the
           shape the answer will arrive in. */}
-      <div className="arch-panel arch-panel-sm mb-7">
+      {/* Interface text here is capped with min(rem, px) — Ajustes → Tamaño
+          del texto is for reading; letting this grow pushed the suggestions
+          under the input (same rule as the home, app/page.tsx). */}
+      <div className="arch-panel arch-panel-sm mb-[24px]">
         <div className="arch-body text-center">
-          <p className="font-display text-quote text-[var(--ink)] leading-[1.25]">
+          <p className="font-display text-[min(1.25rem,21px)] text-[var(--ink)] leading-[1.25]">
             Dile a Dios lo que hay en tu corazón.
             <br />
             Él siempre te escucha.
@@ -584,16 +627,16 @@ function ChatEmptyState({ onPick }: { onPick: (q: string) => void }) {
         </div>
       </div>
 
-      <p className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
+      <p className="font-sans text-[min(0.7rem,11px)] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
         Prueba con
       </p>
-      <ul className="space-y-2">
+      <ul ref={listRef} className="space-y-2">
         {EXAMPLES.map((q) => (
           <li key={q}>
             <button
               onClick={() => onPick(q)}
               type="button"
-              className="group w-full text-left bg-[var(--surface)] border border-[var(--rule)] rounded-full px-5 py-3 font-sans text-[0.92rem] text-[var(--ink)] shadow-[0_1px_0_var(--emboss)_inset] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors flex items-center justify-between gap-3"
+              className="group w-full text-left bg-[var(--surface)] border border-[var(--rule)] rounded-full px-[20px] py-[11px] font-sans text-[min(0.92rem,15px)] text-[var(--ink)] shadow-[0_1px_0_var(--emboss)_inset] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors flex items-center justify-between gap-3"
             >
               <span>{q}</span>
               <span
