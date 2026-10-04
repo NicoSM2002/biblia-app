@@ -156,7 +156,7 @@ export function HistorySheet({
                 ref={closeButtonRef}
                 onClick={onClose}
                 aria-label="Cerrar historial"
-                className="grid place-items-center w-11 h-11 rounded-full hover:bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--ink)] transition-colors"
+                className="grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors shrink-0"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -224,7 +224,7 @@ export function HistorySheet({
                               onClick={() => setConfirmingId(null)}
                               disabled={isDeleting}
                               aria-label="Cancelar"
-                              className="px-3.5 grid place-items-center text-[var(--ink-soft)] hover:bg-[var(--vellum)] transition-colors min-h-[44px]"
+                              className="px-3.5 grid place-items-center bg-[var(--vellum)] text-[var(--ink)] hover:bg-[var(--rule)] transition-colors min-h-[44px]"
                             >
                               <XIcon />
                             </button>

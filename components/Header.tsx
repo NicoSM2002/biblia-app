@@ -73,7 +73,7 @@ function HistoryButton({ onClick }: { onClick: () => void }) {
     <button
       onClick={onClick}
       aria-label="Abrir historial"
-      className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold-text)] transition-colors shrink-0"
+      className="grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors shrink-0"
     >
       <svg
         width="17"

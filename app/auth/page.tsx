@@ -190,7 +190,7 @@ function AuthForm() {
                   aria-label={
                     showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                   }
-                  className="grid place-items-center w-9 h-9 -mr-2 rounded-full text-[var(--ink-faint)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors"
+                  className="grid place-items-center w-9 h-9 -mr-1 rounded-full bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--gold-text)] hover:bg-[var(--rule)] transition-colors"
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
@@ -240,7 +240,7 @@ function AuthForm() {
                     setError(null);
                     setInfo(null);
                   }}
-                  className="text-[var(--marian)] hover:underline font-semibold"
+                  className="ml-1 inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
                 >
                   Créala aquí
                 </button>
@@ -255,7 +255,7 @@ function AuthForm() {
                     setError(null);
                     setInfo(null);
                   }}
-                  className="text-[var(--marian)] hover:underline font-semibold"
+                  className="ml-1 inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
                 >
                   Inicia sesión
                 </button>
@@ -266,7 +266,7 @@ function AuthForm() {
           <div className="mt-4 flex justify-center">
             <Link
               href="/"
-              className="group inline-flex items-center gap-2 font-sans text-[0.85rem] font-medium text-[var(--ink-soft)] hover:text-[var(--marian)] transition-colors"
+              className="group inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
             >
               <BackArrow />
               Volver al inicio

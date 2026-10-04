@@ -2,13 +2,12 @@
 
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { LatinCross } from "@/components/Cross";
 import { formatReference, splitVersal } from "@/components/VerseCard";
 import { localDateKey } from "@/lib/daily-verses";
 import type { DailyGospel } from "@/lib/daily-gospel";
 import { speakable, toggle, useTts } from "@/lib/tts";
-import { PauseIcon, SpeakerIcon } from "@/components/ReadAloudPlayer";
+import { PauseIcon, ReadAloudPlayer, SpeakerIcon } from "@/components/ReadAloudPlayer";
 import { HomeAvatar } from "@/components/HomeAvatar";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
 import { Splash } from "@/components/Splash";
@@ -118,7 +117,10 @@ export default function HomePage() {
 
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden">
-      <header className="page-head-fade px-5 sm:px-6 pt-3.5 pb-2 border-b border-[var(--rule)] bg-[var(--paper)]">
+      {/* relative z-20: the header's fade-in makes it a stacking context, so
+          the avatar menu's own z-index can't escape it — without this the
+          menu opened BEHIND the Gospel card. */}
+      <header className="page-head-fade relative z-20 px-5 sm:px-6 pt-3.5 pb-2 border-b border-[var(--rule)] bg-[var(--paper)]">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <LatinCross className="text-[var(--gold)] shrink-0" size={16} />
@@ -132,6 +134,8 @@ export default function HomePage() {
           </div>
         </div>
       </header>
+
+      <ReadAloudPlayer />
 
       {/* pb reserves exactly the nav (52px + 6px top pad + safe area) plus a
           breath, instead of the old pb-32 which reserved 128px of nothing. */}
@@ -202,47 +206,6 @@ export default function HomePage() {
             </form>
           </div>
 
-          <section className="mt-3.5">
-            <Link
-              href="/misas"
-              className="lift-on-hover flex items-center gap-3 bg-[var(--surface)] border border-[var(--rule)] rounded-2xl p-3 shadow-[0_1px_0_var(--emboss)_inset] hover:border-[var(--marian)]"
-            >
-              <div
-                className="grid place-items-center w-10 h-10 rounded-xl shrink-0"
-                style={{
-                  backgroundColor: "color-mix(in srgb, var(--marian) 11%, transparent)",
-                  color: "var(--marian)",
-                }}
-              >
-                <PinIcon />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-sans font-semibold text-[0.95rem] text-[var(--ink)] leading-snug">
-                  Misa cerca de ti
-                </p>
-                <p className="mt-0.5 font-sans text-[0.82rem] text-[var(--ink-soft)]">
-                  Horarios y cómo llegar.
-                </p>
-              </div>
-            </Link>
-          </section>
-
-          {/* What the app is for. First-time visitors only see a verse and an
-              input — this says plainly what they can ask. mt-auto pins it to
-              the bottom of the viewport so it fills the empty band above the
-              nav instead of floating mid-page; when the Gospel is expanded it
-              simply follows the content. Claims match lib/prompt.ts and
-              lib/credo.ts: Scripture is cited, the Catechism informs. */}
-          <section aria-label="Qué puedes hacer aquí" className="mt-auto pt-5 pb-1 text-center">
-            <LatinCross className="mx-auto text-[var(--gold)] opacity-70" size={12} />
-            <p className="mt-2 mx-auto max-w-[38ch] font-serif text-[0.98rem] leading-[1.4] text-[var(--ink-soft)]">
-              Te ayudo a resolver tus dudas sobre la doctrina, la Tradición y la
-              fe católica.
-            </p>
-            <p className="mt-1.5 font-sans text-[0.74rem] text-[var(--ink-faint)]">
-              Con la Sagrada Escritura y el Catecismo de la Iglesia.
-            </p>
-          </section>
         </div>
       </main>
 
@@ -613,11 +576,3 @@ function ChevronDown({ size = 16, className = "" }: { size?: number; className?:
   );
 }
 
-function PinIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  );
-}

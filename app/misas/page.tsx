@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useLayoutEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
+import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
 import { apiUrl } from "@/lib/api-url";
 
 // useLayoutEffect on the client (runs sync before paint), useEffect on the
@@ -170,6 +171,8 @@ function Misas() {
           </h1>
         </div>
       </header>
+
+      <ReadAloudPlayer />
 
       <main
         className="page-content-fade flex-1 overflow-y-auto"

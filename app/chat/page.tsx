@@ -10,6 +10,7 @@ import { ChatInput } from "@/components/ChatInput";
 import { HistorySheet } from "@/components/HistorySheet";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
 import { TurnActions } from "@/components/TurnActions";
+import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
 import { apiUrl } from "@/lib/api-url";
 import { authFetch } from "@/lib/auth-fetch";
 import {
@@ -35,6 +36,8 @@ export default function ChatPage() {
   const [pending, setPending] = useState(false);
   const conversationRef = useRef<HTMLDivElement>(null);
   const lastTurnRef = useRef<HTMLElement | null>(null);
+  // Turn id → its in-flight save, so a like can wait for the row to exist.
+  const persistPromisesRef = useRef(new Map<string, Promise<void>>());
   const prevTurnCountRef = useRef(0);
   const scrolledForVerseRef = useRef<Set<string>>(new Set());
 
@@ -81,6 +84,16 @@ export default function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // /chat?c=<conversation id> — "Abrir conversación" on Mis favoritas.
+  // Clean the URL first so a reload doesn't reopen it over a new chat.
+  useEffect(() => {
+    const c = new URLSearchParams(window.location.search).get("c");
+    if (!c) return;
+    window.history.replaceState(null, "", "/chat");
+    void loadConversation(c);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (turns.length > prevTurnCountRef.current) {
       lastTurnRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -122,14 +135,24 @@ export default function ChatPage() {
     );
 
     if (!signedIn) return;
-    const conversationId = conversationIdRef.current;
-    if (!conversationId) return; // turn not yet persisted, nothing to PATCH
-
-    void authFetch(apiUrl(`/api/conversations/${conversationId}/turns`), {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ord, liked: nextLiked }),
-    }).catch(() => {
+    // Wait for this turn's own save first: hearting a fresh answer used to
+    // fire the PATCH before the conversation/turn row existed, and the like
+    // was silently lost. Loaded turns have no pending save → runs at once.
+    const saved = persistPromisesRef.current.get(turnId) ?? Promise.resolve();
+    void saved
+      .then(() => {
+        const conversationId = conversationIdRef.current;
+        if (!conversationId) throw new Error("turn was never saved");
+        return authFetch(apiUrl(`/api/conversations/${conversationId}/turns`), {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ord, liked: nextLiked }),
+        });
+      })
+      .then((res) => {
+        if (!res.ok) throw new Error(`status ${res.status}`);
+      })
+      .catch(() => {
       // On failure, roll back the optimistic update so UI matches reality
       setTurns((prev) =>
         prev.map((t) =>
@@ -191,7 +214,10 @@ export default function ChatPage() {
     );
     if (!done) return;
     savedTurnIdsRef.current.add(done.id);
-    void persistTurn(done, turns.findIndex((t) => t.id === done.id));
+    persistPromisesRef.current.set(
+      done.id,
+      persistTurn(done, turns.findIndex((t) => t.id === done.id)),
+    );
   }, [turns, signedIn]);
 
   async function persistTurn(turn: Turn, ord: number) {
@@ -398,6 +424,7 @@ export default function ChatPage() {
               response: t.response,
             }))}
         />
+        <ReadAloudPlayer />
         <HistorySheet
           open={historyOpen}
           onClose={() => setHistoryOpen(false)}
@@ -454,6 +481,7 @@ export default function ChatPage() {
                             response={t.response}
                             liked={t.liked ?? false}
                             onToggleLike={() => toggleLike(t.id, i)}
+                            canLike={signedIn}
                           />
                         )}
                       </>
@@ -469,7 +497,7 @@ export default function ChatPage() {
                         <button
                           type="button"
                           onClick={() => ask(t.question)}
-                          className="mt-2 inline-flex items-center gap-1.5 font-sans text-[0.86rem] font-medium text-[var(--vino)] hover:underline"
+                          className="mt-2.5 inline-flex items-center gap-1.5 min-h-[38px] px-3.5 rounded-full border border-[var(--vino)]/40 bg-[var(--surface)] font-sans text-[0.86rem] font-medium text-[var(--vino)] hover:bg-[var(--vino)]/[0.06] transition-colors"
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                             <path d="M3 12a9 9 0 0 1 15.5-6.4L21 8" />

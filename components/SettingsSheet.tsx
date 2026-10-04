@@ -30,7 +30,7 @@ export function SettingsButton() {
         aria-label="Ajustes de lectura"
         aria-haspopup="dialog"
         title="Ajustes"
-        className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--gold-text)] active:scale-95 transition-all shrink-0"
+        className="grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] active:scale-95 transition-all shrink-0"
         style={{ touchAction: "manipulation" }}
       >
         <span aria-hidden="true" className="font-display leading-none">

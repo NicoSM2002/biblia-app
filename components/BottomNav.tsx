@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
 
 /**
  * Persistent bottom navigation — four sections:
@@ -71,15 +70,11 @@ export function BottomNav() {
   const activeIndex = items.findIndex((item) => isActive(pathname, item.href));
 
   return (
-    // The fixed wrapper holds the read-aloud mini player AND the nav, and is
-    // what gets measured for --nav-h: when the player appears the whole bar
-    // grows and every page's reserved space follows, so it never covers the
-    // chat input. The player sits outside <nav> — it isn't navigation.
+    // The fixed wrapper is what gets measured for --nav-h.
     <div
       ref={navRef}
       className="fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print"
     >
-      <ReadAloudPlayer />
       <nav aria-label="Navegación principal">
       <div className="max-w-2xl mx-auto px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <div className="relative">

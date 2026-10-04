@@ -1,11 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { speakable, toggle, useTts } from "@/lib/tts";
 import { PauseIcon, SpeakerIcon } from "@/components/ReadAloudPlayer";
 
 /**
  * Action row under each completed turn — listen, heart (favorite) and share.
+ *
+ * The heart only shows with an account: it saves the response to "Mis
+ * favoritas" (/favoritas), which a guest has nowhere to keep. Right after
+ * hearting, a "Ver favoritas" pill says where it went.
  *
  * Listen reads the pastoral response aloud (lib/tts.ts). Only the response:
  * it already quotes the verse word for word, so reading the verse card too
@@ -26,6 +31,7 @@ export function TurnActions({
   response,
   liked,
   onToggleLike,
+  canLike,
 }: {
   /** Turn id — identifies this response in the shared reader. */
   id: string;
@@ -34,8 +40,13 @@ export function TurnActions({
   response?: string;
   liked: boolean;
   onToggleLike: () => void;
+  /** Signed in? Without an account there's nowhere to save, so no heart. */
+  canLike: boolean;
 }) {
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
+  // Set when the user hearts this turn now (not for turns loaded already
+  // liked), so the "Ver favoritas" hint appears only as feedback.
+  const [justLiked, setJustLiked] = useState(false);
   const tts = useTts();
   const ttsId = `turn:${id}`;
   const reading = tts.id === ttsId ? tts.status : "idle";
@@ -99,10 +110,14 @@ export function TurnActions({
           {reading === "playing" ? <PauseIcon size={13} /> : <SpeakerIcon size={15} />}
         </button>
       )}
+      {canLike && (
       <button
         type="button"
-        onClick={onToggleLike}
-        aria-label={liked ? "Quitar me gusta" : "Me gusta"}
+        onClick={() => {
+          setJustLiked(!liked);
+          onToggleLike();
+        }}
+        aria-label={liked ? "Quitar de favoritas" : "Guardar en favoritas"}
         aria-pressed={liked}
         className={`grid place-items-center w-9 h-9 rounded-full border transition-colors ${
           liked
@@ -112,6 +127,7 @@ export function TurnActions({
       >
         <HeartIcon filled={liked} />
       </button>
+      )}
       <button
         type="button"
         onClick={onShare}
@@ -124,6 +140,14 @@ export function TurnActions({
         <span className="font-sans text-[0.78rem] text-[var(--ink-soft)]">
           Copiado
         </span>
+      )}
+      {canLike && liked && justLiked && (
+        <Link
+          href="/favoritas"
+          className="anim-fade-in inline-flex items-center gap-1 min-h-[36px] px-3 rounded-full border border-[var(--vino)]/30 bg-[var(--surface)] font-sans text-[0.78rem] font-medium text-[var(--vino)] hover:bg-[var(--vino)]/[0.06] transition-colors"
+        >
+          Guardada · Ver favoritas
+        </Link>
       )}
     </div>
   );

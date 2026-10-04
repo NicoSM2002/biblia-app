@@ -4,6 +4,7 @@ import { Suspense, use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
+import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
 
 type ChurchDetail = {
   id: string;
@@ -115,7 +116,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
             <p className="font-sans text-[0.9rem] text-[var(--ink-soft)]">{error}</p>
             <Link
               href="/misas"
-              className="group inline-flex items-center gap-2 mt-4 font-sans text-[0.9rem] font-semibold text-[var(--marian)] hover:underline"
+              className="group mt-4 inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--marian)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
             >
               {/* Was the bare "←" glyph, which renders as a hairline in every
                   font and looked broken next to the app's 2px stroke icons. */}
@@ -317,7 +318,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
                   href={church.website}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 font-sans text-[0.92rem] text-[var(--gold-text)] hover:underline"
+                  className="inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--gold-text)] hover:border-[var(--gold)] transition-colors"
                 >
                   <GlobeIcon /> Sitio web de la parroquia
                 </a>
@@ -484,12 +485,13 @@ function ChevronRight() {
 
 function DetailHeader({ title }: { title: string }) {
   return (
+    <>
     <header className="page-head-fade px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] z-10">
       <div className="max-w-2xl mx-auto flex items-center gap-2">
         <Link
           href="/misas"
           aria-label="Volver a parroquias"
-          className="grid place-items-center w-11 h-11 rounded-full text-[var(--ink-soft)] hover:bg-[var(--vellum)] transition-colors shrink-0 -ml-1"
+          className="grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors shrink-0 -ml-1"
         >
           <BackIcon />
         </Link>
@@ -498,6 +500,8 @@ function DetailHeader({ title }: { title: string }) {
         </h1>
       </div>
     </header>
+    <ReadAloudPlayer />
+    </>
   );
 }
 

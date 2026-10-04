@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
+import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
 import { formatReference } from "@/components/VerseCard";
 import { apiUrl } from "@/lib/api-url";
 import { localDateKey } from "@/lib/daily-verses";
@@ -138,6 +139,8 @@ export default function OracionPage() {
           Modo oración
         </p>
       </header>
+
+      <ReadAloudPlayer />
 
       <main
         className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center min-h-0"
