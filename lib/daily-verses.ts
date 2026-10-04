@@ -78,6 +78,18 @@ export const DAILY_VERSE_POOL: DailyRef[] = [
 ];
 
 /**
+ * The viewer's LOCAL calendar date as YYYY-MM-DD. The client sends this to
+ * /api/daily-verse so the verse changes at the user's midnight, not the
+ * server's (UTC) — and so the CDN caches one response per date.
+ */
+export function localDateKey(date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/**
  * Returns the reference of the day. Deterministic — given the same date,
  * always returns the same verse. Rotates through the pool by day-of-year.
  */

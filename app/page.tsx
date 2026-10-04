@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LatinCross } from "@/components/Cross";
 import { formatReference, splitVersal } from "@/components/VerseCard";
+import { localDateKey } from "@/lib/daily-verses";
+import type { DailyGospel } from "@/lib/daily-gospel";
 import { HomeAvatar } from "@/components/HomeAvatar";
 import { BottomNav } from "@/components/BottomNav";
 import { Splash } from "@/components/Splash";
@@ -21,12 +23,13 @@ const ACROSTIC =
   /\((?:Alef|Bet|Guímel|Guimel|Dálet|Dalet|He|Vau|Zain|Jet|Tet|Yod|Kaf|Lámed|Lamed|Mem|Nun|Sámec|Samec|Ain|Pe|Sade|Kof|Cof|Res|Sin|Sín|Shin|Tau)\)\s*/gi;
 
 type Verse = { reference: string; text: string };
+type Daily = { verse: Verse; gospel?: DailyGospel };
 
 export default function HomePage() {
   const router = useRouter();
   const [name, setName] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
-  const [verse, setVerse] = useState<Verse | null>(null);
+  const [daily, setDaily] = useState<Daily | null>(null);
   const speech = useSpeechRecognition({ lang: "es-ES" });
 
   // Mirror the live transcript into the input as the user speaks. We
@@ -51,34 +54,38 @@ export default function HomePage() {
     });
   }, []);
 
-  // Daily verse — cached in sessionStorage so the SECOND time the user
+  // Evangelio del día — cached in sessionStorage so the SECOND time the user
   // navigates to the home in the same session it appears instantly. The
   // network round-trip used to make the verse "pop in late" every visit.
-  // Cache keyed by today's date so it auto-invalidates on a new day.
+  // Cache keyed by the user's local date so it auto-invalidates at their
+  // midnight (toISOString() would be UTC — hours off in the Americas).
   useEffect(() => {
+    const today = localDateKey();
     try {
-      const today = new Date().toISOString().slice(0, 10);
-      const cached = sessionStorage.getItem("dailyVerseCache");
+      const cached = sessionStorage.getItem("dailyGospelCache");
       if (cached) {
-        const parsed = JSON.parse(cached) as { date: string; verse: Verse };
-        if (parsed.date === today && parsed.verse) {
-          setVerse(parsed.verse);
+        const parsed = JSON.parse(cached) as { date: string; daily: Daily };
+        if (parsed.date === today && parsed.daily?.verse) {
+          setDaily(parsed.daily);
           return;
         }
       }
     } catch {
       // ignore
     }
-    fetch(apiUrl("/api/daily-verse"))
+    fetch(apiUrl(`/api/daily-verse?date=${today}`))
       .then((r) => r.json())
-      .then((d: { verse?: Verse }) => {
+      .then((d: { verse?: Verse; gospel?: DailyGospel }) => {
         if (d.verse) {
-          setVerse(d.verse);
+          const next: Daily = { verse: d.verse, gospel: d.gospel };
+          setDaily(next);
+          // Only cache the real Gospel; a fallback verse should be retried
+          // on the next visit in case the liturgical feed is back.
+          if (!d.gospel) return;
           try {
-            const today = new Date().toISOString().slice(0, 10);
             sessionStorage.setItem(
-              "dailyVerseCache",
-              JSON.stringify({ date: today, verse: d.verse }),
+              "dailyGospelCache",
+              JSON.stringify({ date: today, daily: next }),
             );
           } catch {
             // ignore
@@ -129,19 +136,22 @@ export default function HomePage() {
         className="page-content-fade flex-1 overflow-y-auto"
         style={{ paddingBottom: "calc(72px + env(safe-area-inset-bottom))" }}
       >
-        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-3.5">
+        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-3.5 min-h-full flex flex-col">
           <Greeting name={name} />
 
-          {/* Versículo del día — now the first thing on the page and the only
+          {/* Evangelio del día — now the first thing on the page and the only
               thing on it shaped like a window. When you open a devotional app,
               receiving comes before asking; putting the verse third, in the
               same 12px rectangle as the parish CTA, buried the one moment
               worth remembering. Skeleton while loading so the layout doesn't
               shift when the fetch comes back; on subsequent visits in the same
-              session it's instant via sessionStorage cache. */}
+              session it's instant via sessionStorage cache. If the liturgical
+              feed is down we get a single pool verse instead. */}
           <div className="mt-2.5">
-            {verse ? (
-              <DailyVerseSection verse={verse} />
+            {daily?.gospel ? (
+              <DailyGospelSection gospel={daily.gospel} />
+            ) : daily ? (
+              <DailyVerseSection verse={daily.verse} />
             ) : (
               <DailyVerseSkeleton />
             )}
@@ -207,6 +217,23 @@ export default function HomePage() {
               </div>
             </Link>
           </section>
+
+          {/* What the app is for. First-time visitors only see a verse and an
+              input — this says plainly what they can ask. mt-auto pins it to
+              the bottom of the viewport so it fills the empty band above the
+              nav instead of floating mid-page; when the Gospel is expanded it
+              simply follows the content. Claims match lib/prompt.ts and
+              lib/credo.ts: Scripture is cited, the Catechism informs. */}
+          <section aria-label="Qué puedes hacer aquí" className="mt-auto pt-5 pb-1 text-center">
+            <LatinCross className="mx-auto text-[var(--gold)] opacity-70" size={12} />
+            <p className="mt-2 mx-auto max-w-[38ch] font-serif text-[0.98rem] leading-[1.4] text-[var(--ink-soft)]">
+              Te ayudo a resolver tus dudas sobre la doctrina, la tradición y la
+              fe católica.
+            </p>
+            <p className="mt-1.5 font-sans text-[0.74rem] text-[var(--ink-faint)]">
+              Con la Sagrada Escritura y el Catecismo de la Iglesia.
+            </p>
+          </section>
         </div>
       </main>
 
@@ -233,11 +260,89 @@ function DailyVerseSkeleton() {
   );
 }
 
-function DailyVerseSection({ verse }: { verse: Verse }) {
-  const display = verse.text
+function cleanVerse(text: string): string {
+  return text
     .replace(ACROSTIC, "")
     .replace(/\s*\|\s*/g, " — ")
     .trim();
+}
+
+/**
+ * Collapsed Gospel text: ~3 lines at phone width, cut on a word boundary, so
+ * the card leaves room for the input and the "what is this app" note below.
+ * Trailing punctuation is swapped for the ellipsis ("país.…" → "país…").
+ */
+function teaser(text: string, continues: boolean, max = 115): string {
+  if (text.length <= max + 20) {
+    return continues ? `${text.replace(/[.,;:]\s*$/, "")}…` : text;
+  }
+  const cut = text.slice(0, text.lastIndexOf(" ", max));
+  return `${cut.replace(/[.,;:—\s]+$/, "")}…`;
+}
+
+/**
+ * The Gospel of the day. Collapsed it shows only the opening verse — the home
+ * has to keep the question box above the fold — and expands in place to the
+ * whole pericope, so reading it never takes you away from the page.
+ */
+function DailyGospelSection({ gospel }: { gospel: DailyGospel }) {
+  const [open, setOpen] = useState(false);
+  const [first, ...more] = gospel.verses;
+  const { initial, rest } = splitVersal(cleanVerse(first.texto));
+
+  return (
+    <section aria-label="Evangelio del día">
+      <div className="arch-panel">
+        <div className="arch-body">
+          <p className="text-center font-sans text-[0.68rem] font-semibold tracking-[0.2em] uppercase text-[var(--gold-text)]">
+            Evangelio del día
+          </p>
+          <p className="mt-0.5 mb-2.5 text-center font-sans text-[0.8rem] text-[var(--ink-soft)]">
+            {gospel.title}
+          </p>
+          {initial && (
+            <span aria-hidden="true" className="versal">
+              {initial}
+            </span>
+          )}
+          <blockquote
+            cite={gospel.reference}
+            className="font-serif text-[1.08rem] sm:text-[1.24rem] leading-[1.44] text-[var(--ink)]"
+            style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
+          >
+            <span className="sr-only">{initial}</span>
+            {open ? rest : teaser(rest, more.length > 0)}
+            {open &&
+              more.map((v) => (
+                <span key={`${v.capitulo}:${v.versiculo}`}>
+                  {" "}
+                  <sup className="font-sans text-[0.62em] text-[var(--gold-text)]">
+                    {v.versiculo}
+                  </sup>
+                  {" "}
+                  {cleanVerse(v.texto)}
+                </span>
+              ))}
+          </blockquote>
+          <p className="ref-rule">{gospel.reference}</p>
+          {more.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-expanded={open}
+              className="mt-1.5 mx-auto block px-3 py-2 font-sans text-[0.82rem] font-medium text-[var(--gold-text)] hover:underline underline-offset-4"
+            >
+              {open ? "Mostrar menos" : "Leer el Evangelio completo"}
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DailyVerseSection({ verse }: { verse: Verse }) {
+  const display = cleanVerse(verse.text);
   const { initial, rest } = splitVersal(display);
 
   return (

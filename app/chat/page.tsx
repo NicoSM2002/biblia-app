@@ -375,13 +375,12 @@ export default function ChatPage() {
   return (
     <div
       className="relative h-[100dvh] flex flex-col overflow-hidden"
-      // Reserve exactly the bottom-nav height (52px content + 6px top
-      // padding + safe-area), so the input area sits flush against the
-      // top of the nav with no visible gap. pb-[88px] was leaving a
-      // visible cream stripe between the input and the nav on devices
-      // without safe-area, and getting tapped by the nav on those with
-      // it. The calc handles both correctly.
-      style={{ paddingBottom: "calc(58px + env(safe-area-inset-bottom))" }}
+      // Reserve exactly the bottom-nav height: 1px border-top + 6px top
+      // padding + 52px items + its bottom padding, which is
+      // max(0.5rem, safe-area) — NOT safe-area alone. Reserving only
+      // 58px + safe-area let the nav cover ~9px of the input area, so the
+      // pill looked glued to the nav. Mirror BottomNav's padding here.
+      style={{ paddingBottom: "calc(59px + max(0.5rem, env(safe-area-inset-bottom)))" }}
     >
       <div className="missal-page">
         <Header
@@ -482,7 +481,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="relative z-10 px-4 sm:px-8 lg:px-10 pt-2 pb-2 border-t border-[var(--rule)] bg-[var(--paper)]">
+          <div className="relative z-10 px-4 sm:px-8 lg:px-10 pt-2 pb-3 border-t border-[var(--rule)] bg-[var(--paper)]">
             <div className="max-w-2xl mx-auto">
               <ChatInput
                 onSubmit={ask}

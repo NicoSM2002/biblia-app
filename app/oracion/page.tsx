@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BottomNav } from "@/components/BottomNav";
 import { formatReference } from "@/components/VerseCard";
 import { apiUrl } from "@/lib/api-url";
+import { localDateKey } from "@/lib/daily-verses";
 
 const NAV_RESERVE_PX = 88;
 
@@ -33,7 +34,7 @@ export default function OracionPage() {
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    fetch(apiUrl("/api/daily-verse"))
+    fetch(apiUrl(`/api/daily-verse?date=${localDateKey()}`))
       .then((r) => r.json())
       .then((d: { verse?: Verse }) => {
         if (d.verse) setVerse(d.verse);
