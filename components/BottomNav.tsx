@@ -14,17 +14,15 @@ import { cn } from "@/lib/utils";
  * guests it explains that saving needs an account.
  *
  * The active tab gets three cues working together:
- *   1. A marian-blue pill that TRAVELS between tabs instead of appearing and
- *      disappearing. The pill is a single absolutely-positioned element
- *      translated by index; sliding it is what makes the nav feel like an
- *      object rather than four independent buttons.
- *   2. Marian blue on the label and icon. Gold is reserved for Scripture;
+ *   1. A marian-blue capsule behind the ICON (not the whole tab), the way
+ *      iOS/Material tab bars mark the current section — it can't spill into
+ *      a neighbouring tab however long the label is.
+ *   2. Marian blue on the label and icon. Same weight as the others on
+ *      purpose: bold made "Conversación" too wide for its cell at 360px. Gold is reserved for Scripture;
  *      anything you can touch is blue.
  *   3. A filled icon variant — inactive icons are stroke-only, active ones are
  *      filled, so a glance tells you where you are without reading labels.
- *
- * The slide uses ease-out-expo, not a spring: it should read as confident,
- * never as a bounce. Disabled entirely under prefers-reduced-motion.
+
  */
 type Item = {
   href: string;
@@ -70,9 +68,31 @@ export function BottomNav() {
     };
   }, [pathname]);
 
-  if (pathname?.startsWith("/auth")) return null;
-
   const activeIndex = items.findIndex((item) => isActive(pathname, item.href));
+
+  // Centre the capsule on the active tab by measuring it, not by assuming
+  // equal 1/5 cells: with large text (Ajustes) "Conversación" can't shrink
+  // to a fifth, the cells become unequal and a %-based position drifted
+  // ~27px off its icon. Written straight to the element — no re-render.
+  const listRef = useRef<HTMLUListElement>(null);
+  const capRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    const cap = capRef.current;
+    if (!list || !cap || activeIndex < 0) return;
+    const place = () => {
+      const tab = list.children[activeIndex] as HTMLElement | undefined;
+      if (!tab) return;
+      cap.style.left = `${tab.offsetLeft + tab.offsetWidth / 2 - cap.offsetWidth / 2}px`;
+      cap.style.opacity = "1";
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(list);
+    return () => ro.disconnect();
+  }, [activeIndex]);
+
+  if (pathname?.startsWith("/auth")) return null;
 
   return (
     // The fixed wrapper is what gets measured for --nav-h.
@@ -84,41 +104,55 @@ export function BottomNav() {
       <div className="max-w-2xl mx-auto px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <div className="relative">
           {activeIndex >= 0 && (
+            // Icon-sized capsule (56×30), centred on the active tab's icon.
+            // It used to fill the whole tab cell; with five tabs a cell is
+            // ~75px and "Conversación" is ~69px, so the box touched the
+            // neighbouring labels and looked like it spilled into the next
+            // tab. Placed by measuring the active tab (effect above).
             <span
+              ref={capRef}
               aria-hidden="true"
               className={cn(
-                "pointer-events-none absolute inset-y-0 left-0 rounded-2xl",
-                "transition-transform duration-[380ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
+                "pointer-events-none absolute top-1.5 h-[30px] w-[56px] rounded-full",
+                "transition-opacity duration-200",
                 "motion-reduce:transition-none",
               )}
               style={{
-                width: `${100 / items.length}%`,
-                transform: `translateX(${activeIndex * 100}%)`,
-                backgroundColor: "color-mix(in srgb, var(--marian) 11%, transparent)",
+                left: 0,
+                opacity: 0,
+                backgroundColor: "color-mix(in srgb, var(--marian) 14%, transparent)",
                 boxShadow:
-                  "inset 0 0 0 1px color-mix(in srgb, var(--marian) 22%, transparent)",
+                  "inset 0 0 0 1px color-mix(in srgb, var(--marian) 24%, transparent)",
               }}
             />
           )}
-          <ul className="relative flex items-stretch">
+          <ul ref={listRef} className="relative flex items-stretch">
             {items.map((item, i) => {
               const active = i === activeIndex;
               return (
-                <li key={item.href} className="flex-1">
+                <li key={item.href} className="flex-1 min-w-0">
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     style={{ touchAction: "manipulation" }}
                     className={cn(
-                      "flex flex-col items-center gap-0.5 px-0.5 py-1.5 rounded-2xl min-h-[52px] active:scale-95",
+                      "flex flex-col items-center gap-1 px-0 pt-1.5 pb-1 rounded-2xl min-h-[52px] active:scale-95",
                       "transition-colors duration-200 ease-out",
                       active
-                        ? "text-[var(--marian)] font-medium"
+                        ? "text-[var(--marian)]"
                         : "text-[var(--ink-faint)] hover:text-[var(--ink-soft)]",
                     )}
                   >
-                    <span aria-hidden="true">{item.icon(active)}</span>
-                    <span className="font-sans text-[0.68rem] tracking-[0.005em] whitespace-nowrap">
+                    <span aria-hidden="true" className="grid place-items-center h-[30px] w-[56px]">
+                      {item.icon(active)}
+                    </span>
+                    <span
+                      className={cn(
+                        // Capped: Ajustes → Tamaño del texto is for reading. At 130%
+                        // five labels no longer fit and "Parroquias" ran off-screen.
+                        "max-w-full truncate font-sans text-[min(0.68rem,11px)] tracking-[-0.01em]",
+                      )}
+                    >
                       {item.label}
                     </span>
                   </Link>

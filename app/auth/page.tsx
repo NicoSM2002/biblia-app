@@ -1,13 +1,28 @@
 "use client";
 
-import { Suspense, useRef, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LatinCross } from "@/components/Cross";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
-type Mode = "login" | "signup";
+/**
+ * login / signup, plus password recovery:
+ *  - "reset":       ask for the email; Supabase mails a recovery link.
+ *  - "newPassword": where that link lands (/auth?modo=nueva). supabase-js
+ *                   (detectSessionInUrl) turns the link's tokens into a
+ *                   temporary session; the user picks a new password and
+ *                   updateUser() saves it.
+ */
+type Mode = "login" | "signup" | "reset" | "newPassword";
+type Recovery = "checking" | "ready" | "invalid";
+
+const MODE_PARAM: Record<string, Mode> = {
+  registro: "signup",
+  recuperar: "reset",
+  nueva: "newPassword",
+};
 
 export default function AuthPage() {
   return (
@@ -20,13 +35,15 @@ export default function AuthPage() {
 function AuthForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const initialMode: Mode = params.get("modo") === "registro" ? "signup" : "login";
+  const initialMode: Mode = MODE_PARAM[params.get("modo") ?? ""] ?? "login";
   const next = params.get("next") || "/";
 
   const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
+  const [recovery, setRecovery] = useState<Recovery>("checking");
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,11 +53,90 @@ function AuthForm() {
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
+  // Landing from the recovery email: wait for supabase-js to turn the link
+  // into a session. Expired/used links come back with #error_code=… instead.
+  useEffect(() => {
+    if (initialMode !== "newPassword") return;
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    if (hash.get("error_code") || hash.get("error")) {
+      void Promise.resolve().then(() => setRecovery("invalid"));
+      return;
+    }
+    const supabase = createClient();
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN")) {
+        setRecovery("ready");
+      }
+    });
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setRecovery("ready");
+    });
+    // Still no session after a few seconds → the link isn't usable.
+    const t = window.setTimeout(
+      () => setRecovery((r) => (r === "checking" ? "invalid" : r)),
+      5000,
+    );
+    return () => {
+      sub.subscription.unsubscribe();
+      window.clearTimeout(t);
+    };
+  }, [initialMode]);
+
+  function switchMode(m: Mode) {
+    setMode(m);
+    setError(null);
+    setInfo(null);
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (pending) return;
     setError(null);
     setInfo(null);
+
+    if (mode === "reset") {
+      if (!email.trim()) {
+        setError("Escribe el correo de tu cuenta.");
+        emailRef.current?.focus();
+        return;
+      }
+      setPending(true);
+      const { error: e1 } = await createClient().auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth?modo=nueva`,
+      });
+      setPending(false);
+      if (e1) {
+        setError(translateAuthError(e1.message));
+        return;
+      }
+      // Same message whether or not the account exists — don't reveal it.
+      setInfo(
+        "Si hay una cuenta con ese correo, te llegará un enlace para crear una contraseña nueva. Revisa también la carpeta de spam.",
+      );
+      return;
+    }
+
+    if (mode === "newPassword") {
+      if (password.length < 8) {
+        setError("La contraseña debe tener al menos 8 caracteres.");
+        passwordRef.current?.focus();
+        return;
+      }
+      if (password !== password2) {
+        setError("Las dos contraseñas no coinciden.");
+        return;
+      }
+      setPending(true);
+      const { error: e1 } = await createClient().auth.updateUser({ password });
+      setPending(false);
+      if (e1) {
+        setError(translateAuthError(e1.message));
+        return;
+      }
+      setInfo("Listo, tu contraseña se cambió. Ya tienes la sesión iniciada.");
+      window.setTimeout(() => router.replace("/"), 1800);
+      return;
+    }
 
     if (mode === "signup" && !name.trim()) {
       setError("¿Cómo te llamas? Necesitamos tu nombre para saludarte.");
@@ -144,7 +240,14 @@ function AuthForm() {
               </h1>
             </Link>
             <p className="font-sans font-semibold text-[0.68rem] tracking-[0.2em] uppercase text-[var(--gold-text)] mt-1.5">
-              {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
+              {
+                {
+                  login: "Iniciar sesión",
+                  signup: "Crear cuenta",
+                  reset: "Recuperar contraseña",
+                  newPassword: "Nueva contraseña",
+                }[mode]
+              }
             </p>
           </div>
 
@@ -153,49 +256,118 @@ function AuthForm() {
             className="space-y-2 bg-[var(--surface)] border border-[var(--rule)] rounded-2xl p-3.5 shadow-[0_1px_0_var(--emboss)_inset,0_10px_26px_-18px_rgba(var(--shadow-color),0.5)]"
             noValidate
           >
-            {mode === "signup" && (
-              <Field
-                ref={nameRef}
-                label="Nombre"
-                type="text"
-                autoComplete="given-name"
-                value={name}
-                onChange={setName}
-                disabled={pending}
-                hint="Cómo quieres que te saludemos."
-              />
+            {mode === "reset" && (
+              <p className="px-0.5 pb-1 font-sans text-[0.9rem] leading-relaxed text-[var(--ink-soft)]">
+                Escribe el correo con el que creaste tu cuenta y te enviaremos
+                un enlace para elegir una contraseña nueva.
+              </p>
             )}
-            <Field
-              ref={emailRef}
-              label="Correo"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={setEmail}
-              disabled={pending}
-            />
-            <Field
-              ref={passwordRef}
-              label="Contraseña"
-              type={showPassword ? "text" : "password"}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              value={password}
-              onChange={setPassword}
-              disabled={pending}
-              hint={mode === "signup" ? "Mínimo 8 caracteres" : undefined}
-              suffix={
+
+            {mode === "newPassword" && recovery === "checking" && (
+              <p className="py-3 text-center font-sans text-[0.92rem] text-[var(--ink-soft)]">
+                Comprobando el enlace…
+              </p>
+            )}
+
+            {mode === "newPassword" && recovery === "invalid" && (
+              <div className="py-2 text-center">
+                <p className="font-sans text-[0.92rem] leading-relaxed text-[var(--ink-soft)]">
+                  Este enlace caducó o ya se usó. Pide uno nuevo y ábrelo
+                  desde el último correo que te llegue.
+                </p>
                 <button
                   type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={
-                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-                  }
-                  className="grid place-items-center w-8 h-8 mr-1.5 shrink-0 rounded-lg bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--gold-text)] hover:bg-[var(--rule)] transition-colors"
+                  onClick={() => switchMode("reset")}
+                  className="mt-3 inline-flex items-center min-h-[40px] px-4 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] font-sans text-[0.88rem] font-semibold text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
                 >
-                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  Pedir un enlace nuevo
                 </button>
-              }
-            />
+              </div>
+            )}
+
+            {mode === "newPassword" && recovery === "ready" && (
+              <>
+                <Field
+                  ref={passwordRef}
+                  label="Nueva contraseña"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={setPassword}
+                  disabled={pending}
+                  hint="Mínimo 8 caracteres"
+                  suffix={<EyeToggle shown={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
+                />
+                <Field
+                  label="Repítela"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  value={password2}
+                  onChange={setPassword2}
+                  disabled={pending}
+                />
+              </>
+            )}
+
+            {(mode === "login" || mode === "signup") && (
+              <>
+              {mode === "signup" && (
+                <Field
+                  ref={nameRef}
+                  label="Nombre"
+                  type="text"
+                  autoComplete="given-name"
+                  value={name}
+                  onChange={setName}
+                  disabled={pending}
+                  hint="Cómo quieres que te saludemos."
+                />
+              )}
+              <Field
+                ref={emailRef}
+                label="Correo"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={setEmail}
+                disabled={pending}
+              />
+              <Field
+                ref={passwordRef}
+                label="Contraseña"
+                type={showPassword ? "text" : "password"}
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                value={password}
+                onChange={setPassword}
+                disabled={pending}
+                hint={mode === "signup" ? "Mínimo 8 caracteres" : undefined}
+                suffix={<EyeToggle shown={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
+              />
+                {mode === "login" && (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => switchMode("reset")}
+                      className="inline-flex items-center min-h-[34px] px-3 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.8rem] font-medium text-[var(--ink-soft)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {mode === "reset" && (
+              <Field
+                ref={emailRef}
+                label="Correo"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={setEmail}
+                disabled={pending}
+              />
+            )}
 
             {error && (
               <p
@@ -211,6 +383,7 @@ function AuthForm() {
               </p>
             )}
 
+            {!(mode === "newPassword" && recovery !== "ready") && (
             <button
               type="submit"
               disabled={pending}
@@ -223,10 +396,14 @@ function AuthForm() {
             >
               {pending
                 ? "Un momento…"
-                : mode === "login"
-                  ? "Entrar"
-                  : "Crear cuenta"}
+                : {
+                    login: "Entrar",
+                    signup: "Crear cuenta",
+                    reset: "Enviar enlace",
+                    newPassword: "Guardar contraseña",
+                  }[mode]}
             </button>
+            )}
           </form>
 
           <div className="mt-4 text-center font-sans text-[0.9rem] text-[var(--ink-soft)]">
@@ -235,31 +412,31 @@ function AuthForm() {
                 ¿No tienes cuenta?{" "}
                 <button
                   type="button"
-                  onClick={() => {
-                    setMode("signup");
-                    setError(null);
-                    setInfo(null);
-                  }}
+                  onClick={() => switchMode("signup")}
                   className="ml-1 inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
                 >
                   Créala aquí
                 </button>
               </>
-            ) : (
+            ) : mode === "signup" ? (
               <>
                 ¿Ya tienes una?{" "}
                 <button
                   type="button"
-                  onClick={() => {
-                    setMode("login");
-                    setError(null);
-                    setInfo(null);
-                  }}
+                  onClick={() => switchMode("login")}
                   className="ml-1 inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
                 >
                   Inicia sesión
                 </button>
               </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => switchMode("login")}
+                className="inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
+              >
+                Volver a iniciar sesión
+              </button>
             )}
           </div>
 
@@ -401,8 +578,27 @@ function EyeOffIcon() {
   );
 }
 
+function EyeToggle({ shown, onToggle }: { shown: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={shown ? "Ocultar contraseña" : "Mostrar contraseña"}
+      className="grid place-items-center w-8 h-8 mr-1.5 shrink-0 rounded-lg bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--gold-text)] hover:bg-[var(--rule)] transition-colors"
+    >
+      {shown ? <EyeOffIcon /> : <EyeIcon />}
+    </button>
+  );
+}
+
 function translateAuthError(msg: string): string {
   const m = msg.toLowerCase();
+  if (m.includes("for security purposes"))
+    return "Por seguridad, espera un minuto antes de pedir otro enlace.";
+  if (m.includes("should be different from the old"))
+    return "La contraseña nueva debe ser distinta de la anterior.";
+  if (m.includes("auth session missing") || m.includes("expired"))
+    return "El enlace caducó o ya se usó. Pide uno nuevo.";
   if (m.includes("invalid login credentials"))
     return "Correo o contraseña incorrectos.";
   if (m.includes("user already registered"))
