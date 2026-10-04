@@ -448,6 +448,7 @@ export default function ChatPage() {
                         )}
                         {t.status === "done" && (t.verse || t.response) && (
                           <TurnActions
+                            id={t.id}
                             question={t.question}
                             verse={t.verse ?? null}
                             response={t.response}

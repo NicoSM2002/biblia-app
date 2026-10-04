@@ -7,6 +7,8 @@ import { LatinCross } from "@/components/Cross";
 import { formatReference, splitVersal } from "@/components/VerseCard";
 import { localDateKey } from "@/lib/daily-verses";
 import type { DailyGospel } from "@/lib/daily-gospel";
+import { speakable, toggle, useTts } from "@/lib/tts";
+import { PauseIcon, SpeakerIcon } from "@/components/ReadAloudPlayer";
 import { HomeAvatar } from "@/components/HomeAvatar";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
 import { Splash } from "@/components/Splash";
@@ -163,7 +165,7 @@ export default function HomePage() {
             {/* text-wrap: balance splits the question into two even lines
                 instead of "¿Qué quieres" alone on top and the rest below. */}
             <h2
-              className="mt-4 font-display text-[1.24rem] sm:text-page leading-[1.2] text-[var(--ink)] mb-2.5"
+              className="mt-4 text-center font-display text-[1.24rem] sm:text-page leading-[1.2] text-[var(--ink)] mb-2.5"
               style={{ textWrap: "balance" as React.CSSProperties["textWrap"] }}
             >
               ¿Qué quieres preguntarle a la Palabra de Dios hoy?
@@ -234,7 +236,7 @@ export default function HomePage() {
           <section aria-label="Qué puedes hacer aquí" className="mt-auto pt-5 pb-1 text-center">
             <LatinCross className="mx-auto text-[var(--gold)] opacity-70" size={12} />
             <p className="mt-2 mx-auto max-w-[38ch] font-serif text-[0.98rem] leading-[1.4] text-[var(--ink-soft)]">
-              Te ayudo a resolver tus dudas sobre la doctrina, la tradición y la
+              Te ayudo a resolver tus dudas sobre la doctrina, la Tradición y la
               fe católica.
             </p>
             <p className="mt-1.5 font-sans text-[0.74rem] text-[var(--ink-faint)]">
@@ -294,8 +296,23 @@ function teaser(text: string, continues: boolean, max = 115): string {
  * has to keep the question box above the fold — and expands in place to the
  * whole pericope, so reading it never takes you away from the page.
  */
+const PILL =
+  "flex items-center gap-1.5 min-h-[40px] px-4 whitespace-nowrap rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] font-sans text-[0.84rem] font-medium text-[var(--gold-text)] shadow-[0_1px_0_var(--emboss)_inset,0_1px_3px_rgba(0,0,0,0.06)] hover:border-[var(--gold)] active:scale-95 transition-all";
+
+/** What "Escuchar" reads: the liturgical frame around the pericope. */
+function gospelSpeech(gospel: DailyGospel): string {
+  const book = gospel.reference.split(" ")[0];
+  const body = gospel.verses.map((v) => cleanVerse(v.texto)).join(" ");
+  return speakable(
+    `Lectura del santo Evangelio según san ${book}. ${body} Palabra del Señor.`,
+  );
+}
+
 function DailyGospelSection({ gospel }: { gospel: DailyGospel }) {
   const [open, setOpen] = useState(false);
+  const tts = useTts();
+  const ttsId = `gospel:${gospel.reference}`;
+  const reading = tts.id === ttsId ? tts.status : "idle";
   const [first, ...more] = gospel.verses;
   const { initial, rest } = splitVersal(cleanVerse(first.texto));
 
@@ -334,21 +351,36 @@ function DailyGospelSection({ gospel }: { gospel: DailyGospel }) {
               ))}
           </blockquote>
           <p className="ref-rule">{gospel.reference}</p>
-          {more.length > 0 && (
-            // A bordered pill with a chevron, not bare text — gold text alone
-            // read as a caption, and nobody tapped it.
-            <button
-              type="button"
-              onClick={() => setOpen((o) => !o)}
-              aria-expanded={open}
-              className="mt-3 mx-auto flex items-center gap-1.5 min-h-[40px] px-4 whitespace-nowrap rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] font-sans text-[0.84rem] font-medium text-[var(--gold-text)] shadow-[0_1px_0_var(--emboss)_inset,0_1px_3px_rgba(0,0,0,0.06)] hover:border-[var(--gold)] active:scale-95 transition-all"
-            >
-              {open ? "Mostrar menos" : "Leer el Evangelio completo"}
-              <ChevronDown
-                className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}
-              />
-            </button>
-          )}
+          {/* Bordered pills with icons, not bare text — gold text alone read
+              as a caption, and nobody tapped it. */}
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {tts.supported && (
+              <button
+                type="button"
+                onClick={() => toggle(ttsId, "Evangelio del día", gospelSpeech(gospel))}
+                aria-label={
+                  reading === "playing" ? "Pausar la lectura del Evangelio" : "Escuchar el Evangelio"
+                }
+                className={PILL}
+              >
+                {reading === "playing" ? <PauseIcon size={14} /> : <SpeakerIcon size={16} />}
+                {reading === "playing" ? "Pausar" : reading === "paused" ? "Continuar" : "Escuchar"}
+              </button>
+            )}
+            {more.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setOpen((o) => !o)}
+                aria-expanded={open}
+                className={PILL}
+              >
+                {open ? "Mostrar menos" : tts.supported ? "Leer completo" : "Leer el Evangelio completo"}
+                <ChevronDown
+                  className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+                />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </section>

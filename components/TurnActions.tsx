@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { speakable, toggle, useTts } from "@/lib/tts";
+import { PauseIcon, SpeakerIcon } from "@/components/ReadAloudPlayer";
 
 /**
- * Action row under each completed turn — heart (favorite) and share.
+ * Action row under each completed turn — listen, heart (favorite) and share.
+ *
+ * Listen reads the pastoral response aloud (lib/tts.ts). Only the response:
+ * it already quotes the verse word for word, so reading the verse card too
+ * would say it twice. Hidden where the browser has no speech synthesis.
  *
  * The heart is now a controlled component: the parent manages the liked
  * state and persists it to Supabase when the user is signed in. That way
@@ -14,12 +20,15 @@ import { useState } from "react";
  * fallback (no auth required, always works).
  */
 export function TurnActions({
+  id,
   question,
   verse,
   response,
   liked,
   onToggleLike,
 }: {
+  /** Turn id — identifies this response in the shared reader. */
+  id: string;
   question: string;
   verse?: { reference: string; text: string } | null;
   response?: string;
@@ -27,6 +36,9 @@ export function TurnActions({
   onToggleLike: () => void;
 }) {
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
+  const tts = useTts();
+  const ttsId = `turn:${id}`;
+  const reading = tts.id === ttsId ? tts.status : "idle";
 
   function buildShareText(): string {
     const parts: string[] = [];
@@ -70,6 +82,23 @@ export function TurnActions({
 
   return (
     <div className="flex items-center gap-2 mt-3 mb-1">
+      {tts.supported && response && (
+        <button
+          type="button"
+          onClick={() => toggle(ttsId, "Respuesta", speakable(response))}
+          aria-label={
+            reading === "playing" ? "Pausar lectura" : reading === "paused" ? "Continuar lectura" : "Escuchar respuesta"
+          }
+          aria-pressed={reading !== "idle"}
+          className={`grid place-items-center w-9 h-9 rounded-full border transition-colors ${
+            reading !== "idle"
+              ? "border-[var(--gold)] bg-[var(--vellum)] text-[var(--gold-text)]"
+              : "border-[var(--rule)] text-[var(--ink-faint)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)]"
+          }`}
+        >
+          {reading === "playing" ? <PauseIcon size={13} /> : <SpeakerIcon size={15} />}
+        </button>
+      )}
       <button
         type="button"
         onClick={onToggleLike}
