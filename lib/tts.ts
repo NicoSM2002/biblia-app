@@ -85,13 +85,17 @@ export function useTts(): TtsState {
 const MALE_VOICE =
   /\b(jorge|juan|diego|carlos|pablo|ra[uú]l|[aá]lvaro|alonso|gerardo|enrique|andr[eé]s|gonzalo|tom[aá]s|jos[eé]|manuel|antonio|miguel|francisco|javier|sergio|lorenzo|eddy|reed|rocko|grandpa|male|hombre|masculin)/i;
 
-/** Best Spanish voice: a male one first (user's choice), then quality. */
+/**
+ * Best Spanish voice, in the owner's order of priority: male, then a
+ * neutral Latin-American accent (es-419/MX/US/CO…) over Spain's, then
+ * network/neural quality.
+ */
 function pickVoice(): SpeechSynthesisVoice | undefined {
   const voices = synth()?.getVoices().filter((v) => /^es\b|^es[-_]/i.test(v.lang)) ?? [];
   const score = (v: SpeechSynthesisVoice) =>
     (MALE_VOICE.test(v.name) ? 10 : 0) +
     (/natural|neural|premium|enhanced|online|google/i.test(v.name) ? 4 : 0) +
-    (/es[-_](419|MX|US|AR|CO)/i.test(v.lang) ? 1 : 0) +
+    (/es[-_](419|MX|US|CO|AR|CL|PE|VE|EC)/i.test(v.lang) ? 6 : 0) +
     (v.localService ? 0 : 1);
   return voices.sort((a, b) => score(b) - score(a))[0];
 }

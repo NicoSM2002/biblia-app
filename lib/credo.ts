@@ -21,6 +21,9 @@ export type CredoQA = {
   numero: number;
   pregunta: string;
   respuesta: string;
+  /** "catecismo" (numero = paragraph of the CCC) or "nota:<ref>" for a
+   *  Straubinger footnote. Present in data/credo.json. */
+  fuente?: string;
 };
 
 const DATA_DIR = path.resolve(process.cwd(), "data");

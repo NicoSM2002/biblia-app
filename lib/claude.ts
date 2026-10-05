@@ -52,7 +52,7 @@ export async function streamPastoral(args: PastoralArgs): Promise<TextStream> {
   if (credoBlock) {
     userContent.push({
       type: "text",
-      text: `DOCTRINA COMPLEMENTARIA (úsala SOLO si aporta y NO la cites ni la nombres):\n\n${credoBlock}`,
+      text: `DOCTRINA COMPLEMENTARIA (úsala SOLO si aporta; cada punto indica su fuente — sigue las reglas del sistema sobre cómo atribuirla):\n\n${credoBlock}`,
     });
   }
   userContent.push({ type: "text", text: `PREGUNTA: ${question}` });

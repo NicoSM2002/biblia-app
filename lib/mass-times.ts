@@ -104,7 +104,7 @@ export function relevantText(text: string, max = 6000): string | null {
  * pages, then generic ones parishes often use ("servicios parroquiales",
  * "celebraciones", "sacramentos").
  */
-function scheduleLinks(html: string, base: string): string[] {
+function scheduleLinks(html: string, base: string): { strong: string[]; weak: string[] } {
   const baseUrl = new URL(base);
   const strong: string[] = [];
   const weak: string[] = [];
@@ -127,7 +127,7 @@ function scheduleLinks(html: string, base: string): string[] {
       // bad href
     }
   }
-  return [...strong, ...weak];
+  return { strong, weak };
 }
 
 const SYSTEM = `Extraes los HORARIOS DE MISA de un texto tomado de la web de una parroquia católica.
@@ -208,19 +208,37 @@ async function fromText(text: string | null, source: string): Promise<MassTimes>
 }
 
 /**
- * Home page first; if it has no mass times (often it only has a menu link
- * called "Horario de misas"), try up to two likely sub-pages.
+ * Home page first, then follow likely links up to two levels deep. Real
+ * case: Santa Gema Galgani's schedule is home → "Servicios Parroquiales" →
+ * "Eucaristías"; stopping at the first level missed it. "horario / misas /
+ * eucaristías" links are always tried before generic ones ("servicios…").
+ * Bounded: at most 5 extra pages and ~20 s, so the route never hangs.
  */
 export async function getMassTimes(website: string): Promise<MassTimes> {
+  const deadline = Date.now() + 20_000;
   const home = await fetchHtml(website);
   if (!home) return NOT_FOUND(website);
   const first = await fromText(relevantText(htmlToText(home)), website);
   if (first.found) return first;
-  for (const link of scheduleLinks(home, website).slice(0, 2)) {
-    const page = await fetchHtml(link);
-    if (!page) continue;
-    const r = await fromText(relevantText(htmlToText(page)), link);
-    if (r.found) return r;
+
+  const seen = new Set([website]);
+  let level = scheduleLinks(home, website);
+  let fetched = 0;
+  for (let depth = 0; depth < 2; depth++) {
+    const next = { strong: [] as string[], weak: [] as string[] };
+    for (const link of [...level.strong, ...level.weak].slice(0, 3)) {
+      if (seen.has(link) || fetched >= 5 || Date.now() > deadline) continue;
+      seen.add(link);
+      fetched++;
+      const page = await fetchHtml(link);
+      if (!page) continue;
+      const r = await fromText(relevantText(htmlToText(page)), link);
+      if (r.found) return r;
+      const found = scheduleLinks(page, website);
+      next.strong.push(...found.strong.filter((u) => !seen.has(u) && !next.strong.includes(u)));
+      next.weak.push(...found.weak.filter((u) => !seen.has(u) && !next.weak.includes(u)));
+    }
+    level = next;
   }
   return NOT_FOUND(website);
 }
