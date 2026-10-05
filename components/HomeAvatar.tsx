@@ -184,14 +184,6 @@ export function HomeAvatar() {
               {email}
             </p>
           </div>
-          <Link
-            role="menuitem"
-            href="/favoritas"
-            onClick={() => setOpen(false)}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[0.88rem] text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--ink)] transition-colors border-b border-[var(--rule)]"
-          >
-            <HeartIcon /> Mis favoritas
-          </Link>
           <button
             role="menuitem"
             onClick={logout}
@@ -202,14 +194,6 @@ export function HomeAvatar() {
         </div>
       )}
     </div>
-  );
-}
-
-function HeartIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
   );
 }
 

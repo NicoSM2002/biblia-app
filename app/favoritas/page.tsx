@@ -11,8 +11,8 @@ import { speakable, toggle, useTts } from "@/lib/tts";
 
 /**
  * Mis favoritas — every response the user hearted in the chat, newest first.
- * Its own tab in BottomNav (also the avatar menu, and the "Ver favoritas"
- * pill that shows right after hearting a response). Only meaningful with an account (the
+ * Its own tab in BottomNav (and the "Ver favoritas" pill that shows right
+ * after hearting a response). Only meaningful with an account (the
  * heart is hidden for guests), so without a session this page explains that
  * and links to sign-in.
  */
