@@ -110,10 +110,12 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
-        className="settings-sheet fixed inset-x-0 bottom-0 z-[61] max-w-2xl mx-auto max-h-[88dvh] overflow-y-auto rounded-t-3xl border-t border-[var(--rule)] bg-[var(--paper)] shadow-[0_-8px_30px_rgba(0,0,0,0.14)]"
+        // Phone: bottom sheet. Desktop (lg+): a centred 480px dialog — a
+        // sheet rising from the bottom of a wide screen read as a phone UI.
+        className="settings-sheet fixed inset-x-0 bottom-0 z-[61] max-w-2xl mx-auto max-h-[88dvh] overflow-y-auto rounded-t-3xl border-t border-[var(--rule)] bg-[var(--paper)] shadow-[0_-8px_30px_rgba(0,0,0,0.14)] lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[86vh] lg:w-[480px] lg:max-w-none lg:rounded-3xl lg:border lg:shadow-[0_24px_60px_-20px_rgba(0,0,0,0.35)] lg:animate-[fade-in_180ms_ease_both]"
         style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
       >
-        <div aria-hidden="true" className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-[var(--rule)]" />
+        <div aria-hidden="true" className="lg:hidden mx-auto mt-2.5 h-1 w-10 rounded-full bg-[var(--rule)]" />
 
         <header className="px-5 pt-3 pb-3 flex items-center justify-between">
           <div>

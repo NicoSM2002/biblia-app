@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { LatinCross } from "@/components/Cross";
 
 /**
  * Persistent bottom navigation — five sections:
@@ -95,10 +96,14 @@ export function BottomNav() {
   if (pathname?.startsWith("/auth")) return null;
 
   return (
-    // The fixed wrapper is what gets measured for --nav-h.
+    <>
+    <DesktopNav activeIndex={activeIndex} />
+    {/* The fixed wrapper is what gets measured for --nav-h. Hidden from lg
+        up (the sidebar takes over), which measures 0 — so pages stop
+        reserving bottom space on desktop automatically. */}
     <div
       ref={navRef}
-      className="fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print"
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print"
     >
       <nav aria-label="Navegación principal">
       <div className="max-w-2xl mx-auto px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
@@ -164,6 +169,47 @@ export function BottomNav() {
       </div>
       </nav>
     </div>
+    </>
+  );
+}
+
+/**
+ * Desktop (lg+) navigation: a fixed left sidebar instead of the phone tab
+ * bar, which on a wide screen sat lost at the bottom with tiny icons. The
+ * page content shifts right via `body:has(.desktop-nav)` in globals.css.
+ */
+function DesktopNav({ activeIndex }: { activeIndex: number }) {
+  return (
+    <aside className="desktop-nav hidden lg:flex fixed inset-y-0 left-0 z-40 w-[240px] flex-col border-r border-[var(--rule)] bg-[var(--paper)] no-print">
+      <Link href="/" className="flex items-center gap-3 px-6 pt-7 pb-8 group">
+        <LatinCross className="text-[var(--gold)] shrink-0 transition-opacity group-hover:opacity-80" size={18} />
+        <span className="font-display text-[17px] leading-tight whitespace-nowrap text-[var(--ink)]">Habla con la Palabra</span>
+      </Link>
+      <nav aria-label="Navegación principal" className="px-3">
+        <ul className="space-y-1">
+          {items.map((item, i) => {
+            const active = i === activeIndex;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex items-center gap-3 min-h-[46px] px-4 rounded-xl font-sans text-[15px] transition-colors",
+                    active
+                      ? "text-[var(--marian)] font-semibold bg-[color-mix(in_srgb,var(--marian)_11%,transparent)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--marian)_20%,transparent)]"
+                      : "text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--vellum)]",
+                  )}
+                >
+                  <span aria-hidden="true" className="grid place-items-center w-6">{item.icon(active)}</span>
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </aside>
   );
 }
 

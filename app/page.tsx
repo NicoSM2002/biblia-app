@@ -23,6 +23,13 @@ import {
 } from "@/lib/supabase/client";
 
 type Verse = { reference: string; text: string };
+
+/** Desktop home starters — same three as the chat's empty state. */
+const STARTERS = [
+  "¿Cómo perdonar y encontrar paz en mi corazón?",
+  "¿Cómo trabajo en mí para evitar el pecado de la ira?",
+  "¿Cómo acercarme más a Dios en mi día a día?",
+];
 type Daily = { verse: Verse; gospel?: DailyGospel };
 
 export default function HomePage() {
@@ -121,8 +128,9 @@ export default function HomePage() {
           the avatar menu's own z-index can't escape it — without this the
           menu opened BEHIND the Gospel card. */}
       <header className="page-head-fade relative z-20 px-5 sm:px-6 pt-3.5 pb-2 border-b border-[var(--rule)] bg-[var(--paper)]">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
+        <div className="max-w-2xl lg:max-w-6xl mx-auto lg:px-4 flex items-center justify-between gap-2">
+          {/* On desktop the sidebar already carries the name. */}
+          <div className="flex items-center gap-2.5 min-w-0 lg:invisible">
             <LatinCross className="text-[var(--gold)] shrink-0" size={16} />
             <h1 className="font-sans text-[0.98rem] font-medium text-[var(--ink)] truncate">
               Habla con la Palabra
@@ -144,8 +152,13 @@ export default function HomePage() {
         className="page-content-fade flex-1 overflow-y-auto"
         style={{ paddingBottom: `calc(${NAV_H} + 8px)` }}
       >
-        <div className="max-w-2xl mx-auto px-[20px] sm:px-6 pt-3.5">
-          <Greeting name={name} season={liturgicalSeason(daily?.gospel?.title)} />
+        {/* Desktop (lg+): two columns — the Gospel on the left (it gets the
+            screen's height, so far more of the passage shows), greeting and
+            question on the right. Mobile keeps the single column, in order. */}
+        <div className="max-w-2xl lg:max-w-6xl mx-auto px-[20px] sm:px-6 lg:px-10 pt-3.5 lg:pt-8 lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:gap-x-14">
+          <div className="lg:col-start-2 lg:row-start-1 lg:pt-10">
+            <Greeting name={name} season={liturgicalSeason(daily?.gospel?.title)} />
+          </div>
 
           {/* Evangelio del día — now the first thing on the page and the only
               thing on it shaped like a window. When you open a devotional app,
@@ -155,7 +168,7 @@ export default function HomePage() {
               shift when the fetch comes back; on subsequent visits in the same
               session it's instant via sessionStorage cache. If the liturgical
               feed is down we get a single pool verse instead. */}
-          <div className="mt-2.5">
+          <div className="mt-2.5 lg:mt-0 lg:col-start-1 lg:row-start-1 lg:row-span-2">
             {daily?.gospel ? (
               <DailyGospelSection
                 gospel={daily.gospel}
@@ -169,11 +182,11 @@ export default function HomePage() {
             )}
           </div>
 
-          <div>
+          <div className="lg:col-start-2 lg:row-start-2">
             {/* text-wrap: balance splits the question into two even lines
                 instead of "¿Qué quieres" alone on top and the rest below. */}
             <h2
-              className="mt-4 text-center font-display text-[min(1.24rem,22px)] sm:text-page leading-[1.2] text-[var(--ink)] mb-2.5"
+              className="mt-4 lg:mt-8 text-center lg:text-left font-display text-[min(1.24rem,22px)] sm:text-page lg:text-[30px] leading-[1.2] text-[var(--ink)] mb-2.5 lg:mb-4"
               style={{ textWrap: "balance" as React.CSSProperties["textWrap"] }}
             >
               ¿Qué quieres preguntarle a la Palabra de Dios hoy?
@@ -208,8 +221,32 @@ export default function HomePage() {
                 />
               </div>
             </form>
-          </div>
 
+            {/* Desktop only: the right column would otherwise end at the
+                input. Same starters as the chat's "Prueba con". */}
+            <div className="hidden lg:block mt-8">
+              <p className="font-sans text-[11px] tracking-[0.18em] uppercase text-[var(--gold-text)] font-semibold mb-3">
+                O empieza con una de estas
+              </p>
+              <ul className="space-y-2">
+                {STARTERS.map((q) => (
+                  <li key={q}>
+                    <button
+                      type="button"
+                      onClick={() => goToChat(q)}
+                      className="group w-full text-left flex items-center justify-between gap-3 px-5 py-3 rounded-2xl border border-[var(--rule)] bg-[var(--surface)] font-sans text-[15px] text-[var(--ink)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
+                    >
+                      {q}
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0 text-[var(--ink-faint)] group-hover:text-[var(--marian)]">
+                        <line x1="5" y1="12" x2="18" y2="12" />
+                        <polyline points="13 6 19 12 13 18" />
+                      </svg>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </main>
 
@@ -452,14 +489,14 @@ function Greeting({ name, season }: { name: string | null; season: Season | null
         : "¡Buenas noches";
   return (
     <div>
-      <p className="flex items-center gap-1.5 min-h-[1.2em] font-sans text-[min(0.8rem,13px)] text-[var(--ink-faint)]">
+      <p className="flex items-center gap-1.5 min-h-[1.2em] font-sans text-[min(0.8rem,13px)] lg:text-[14px] text-[var(--ink-faint)]">
         {season && (
           <span aria-hidden="true" className="inline-block w-2 h-2 rounded-full" style={{ background: season.color }} />
         )}
         {today}
         {today && season ? ` · ${season.name}` : ""}
       </p>
-      <p className="mt-0.5 font-display text-[min(1.2rem,20px)] leading-tight text-[var(--ink)]">
+      <p className="mt-0.5 lg:mt-2 font-display text-[min(1.2rem,20px)] lg:text-[34px] leading-tight text-[var(--ink)]">
         {text}
         {name ? `, ${name}` : ""}!
       </p>
@@ -628,7 +665,7 @@ function ScrollHint({ target }: { target: RefObject<HTMLElement | null> }) {
           behavior: "smooth",
         })
       }
-      className={`fixed left-1/2 -translate-x-1/2 z-30 grid place-items-center w-10 h-10 rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] text-[var(--gold-text)] shadow-[0_2px_10px_rgba(0,0,0,0.12)] transition-opacity duration-300 ${
+      className={`lg:hidden fixed left-1/2 -translate-x-1/2 z-30 grid place-items-center w-10 h-10 rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] text-[var(--gold-text)] shadow-[0_2px_10px_rgba(0,0,0,0.12)] transition-opacity duration-300 ${
         show ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
       // Sits just above BottomNav (same height formula as its padding).

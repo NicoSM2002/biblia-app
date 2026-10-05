@@ -51,7 +51,8 @@ export function GospelReader({
       aria-labelledby="reader-title"
       className="reader-in fixed inset-0 z-[70] flex flex-col bg-[var(--paper)] text-[var(--ink)]"
     >
-      <header className="flex items-center gap-3 px-5 pt-4 pb-3 border-b border-[var(--rule)]">
+      <header className="px-5 pt-4 pb-3 border-b border-[var(--rule)]">
+        <div className="max-w-2xl mx-auto flex items-center gap-3">
         <button
           ref={closeRef}
           type="button"
@@ -67,6 +68,7 @@ export function GospelReader({
         <p className="flex-1 text-center font-sans text-[min(0.95rem,16px)] font-medium pr-11">
           Evangelio del día
         </p>
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto">
@@ -99,9 +101,12 @@ export function GospelReader({
       </div>
 
       <div
-        className="flex gap-2.5 px-5 pt-3 border-t border-[var(--rule)] bg-[var(--paper)]"
+        className="px-5 pt-3 border-t border-[var(--rule)] bg-[var(--paper)]"
         style={{ paddingBottom: "max(14px, env(safe-area-inset-bottom))" }}
       >
+        {/* Same width as the text column — on desktop the two buttons
+            used to stretch edge to edge of a 1400px screen. */}
+        <div className="max-w-2xl mx-auto flex gap-2.5">
         {tts.supported && (
           <button
             type="button"
@@ -123,6 +128,7 @@ export function GospelReader({
         >
           Preguntar sobre él
         </button>
+        </div>
       </div>
     </div>,
     document.body,

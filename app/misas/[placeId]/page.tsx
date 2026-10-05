@@ -177,12 +177,17 @@ function ChurchDetail({ placeId }: { placeId: string }) {
       <DetailHeader title="Parroquias" />
 
       <main className="page-content-fade flex-1 overflow-y-auto" style={{ paddingBottom: `calc(${NAV_H} + 16px)` }}>
-        <div className="max-w-2xl mx-auto">
+        {/* Desktop (lg+): two columns — photo, details and description on the
+            left; mass times on the right, sticky while the left scrolls. The
+            DOM order is unchanged, so the phone still reads photo → details →
+            masses → description. */}
+        <div className="max-w-2xl mx-auto lg:max-w-6xl lg:px-10 lg:pt-8 lg:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:gap-x-12">
           {/* The page arrives as one object (see .page-content-fade). It used
               to stagger five blocks at 0/60/120/180/240ms on top of no header
               animation at all, so the screen assembled itself in pieces —
               which reads as loading, not as a transition. */}
-          <div>
+          <div className="lg:col-start-1 lg:row-start-1">
+          <div className="lg:rounded-2xl lg:overflow-hidden">
             <PhotoCarousel
               photos={photos}
               churchName={church.name}
@@ -192,7 +197,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
             />
           </div>
 
-          <div className="px-5 sm:px-6 pt-6">
+          <div className="px-5 sm:px-6 lg:px-0 pt-6">
             <div>
               <h1 className="font-display font-display-lg text-page sm:text-hero leading-[1.2] text-[var(--ink)]">
                 {church.name}
@@ -244,12 +249,18 @@ function ChurchDetail({ placeId }: { placeId: string }) {
               )}
             </div>
 
+          </div>
+          </div>
+
+          <div className="px-5 sm:px-6 lg:px-0 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-0 lg:self-start lg:[&>section:first-child]:mt-0">
             <ParishSchedule
               placeId={placeId}
               website={church.website ?? null}
               officeHours={church.openingHours ?? null}
             />
+          </div>
 
+          <div className="px-5 sm:px-6 lg:px-0 lg:col-start-1 lg:row-start-2">
             {church.description && (
               <section
                 className="mt-8"
@@ -426,7 +437,7 @@ function DetailHeader({ title }: { title: string }) {
   return (
     <>
     <header className="page-head-fade px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] z-10">
-      <div className="max-w-2xl mx-auto flex items-center gap-2">
+      <div className="max-w-2xl lg:max-w-6xl mx-auto lg:px-4 flex items-center gap-2">
         <Link
           href="/misas"
           aria-label="Volver a parroquias"

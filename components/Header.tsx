@@ -40,10 +40,10 @@ export function Header({
           >
             <span className="flex items-center gap-2 sm:gap-2.5 min-w-0">
               <LatinCross
-                className="text-[var(--gold)] shrink-0 transition-opacity group-hover:opacity-80"
+                className="lg:hidden text-[var(--gold)] shrink-0 transition-opacity group-hover:opacity-80"
                 size={14}
               />
-              <h1 className={`font-sans text-[1rem] sm:text-[1.05rem] font-medium text-[var(--ink)] tracking-[0.005em] truncate ${crowded ? "sr-only min-[440px]:not-sr-only" : ""}`}>
+              <h1 className={`font-sans text-[1rem] sm:text-[1.05rem] font-medium text-[var(--ink)] tracking-[0.005em] truncate ${crowded ? "sr-only min-[440px]:not-sr-only" : ""} lg:sr-only`}>
                 Habla con la Palabra
               </h1>
             </span>
@@ -56,6 +56,11 @@ export function Header({
               </span>
             )}
           </Link>
+          {/* Desktop: the app name lives in the sidebar, so the header names
+              the section instead of sitting empty. */}
+          <span className="hidden lg:block font-display text-[20px] text-[var(--ink)] ml-1">
+            Conversación
+          </span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           {onReset && <NewConversationButton onClick={onReset} />}

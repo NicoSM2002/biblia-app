@@ -281,26 +281,8 @@ body::before {
       position: relative;
     }
 
-    /* Gilt edges on the left and right of the missal page */
-    .missal-page::before,
-    .missal-page::after {
-      content: "";
-      position: absolute;
-      top: 6%;
-      bottom: 6%;
-      width: 1px;
-      background: linear-gradient(
-        to bottom,
-        transparent 0%,
-        rgba(184, 146, 74, 0.35) 12%,
-        rgba(184, 146, 74, 0.55) 50%,
-        rgba(184, 146, 74, 0.35) 88%,
-        transparent 100%
-      );
-      pointer-events: none;
-    }
-    .missal-page::before { left: 1.25rem; }
-    .missal-page::after  { right: 1.25rem; }
+    /* (The gilt vertical lines that used to sit inside the left/right
+       edges were removed: they ran through the conversation text.) */
   }
 
   /* Cards now share a consistent base elevation so the page has actual
@@ -1176,3 +1158,18 @@ html[data-font="sencilla"] .font-serif {
 }
 
 .print-only { display: none; }
+
+/* Desktop (lg+): BottomNav renders a fixed left sidebar (.desktop-nav)
+   instead of the tab bar; shift the whole page right by its width. Pages
+   without the nav (/auth) are untouched. Mobile is unaffected. */
+@media (min-width: 1024px) {
+  body:has(.desktop-nav) {
+    padding-left: 240px;
+  }
+}
+@media (min-width: 1024px) {
+  /* Centred dialog on desktop: fade in instead of rising from the bottom. */
+  .settings-sheet {
+    animation: fade-in 180ms ease both;
+  }
+}

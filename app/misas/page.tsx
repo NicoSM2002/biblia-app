@@ -169,7 +169,7 @@ function Misas() {
       {/* One title. It used to be "Parroquias" in the header and then
           "Misa cerca de ti" again as a heading right below it. */}
       <header className="page-head-fade px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)]">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl lg:max-w-5xl mx-auto lg:px-4">
           <h1 className="font-display text-[min(1.5rem,26px)] leading-tight text-[var(--ink)]">
             Misa cerca de ti
           </h1>
@@ -182,7 +182,7 @@ function Misas() {
         className="page-content-fade flex-1 overflow-y-auto"
         style={{ paddingBottom: `calc(${NAV_H} + 16px)` }}
       >
-        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-6">
+        <div className="max-w-2xl lg:max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 pt-6 lg:pt-8">
           {/* Before the first search: "use my location" is THE action, so it
               is a big labelled button — it used to be an unlabelled target
               icon tucked inside the address field. Typing an address is the
@@ -268,7 +268,7 @@ function Misas() {
               placeholder off ("Otra dirección o c…") and repeated what the
               line below already said. "Cambiar" opens the full search. */}
           {(churches || pending) && !editing && (
-            <div className="flex items-center gap-3 rounded-2xl border border-[var(--rule)] bg-[var(--surface)] pl-4 pr-2 py-2 shadow-[0_1px_0_var(--emboss)_inset]">
+            <div className="lg:max-w-xl flex items-center gap-3 rounded-2xl border border-[var(--rule)] bg-[var(--surface)] pl-4 pr-2 py-2 shadow-[0_1px_0_var(--emboss)_inset]">
               <PinIcon className="text-[var(--gold)] shrink-0" />
               <div className="flex-1 min-w-0">
                 {pending ? (
@@ -295,6 +295,7 @@ function Misas() {
 
           {editing && (
             <form
+              className="lg:max-w-xl"
               onSubmit={(e) => {
                 onSubmit(e);
                 if (address.trim()) setEditing(false);
@@ -369,7 +370,7 @@ function Misas() {
               <p className="font-sans text-[0.82rem] text-[var(--ink-soft)] mb-4">
                 {churches.length} parroquia{churches.length === 1 ? "" : "s"}, de la más cercana a la más lejana
               </p>
-              <ul className="space-y-3">
+              <ul className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
                 {churches.map((c) => (
                   <ChurchCard
                     key={c.id}

@@ -65,7 +65,7 @@ export default function FavoritasPage() {
   return (
     <div className="relative h-[100dvh] flex flex-col overflow-hidden">
       <header className="page-head-fade px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] z-10">
-        <div className="max-w-2xl mx-auto flex items-baseline justify-between gap-3">
+        <div className="max-w-2xl lg:max-w-5xl mx-auto lg:px-4 flex items-baseline justify-between gap-3">
           <h1 className="font-display text-[min(1.5rem,26px)] leading-tight text-[var(--ink)]">
             Mis favoritas
           </h1>
@@ -83,7 +83,7 @@ export default function FavoritasPage() {
         className="page-content-fade flex-1 overflow-y-auto"
         style={{ paddingBottom: `calc(${NAV_H} + 16px)` }}
       >
-        <div className="max-w-2xl mx-auto px-5 sm:px-6 pt-4">
+        <div className="max-w-2xl lg:max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 pt-4 lg:pt-8">
           {status === "loading" && (
             <div className="space-y-3" aria-label="Cargando favoritas">
               {[0, 1, 2].map((i) => (
@@ -129,7 +129,7 @@ export default function FavoritasPage() {
           )}
 
           {status === "ready" && items.length > 0 && (
-            <ul className="space-y-3">
+            <ul className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
               {items.map((f) => (
                 <FavoriteCard
                   key={`${f.conversation_id}:${f.ord}`}
