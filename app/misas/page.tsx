@@ -300,7 +300,10 @@ function Misas() {
                 if (address.trim()) setEditing(false);
               }}
             >
-              <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--marian)] rounded-full px-4 py-1.5 shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
+              {/* "Buscar" lives inside the field (like the send button on the
+                  home), and the other two actions share one small row — they
+                  used to be three full-size buttons wrapping onto two rows. */}
+              <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--marian)] rounded-full pl-4 pr-1.5 py-1.5 shadow-[0_0_0_3px_color-mix(in_srgb,var(--marian)_14%,transparent)]">
                 <PinIcon className="text-[var(--ink-faint)] shrink-0" />
                 <input
                   value={address}
@@ -308,25 +311,25 @@ function Misas() {
                   autoFocus
                   placeholder="Ciudad, barrio o dirección"
                   enterKeyHint="search"
-                  className="flex-1 min-w-0 bg-transparent outline-none font-sans text-[0.95rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-2"
+                  className="flex-1 min-w-0 bg-transparent outline-none font-sans text-[0.95rem] text-[var(--ink)] placeholder:text-[var(--ink-faint)] py-1.5"
                   aria-label="Dirección o ciudad"
                 />
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="submit"
                   disabled={!address.trim()}
-                  className="inline-flex items-center min-h-[42px] px-5 rounded-full bg-[var(--marian)] text-white font-sans text-[0.9rem] font-semibold hover:opacity-90 transition-opacity disabled:opacity-40"
+                  className="inline-flex items-center min-h-[38px] px-4 shrink-0 rounded-full bg-[var(--marian)] text-white font-sans text-[0.86rem] font-semibold hover:opacity-90 transition-opacity disabled:opacity-35"
                 >
                   Buscar
                 </button>
+              </div>
+              <div className="mt-2.5 flex items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     setEditing(false);
                     searchNearMe();
                   }}
-                  className="inline-flex items-center gap-1.5 min-h-[42px] px-4 rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-sans text-[0.88rem] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
+                  className="inline-flex items-center gap-1.5 min-h-[36px] px-3 rounded-full border border-[color-mix(in_srgb,var(--marian)_30%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-sans text-[0.82rem] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
                 >
                   <TargetIcon />
                   Usar mi ubicación
@@ -334,7 +337,7 @@ function Misas() {
                 <button
                   type="button"
                   onClick={() => setEditing(false)}
-                  className="inline-flex items-center min-h-[42px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--ink-faint)] transition-colors"
+                  className="inline-flex items-center min-h-[36px] px-3 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.82rem] font-medium text-[var(--ink-soft)] hover:border-[var(--ink-faint)] transition-colors"
                 >
                   Cancelar
                 </button>

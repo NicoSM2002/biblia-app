@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, use, useEffect, useRef, useState } from "react";
+import { Fragment, Suspense, use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
@@ -244,11 +244,11 @@ function ChurchDetail({ placeId }: { placeId: string }) {
               )}
             </div>
 
-            <MassTimesSection placeId={placeId} />
-
-            {church.openingHours && church.openingHours.length > 0 && (
-              <OfficeHours lines={church.openingHours} />
-            )}
+            <ParishSchedule
+              placeId={placeId}
+              website={church.website ?? null}
+              officeHours={church.openingHours ?? null}
+            />
 
             {church.description && (
               <section
@@ -263,20 +263,6 @@ function ChurchDetail({ placeId }: { placeId: string }) {
               </section>
             )}
 
-            {church.website && (
-              <section
-                className="mt-6"
-              >
-                <a
-                  href={church.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--gold-text)] hover:border-[var(--gold)] transition-colors"
-                >
-                  <GlobeIcon /> Sitio web de la parroquia
-                </a>
-              </section>
-            )}
           </div>
         </div>
       </main>
@@ -531,12 +517,19 @@ function NextMassCard({ next }: { next: Next }) {
       : next.offset === 1
         ? "Mañana"
         : capitalize(next.day);
+  const later = next.later.length
+    ? `Después: ${next.later.map(formatTime).join(" · ")}`
+    : next.offset === 0
+      ? "Es la última de hoy"
+      : "";
+  // The right-hand label already says "Mañana" / the weekday, so the line
+  // below adds information instead of repeating it ("Mañana … Mañana, martes").
   const sub =
     next.offset === 0
-      ? `Hoy, ${next.day}${next.later.length ? ` · Después: ${next.later.map(formatTime).join(" · ")}` : " · Es la última de hoy"}`
+      ? `Hoy, ${next.day} · ${later}`
       : next.offset === 1
-        ? `Mañana, ${next.day}`
-        : capitalize(next.day);
+        ? [capitalize(next.day), later].filter(Boolean).join(" · ")
+        : later;
   return (
     <div
       className="rounded-2xl border p-4"
@@ -554,7 +547,7 @@ function NextMassCard({ next }: { next: Next }) {
         </p>
         <p className="font-sans text-[0.9rem] font-semibold text-[var(--marian)] text-right">{when}</p>
       </div>
-      <p className="mt-2 font-sans text-[0.86rem] text-[var(--ink-soft)]">{sub}</p>
+      {sub && <p className="mt-2 font-sans text-[0.86rem] text-[var(--ink-soft)]">{sub}</p>}
     </div>
   );
 }
@@ -565,10 +558,9 @@ function NextMassCard({ next }: { next: Next }) {
  * office hours, which this section used to show by mistake). Loads after the
  * rest of the page because it fetches the site and runs a small model.
  */
-function MassTimesSection({ placeId }: { placeId: string }) {
+function useMassTimes(placeId: string): { masses: MassTimes | null; failed: boolean } {
   const [masses, setMasses] = useState<MassTimes | null>(null);
   const [failed, setFailed] = useState(false);
-
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/iglesias/${encodeURIComponent(placeId)}/misas`)
@@ -584,7 +576,76 @@ function MassTimesSection({ placeId }: { placeId: string }) {
       cancelled = true;
     };
   }, [placeId]);
+  return { masses, failed };
+}
 
+const SMALL_PILL =
+  "inline-flex items-center gap-1.5 min-h-[38px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[min(0.84rem,14px)] font-medium transition-colors";
+
+/**
+ * Mass times + one compact row of links under them. There used to be three
+ * stacked full-size buttons ("Ver en su web", "Ver horario de atención",
+ * "Sitio web de la parroquia") — two of them to the same site. Now: one web
+ * button, pointing at the page the times came from when there is one (e.g.
+ * Santa Gema's "Eucaristías" page, not its home page), and the office-hours
+ * toggle beside it.
+ */
+function ParishSchedule({
+  placeId,
+  website,
+  officeHours,
+}: {
+  placeId: string;
+  website: string | null;
+  officeHours: string[] | null;
+}) {
+  const { masses, failed } = useMassTimes(placeId);
+  const [hoursOpen, setHoursOpen] = useState(false);
+  const webHref = masses?.found && masses.source ? masses.source : website;
+  const hasHours = !!officeHours && officeHours.length > 0;
+
+  return (
+    <>
+      <MassTimesSection masses={masses} failed={failed} />
+      {(webHref || hasHours) && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {webHref && (
+            <a
+              href={webHref}
+              target="_blank"
+              rel="noreferrer"
+              className={`${SMALL_PILL} text-[var(--gold-text)] hover:border-[var(--gold)]`}
+            >
+              <GlobeIcon />
+              {masses?.found && masses.source ? "Ver en su web" : "Sitio web"}
+            </a>
+          )}
+          {hasHours && (
+            <button
+              type="button"
+              onClick={() => setHoursOpen((o) => !o)}
+              aria-expanded={hoursOpen}
+              className={`${SMALL_PILL} text-[var(--ink-soft)] hover:border-[var(--marian)] hover:text-[var(--marian)]`}
+            >
+              Horario de atención
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`transition-transform ${hoursOpen ? "rotate-180" : ""}`}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
+      {hoursOpen && officeHours && <OfficeHoursList lines={officeHours} />}
+    </>
+  );
+}
+
+/**
+ * Horarios de misa — read from the parish's own website by
+ * /api/iglesias/[placeId]/misas (Google has no mass times; its hours are
+ * office hours, which this section used to show by mistake).
+ */
+function MassTimesSection({ masses, failed }: { masses: MassTimes | null; failed: boolean }) {
   const today = todayName();
   const next = masses?.found ? nextMass(masses.days, new Date()) : null;
 
@@ -645,7 +706,14 @@ function MassTimesSection({ placeId }: { placeId: string }) {
                             : "text-[var(--ink-faint)]"
                       }`}
                     >
-                      {g.times.length ? g.times.map(formatTime).join(" · ") : "Sin misa"}
+                      {g.times.length
+                        ? g.times.map((t, i) => (
+                            <Fragment key={t}>
+                              {i > 0 && " · "}
+                              <span className="whitespace-nowrap">{formatTime(t)}</span>
+                            </Fragment>
+                          ))
+                        : "Sin misa"}
                     </span>
                   </li>
                 );
@@ -670,18 +738,6 @@ function MassTimesSection({ placeId }: { placeId: string }) {
             Tomados de la web de la parroquia. Pueden cambiar en fiestas o
             vacaciones: confirma antes de ir.
           </p>
-          {/* The exact page they came from — sometimes a news post, which
-              can be dated, so it must always be one tap to check. */}
-          {masses.source && (
-            <a
-              href={masses.source}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 inline-flex items-center gap-2 min-h-[36px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.82rem] font-medium text-[var(--gold-text)] hover:border-[var(--gold)] transition-colors"
-            >
-              Ver en su web
-            </a>
-          )}
         </>
       )}
     </section>
@@ -690,48 +746,31 @@ function MassTimesSection({ placeId }: { placeId: string }) {
 
 /**
  * Google's hours for the place — the parish's ATTENTION/office hours, not
- * masses. Kept, correctly labelled, behind a toggle so it doesn't compete
- * with the mass times.
+ * masses. Shown only when "Horario de atención" is opened.
  */
-function OfficeHours({ lines }: { lines: string[] }) {
-  const [open, setOpen] = useState(false);
+function OfficeHoursList({ lines }: { lines: string[] }) {
   return (
-    <section className="mt-6">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
-      >
-        {open ? "Ocultar horario de atención" : "Ver horario de atención"}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`transition-transform ${open ? "rotate-180" : ""}`}>
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      {open && (
-        <div className="mt-3">
-          <ul>
-            {lines.map((line) => {
-              const idx = line.indexOf(":");
-              const day = idx >= 0 ? line.slice(0, idx) : line;
-              const hours = idx >= 0 ? line.slice(idx + 1).trim() : "";
-              return (
-                <li
-                  key={line}
-                  className="flex items-baseline justify-between gap-3 py-1.5 border-b border-[var(--rule)] last:border-b-0"
-                >
-                  <span className="font-sans text-[0.88rem] text-[var(--ink-soft)]">{capitalize(day)}</span>
-                  <span className="font-sans text-[0.85rem] text-right text-[var(--ink-soft)]">{hours || "—"}</span>
-                </li>
-              );
-            })}
-          </ul>
-          <p className="mt-2 font-sans text-[0.72rem] text-[var(--ink-faint)] italic">
-            Horario de oficina publicado en Google. No son horarios de misa.
-          </p>
-        </div>
-      )}
-    </section>
+    <div className="mt-3">
+      <ul>
+        {lines.map((line) => {
+          const idx = line.indexOf(":");
+          const day = idx >= 0 ? line.slice(0, idx) : line;
+          const hours = idx >= 0 ? line.slice(idx + 1).trim() : "";
+          return (
+            <li
+              key={line}
+              className="flex items-baseline justify-between gap-3 py-1.5 border-b border-[var(--rule)] last:border-b-0"
+            >
+              <span className="font-sans text-[0.88rem] text-[var(--ink-soft)]">{capitalize(day)}</span>
+              <span className="font-sans text-[0.85rem] text-right text-[var(--ink-soft)]">{hours || "—"}</span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-2 font-sans text-[0.72rem] text-[var(--ink-faint)] italic">
+        Horario de oficina publicado en Google. No son horarios de misa.
+      </p>
+    </div>
   );
 }
 
