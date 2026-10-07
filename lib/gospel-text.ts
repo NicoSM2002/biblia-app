@@ -26,9 +26,9 @@ export function gospelSpeech(gospel: DailyGospel): string {
   );
 }
 
-/** The question sent to the chat by "Reflexionar sobre este Evangelio". */
+/** The question sent to the chat by "Reflexión del Evangelio de hoy". */
 export function reflectQuestion(gospel: DailyGospel): string {
-  return `Ayúdame a reflexionar sobre el Evangelio de hoy (${gospel.reference}). ¿Qué me quiere decir Dios con él?`;
+  return `Reflexión del Evangelio (${gospel.reference}). ¿Qué me quiere decir Dios con él?`;
 }
 
 export type Season = { name: string; color: string };

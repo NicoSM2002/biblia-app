@@ -108,3 +108,21 @@ export async function getDailyGospel(dateKey: string): Promise<DailyGospel | nul
   memo.set(dateKey, gospel);
   return gospel;
 }
+
+/**
+ * The verses of a citation written as the app shows it ("Lucas 10,38-42",
+ * full book name). Used by the chat so "Reflexión del Evangelio (Lucas
+ * 10,38-42)…" is answered from that exact passage — semantic search alone
+ * returned neighbouring verses and the model reflected on the wrong text.
+ */
+export function versesForReference(reference: string): Verse[] {
+  const m = reference.trim().match(/^(.+?)\s+(\d+,.+)$/);
+  if (!m) return [];
+  const spans = parseCitation(m[2]);
+  if (!spans) return [];
+  const book = loadVerses().filter((v) => v.libro === m[1]);
+  return book.filter((v) => {
+    const k = key(v.capitulo, v.versiculo);
+    return spans.some((s) => k >= key(s.c1, s.v1) && k <= key(s.c2, s.v2));
+  });
+}

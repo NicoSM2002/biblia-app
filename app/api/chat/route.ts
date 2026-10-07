@@ -21,6 +21,7 @@ import { search } from "@/lib/bible";
 import { searchCredo } from "@/lib/credo";
 import { activeProvider, streamPastoralResponse, type ChatMessage } from "@/lib/llm";
 import { validateQuote } from "@/lib/validate";
+import { versesForReference } from "@/lib/daily-gospel";
 
 export const runtime = "nodejs"; // need fs access for the bible JSON
 export const dynamic = "force-dynamic";
@@ -65,10 +66,24 @@ export async function POST(req: NextRequest) {
             .map((m) => m.content),
           question,
         ].join(" ");
-        const [retrieved, credo] = await Promise.all([
+        const [searched, credo] = await Promise.all([
           search(expandedQuery, 8),
           searchCredo(expandedQuery, 2),
         ]);
+        // "Reflexión del Evangelio (Lucas 10,38-42)…" (from the home, possibly
+        // earlier in this conversation): put that exact passage first, so the
+        // answer is about the Gospel actually read today, not a neighbour.
+        const gospelRef = [question, ...history.filter((m) => m.role === "user").map((m) => m.content).reverse()]
+          .map((t) => t.match(/Reflexión del Evangelio \(([^)]+)\)/)?.[1])
+          .find(Boolean);
+        const pericope = gospelRef
+          ? versesForReference(gospelRef).map((verse) => ({ verse, score: 1 }))
+          : [];
+        const seen = new Set(pericope.map((r) => `${r.verse.abbr} ${r.verse.capitulo}:${r.verse.versiculo}`));
+        const retrieved = [
+          ...pericope,
+          ...searched.filter((r) => !seen.has(`${r.verse.abbr} ${r.verse.capitulo}:${r.verse.versiculo}`)),
+        ];
         if (retrieved.length === 0) {
           send("result", {
             verse: null,

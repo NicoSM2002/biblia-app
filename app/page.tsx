@@ -315,7 +315,7 @@ const PILL =
  * The Gospel of the day on the home. Shows the pericope itself, clipped to
  * whatever fits above the question box (fitQuote) — so a tall phone reads
  * several verses instead of one plus blank space. "Leer completo" opens the
- * full-screen reader (it used to stretch this card), and "Reflexionar sobre
+ * full-screen reader (it used to stretch this card), and "Reflexión del Evangelio de hoy"
  * este Evangelio" carries it into the conversation.
  */
 function DailyGospelSection({
@@ -417,7 +417,7 @@ function DailyGospelSection({
           onClick={onAsk}
           className="inline-flex items-center gap-1.5 min-h-[40px] px-[14px] rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[var(--surface)] font-sans text-[min(0.86rem,14px)] font-medium text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] active:scale-95 transition-all"
         >
-          Reflexionar sobre este Evangelio
+          Reflexión del Evangelio de hoy
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <line x1="5" y1="12" x2="18" y2="12" />
             <polyline points="13 6 19 12 13 18" />
