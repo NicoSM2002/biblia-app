@@ -1,32 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- Background — cream paper, matches the app palette (#FAF7F2) -->
-  <rect width="64" height="64" rx="14" fill="#FAF7F2"/>
-  <!-- Speech bubble with a chat-tail at bottom-left, drawn in gold -->
-  <path
-    fill="none"
-    stroke="#B8924A"
-    stroke-width="3.4"
-    stroke-linejoin="round"
-    stroke-linecap="round"
-    d="
-      M 18 12
-      L 46 12
-      A 6 6 0 0 1 52 18
-      L 52 38
-      A 6 6 0 0 1 46 44
-      L 28 44
-      L 18 53
-      L 21 44
-      L 18 44
-      A 6 6 0 0 1 12 38
-      L 12 18
-      A 6 6 0 0 1 18 12
-      Z
-    "
-  />
-  <!-- Latin cross centered in the bubble -->
-  <g fill="none" stroke="#B8924A" stroke-width="3.4" stroke-linecap="square">
-    <line x1="32" y1="18" x2="32" y2="38"/>
-    <line x1="25" y1="24" x2="39" y2="24"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="0%" r="90%">
+      <stop offset="0%" stop-color="#E9D7AE"/>
+      <stop offset="70%" stop-color="#F3EADA"/>
+    </radialGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FBF8F1"/>
+      <stop offset="100%" stop-color="#F3ECDF"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M 79 217 A 177 177 0 0 1 433 217 L 433 463 Q 433 490 406 490 L 106 490 Q 79 490 79 463 Z"
+        fill="url(#glow)" stroke="#B8924A" stroke-opacity="0.55" stroke-width="7.5"/>
+  <g stroke="#B8924A" stroke-width="19.5" stroke-linecap="square">
+    <line x1="256" y1="136" x2="256" y2="421"/>
+    <line x1="187" y1="221.5" x2="325" y2="221.5"/>
   </g>
 </svg>

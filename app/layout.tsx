@@ -50,6 +50,16 @@ export const metadata: Metadata = {
     title: "Habla con la Palabra",
     description: "Pregúntale a la Sagrada Escritura.",
   },
+  // Installed on iPhone ("Añadir a pantalla de inicio"): open full screen,
+  // with this name under the icon. The icon itself is app/apple-icon.png;
+  // the manifest (app/manifest.ts) covers Android and desktop.
+  applicationName: "Habla con la Palabra",
+  appleWebApp: {
+    capable: true,
+    title: "La Palabra",
+    statusBarStyle: "default",
+  },
+  formatDetection: { telephone: false },
 };
 
 // Zoom is intentionally locked at 1× per the user's request — pinch-to-zoom
@@ -65,6 +75,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  // Lets the installed app draw under the iPhone notch/home bar; the pages
+  // already pad with env(safe-area-inset-*), which is 0 without this.
+  viewportFit: "cover",
   themeColor: "#FAF6EE",
 };
 
