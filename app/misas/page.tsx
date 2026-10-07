@@ -2,7 +2,9 @@
 
 import { Suspense, useEffect, useLayoutEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { BottomNav, NAV_H } from "@/components/BottomNav";
+import { useRouter } from "next/navigation";
+import { navigate, plainClick } from "@/lib/nav-transition";
+import { NAV_H } from "@/components/BottomNav";
 import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
 import { apiUrl } from "@/lib/api-url";
 
@@ -394,7 +396,6 @@ function Misas() {
         </div>
       </main>
 
-      <BottomNav />
     </div>
   );
 }
@@ -419,6 +420,7 @@ function ChurchCard({
   origin: SearchOrigin;
   onPick: () => void;
 }) {
+  const router = useRouter();
   const distanceText =
     church.distanceMeters < 1000
       ? `${Math.round(church.distanceMeters)} m`
@@ -449,6 +451,12 @@ function ChurchCard({
           href={detailHref}
           prefetch
           onPointerDown={onPick}
+          onClick={(e) => {
+            if (!plainClick(e)) return;
+            e.preventDefault();
+            onPick();
+            navigate(router, detailHref, "push");
+          }}
           className="block w-[110px] sm:w-[124px] shrink-0 bg-[var(--vellum)] relative"
           aria-hidden="true"
           tabIndex={-1}
@@ -493,7 +501,13 @@ function ChurchCard({
 
         {/* Content column */}
         <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col">
-          <Link href={detailHref} prefetch onPointerDown={onPick} className="group min-w-0">
+          <Link href={detailHref} prefetch onPointerDown={onPick}
+          onClick={(e) => {
+            if (!plainClick(e)) return;
+            e.preventDefault();
+            onPick();
+            navigate(router, detailHref, "push");
+          }} className="group min-w-0">
             <div className="flex items-start justify-between gap-2">
               <h3 className="font-serif font-medium text-[1rem] sm:text-[1.05rem] text-[var(--ink)] leading-[1.25] line-clamp-2 group-hover:text-[var(--marian)] transition-colors">
                 {church.name}

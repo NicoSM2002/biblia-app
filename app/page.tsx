@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent, type RefObject } from "react";
 import { useRouter } from "next/navigation";
+import { navigate } from "@/lib/nav-transition";
 import { LatinCross } from "@/components/Cross";
 import { formatReference, splitVersal } from "@/components/VerseCard";
 import { localDateKey } from "@/lib/daily-verses";
@@ -11,7 +12,7 @@ import { cleanVerse, gospelSpeech, liturgicalSeason, reflectQuestion, type Seaso
 import { GospelReader } from "@/components/GospelReader";
 import { PauseIcon, ReadAloudPlayer, SpeakerIcon } from "@/components/ReadAloudPlayer";
 import { HomeAvatar } from "@/components/HomeAvatar";
-import { BottomNav, NAV_H } from "@/components/BottomNav";
+import { NAV_H } from "@/components/BottomNav";
 import { Splash } from "@/components/Splash";
 import { SettingsButton } from "@/components/SettingsSheet";
 import { useSpeechRecognition } from "@/lib/use-speech-recognition";
@@ -114,7 +115,7 @@ export default function HomePage() {
     } catch {
       // ignore
     }
-    router.push("/chat");
+    navigate(router, "/chat", "tab-right");
   }
 
   function onSubmit(e: FormEvent) {
@@ -252,7 +253,6 @@ export default function HomePage() {
 
       <ScrollHint target={mainRef} />
 
-      <BottomNav />
 
       <Splash />
     </div>

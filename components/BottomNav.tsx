@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { navigate, plainClick, routeSettled } from "@/lib/nav-transition";
 import { cn } from "@/lib/utils";
 import { LatinCross } from "@/components/Cross";
 
@@ -49,6 +50,7 @@ export const NAV_H = "var(--nav-h, calc(59px + max(0.5rem, env(safe-area-inset-b
 
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const navRef = useRef<HTMLDivElement>(null);
 
   // Publish the nav's real height as --nav-h on <html>. It's not a constant:
@@ -71,9 +73,12 @@ export function BottomNav() {
 
   const activeIndex = items.findIndex((item) => isActive(pathname, item.href));
 
-  // The slide direction is for this one tab change only — clear it once the
-  // new page has animated, so later in-page remounts just fade.
+  // The nav is persistent (app/layout.tsx), so this runs once per route
+  // change, after the new page has rendered: release the page transition
+  // that is waiting for it. The fallback slide direction is for this one
+  // change only — cleared once the new page has animated.
   useEffect(() => {
+    routeSettled();
     const t = window.setTimeout(() => {
       delete document.documentElement.dataset.navDir;
     }, 600);
@@ -112,11 +117,16 @@ export function BottomNav() {
     const list = listRef.current;
     const cap = capRef.current;
     if (!list || !cap || activeIndex < 0) return;
+    // First placement jumps straight there; after that the capsule glides
+    // to the new tab (the nav no longer remounts, so it can).
+    const first = cap.style.opacity !== "1";
     const place = () => {
       const tab = list.children[activeIndex] as HTMLElement | undefined;
       if (!tab) return;
+      if (first) cap.style.transition = "none";
       cap.style.left = `${tab.offsetLeft + tab.offsetWidth / 2 - cap.offsetWidth / 2}px`;
       cap.style.opacity = "1";
+      if (first) requestAnimationFrame(() => (cap.style.transition = ""));
     };
     place();
     const ro = new ResizeObserver(place);
@@ -135,7 +145,7 @@ export function BottomNav() {
     <div
       ref={navRef}
       className={cn(
-        "lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print",
+        "vt-tabbar lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print",
         typing && "hidden",
       )}
     >
@@ -153,7 +163,7 @@ export function BottomNav() {
               aria-hidden="true"
               className={cn(
                 "pointer-events-none absolute top-1.5 h-[30px] w-[56px] rounded-full",
-                "transition-opacity duration-200",
+                "transition-[left,opacity] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
                 "motion-reduce:transition-none",
               )}
               style={{
@@ -172,7 +182,12 @@ export function BottomNav() {
                 <li key={item.href} className="flex-1 min-w-0">
                   <Link
                     href={item.href}
-                    onClick={() => markDirection(activeIndex, i)}
+                    onClick={(e) => {
+                      if (!plainClick(e) || pathname === item.href) return;
+                      e.preventDefault();
+                      // Same tab from a detail (a parish → Parroquias) is "back".
+                      navigate(router, item.href, i === activeIndex ? "pop" : i > activeIndex ? "tab-right" : "tab-left");
+                    }}
                     aria-current={active ? "page" : undefined}
                     style={{ touchAction: "manipulation" }}
                     className={cn(
@@ -214,6 +229,8 @@ export function BottomNav() {
  * page content shifts right via `body:has(.desktop-nav)` in globals.css.
  */
 function DesktopNav({ activeIndex }: { activeIndex: number }) {
+  const router = useRouter();
+  const pathname = usePathname();
   return (
     <aside className="desktop-nav hidden lg:flex fixed inset-y-0 left-0 z-40 w-[240px] flex-col border-r border-[var(--rule)] bg-[var(--paper)] no-print">
       <Link href="/" className="flex items-center gap-3 px-6 pt-7 pb-8 group">
@@ -228,7 +245,12 @@ function DesktopNav({ activeIndex }: { activeIndex: number }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  onClick={() => markDirection(activeIndex, i)}
+                  onClick={(e) => {
+                      if (!plainClick(e) || pathname === item.href) return;
+                      e.preventDefault();
+                      // Same tab from a detail (a parish → Parroquias) is "back".
+                      navigate(router, item.href, i === activeIndex ? "pop" : i > activeIndex ? "tab-right" : "tab-left");
+                    }}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "flex items-center gap-3 min-h-[46px] px-4 rounded-xl font-sans text-[15px] transition-colors",
@@ -247,17 +269,6 @@ function DesktopNav({ activeIndex }: { activeIndex: number }) {
       </nav>
     </aside>
   );
-}
-
-/**
- * Tab changes slide the new page in from the side of the tab you tapped
- * (right tab → enters from the right). Set on <html> before navigation;
- * app/globals.css reads it in .page-content-fade. Same-tab / non-tab
- * navigations keep the plain fade.
- */
-function markDirection(from: number, to: number) {
-  if (from < 0 || to === from) return;
-  document.documentElement.dataset.navDir = to > from ? "right" : "left";
 }
 
 function isActive(pathname: string | null, href: string): boolean {

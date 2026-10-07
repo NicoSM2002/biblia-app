@@ -8,7 +8,7 @@ import { QuestionLine } from "@/components/QuestionLine";
 import { Loading } from "@/components/Loading";
 import { ChatInput } from "@/components/ChatInput";
 import { HistorySheet } from "@/components/HistorySheet";
-import { BottomNav, NAV_H } from "@/components/BottomNav";
+import { NAV_H } from "@/components/BottomNav";
 import { TurnActions } from "@/components/TurnActions";
 import { ShareConversation } from "@/components/ShareConversation";
 import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
@@ -544,7 +544,6 @@ export default function ChatPage() {
           </div>
         </main>
       </div>
-      <BottomNav />
     </div>
   );
 }

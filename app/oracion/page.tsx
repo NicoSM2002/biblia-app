@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { BottomNav, NAV_H } from "@/components/BottomNav";
+import { NAV_H } from "@/components/BottomNav";
 import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
 import { formatReference } from "@/components/VerseCard";
 import { apiUrl } from "@/lib/api-url";
@@ -204,7 +204,6 @@ export default function OracionPage() {
         </div>
       </main>
 
-      <BottomNav />
     </div>
   );
 }

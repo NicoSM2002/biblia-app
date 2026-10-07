@@ -2,8 +2,9 @@
 
 import { Fragment, Suspense, use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { BottomNav, NAV_H } from "@/components/BottomNav";
+import { useRouter, useSearchParams } from "next/navigation";
+import { navigate, plainClick } from "@/lib/nav-transition";
+import { NAV_H } from "@/components/BottomNav";
 import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
 import type { MassTimes } from "@/lib/mass-times";
 
@@ -140,7 +141,6 @@ function ChurchDetail({ placeId }: { placeId: string }) {
             </Link>
           </div>
         </main>
-        <BottomNav />
       </div>
     );
   }
@@ -156,7 +156,6 @@ function ChurchDetail({ placeId }: { placeId: string }) {
             <span className="dot-3 inline-block w-[6px] h-[6px] rounded-full bg-[var(--gold)]" />
           </div>
         </main>
-        <BottomNav />
       </div>
     );
   }
@@ -278,7 +277,6 @@ function ChurchDetail({ placeId }: { placeId: string }) {
         </div>
       </main>
 
-      <BottomNav />
     </div>
   );
 }
@@ -445,12 +443,18 @@ function ChevronRight() {
 }
 
 function DetailHeader({ title }: { title: string }) {
+  const router = useRouter();
   return (
     <>
     <header className="page-head-fade px-5 sm:px-6 pt-5 pb-3 border-b border-[var(--rule)] bg-[var(--paper)] z-10">
       <div className="max-w-2xl lg:max-w-6xl mx-auto lg:px-4 flex items-center gap-2">
         <Link
           href="/misas"
+          onClick={(e) => {
+            if (!plainClick(e)) return;
+            e.preventDefault();
+            navigate(router, "/misas", "pop");
+          }}
           aria-label="Volver a parroquias"
           className="grid place-items-center w-11 h-11 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors shrink-0 -ml-1"
         >

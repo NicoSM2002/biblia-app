@@ -3,6 +3,7 @@ import { Fraunces, Instrument_Sans, Newsreader } from "next/font/google";
 import "./globals.css";
 import { SETTINGS_INIT_SCRIPT } from "@/lib/settings";
 import { SettingsSync } from "@/components/SettingsSync";
+import { BottomNav } from "@/components/BottomNav";
 
 /**
  * Three faces, three jobs.
@@ -133,7 +134,11 @@ export default function RootLayout({
       </head>
       <body className="relative min-h-full antialiased">
         <SettingsSync />
-        {children}
+        {/* Pages render inside .vt-page (named during page transitions);
+            the nav lives OUTSIDE the pages so it is never torn down and
+            rebuilt on navigation — that rebuild is what felt like a reload. */}
+        <div className="vt-page">{children}</div>
+        <BottomNav />
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BottomNav, NAV_H } from "@/components/BottomNav";
+import { NAV_H } from "@/components/BottomNav";
 import { formatReference } from "@/components/VerseCard";
 import { PauseIcon, ReadAloudPlayer, SpeakerIcon } from "@/components/ReadAloudPlayer";
 import { apiUrl } from "@/lib/api-url";
@@ -149,7 +149,6 @@ export default function FavoritasPage() {
         </div>
       </main>
 
-      <BottomNav />
     </div>
   );
 }
