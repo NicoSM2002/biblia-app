@@ -71,6 +71,15 @@ export function BottomNav() {
 
   const activeIndex = items.findIndex((item) => isActive(pathname, item.href));
 
+  // The slide direction is for this one tab change only — clear it once the
+  // new page has animated, so later in-page remounts just fade.
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      delete document.documentElement.dataset.navDir;
+    }, 600);
+    return () => window.clearTimeout(t);
+  }, [pathname]);
+
   // Phone keyboard open (a text field has focus): hide the tab bar. iOS
   // keeps fixed-bottom bars above the keyboard, where it covered half of
   // the conversation while typing. Hiding it also drops --nav-h to 0, so
@@ -163,6 +172,7 @@ export function BottomNav() {
                 <li key={item.href} className="flex-1 min-w-0">
                   <Link
                     href={item.href}
+                    onClick={() => markDirection(activeIndex, i)}
                     aria-current={active ? "page" : undefined}
                     style={{ touchAction: "manipulation" }}
                     className={cn(
@@ -218,6 +228,7 @@ function DesktopNav({ activeIndex }: { activeIndex: number }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={() => markDirection(activeIndex, i)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "flex items-center gap-3 min-h-[46px] px-4 rounded-xl font-sans text-[15px] transition-colors",
@@ -236,6 +247,17 @@ function DesktopNav({ activeIndex }: { activeIndex: number }) {
       </nav>
     </aside>
   );
+}
+
+/**
+ * Tab changes slide the new page in from the side of the tab you tapped
+ * (right tab → enters from the right). Set on <html> before navigation;
+ * app/globals.css reads it in .page-content-fade. Same-tab / non-tab
+ * navigations keep the plain fade.
+ */
+function markDirection(from: number, to: number) {
+  if (from < 0 || to === from) return;
+  document.documentElement.dataset.navDir = to > from ? "right" : "left";
 }
 
 function isActive(pathname: string | null, href: string): boolean {

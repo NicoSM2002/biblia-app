@@ -42,7 +42,10 @@ export const ResponseText = memo(function ResponseText({
     <div className="mb-1 px-0.5">
       <p
         className="font-serif text-[1.02rem] sm:text-[1.06rem] leading-[1.62] text-[var(--ink)]"
-        style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}
+        // No text-wrap: pretty here. Safari re-balances the whole paragraph
+        // on every streamed word, so lines jumped back and forth ("…es obra
+        // de la / gracia" ↔ "…es obra / de la gracia") — the flicker seen
+        // on iPhone. Plain wrapping only ever grows downward.
       >
         {streaming ? <StreamingTokens text={text} /> : text}
         {streaming && (
