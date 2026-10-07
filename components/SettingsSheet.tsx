@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useClosable } from "@/lib/use-closable";
 import {
   loadSettings,
-  saveSettings,
+  saveSettingsSmooth,
   SCALE_STEPS,
   type FontSetting,
   type Settings,
@@ -57,6 +58,7 @@ const FONTS: { value: FontSetting; label: string; family: string }[] = [
 ];
 
 function SettingsSheet({ onClose }: { onClose: () => void }) {
+  const { closing, close } = useClosable(onClose);
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const sheetRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -64,7 +66,7 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
   function update(patch: Partial<Settings>) {
     const next = { ...settings, ...patch };
     setSettings(next);
-    saveSettings(next);
+    saveSettingsSmooth(next, settings);
   }
 
   // Esc closes, Tab stays inside the sheet, focus returns to the "Aa"
@@ -73,7 +75,7 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
     const previous = document.activeElement as HTMLElement | null;
     closeRef.current?.focus();
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") close();
       if (e.key !== "Tab" || !sheetRef.current) return;
       const f = sheetRef.current.querySelectorAll<HTMLElement>(
         "button, input, [tabindex]:not([tabindex='-1'])",
@@ -94,15 +96,15 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
       document.removeEventListener("keydown", onKey);
       previous?.focus();
     };
-  }, [onClose]);
+  }, [close]);
 
   const stepIndex = Math.max(0, SCALE_STEPS.indexOf(settings.scale));
 
   return (
     <>
       <div
-        className="fixed inset-0 z-[60] bg-[var(--scrim)] backdrop-blur-[1px]"
-        onClick={onClose}
+        className={`scrim-in fixed inset-0 z-[60] bg-[var(--scrim)] backdrop-blur-[1px] ${closing ? "is-closing" : ""}`}
+        onClick={close}
         aria-hidden="true"
       />
       <div
@@ -112,7 +114,7 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
         aria-labelledby="settings-title"
         // Phone: bottom sheet. Desktop (lg+): a centred 480px dialog — a
         // sheet rising from the bottom of a wide screen read as a phone UI.
-        className="settings-sheet fixed inset-x-0 bottom-0 z-[61] max-w-2xl mx-auto max-h-[88dvh] overflow-y-auto rounded-t-3xl border-t border-[var(--rule)] bg-[var(--paper)] shadow-[0_-8px_30px_rgba(0,0,0,0.14)] lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[86vh] lg:w-[480px] lg:max-w-none lg:rounded-3xl lg:border lg:shadow-[0_24px_60px_-20px_rgba(0,0,0,0.35)] lg:animate-[fade-in_180ms_ease_both]"
+        className={`settings-sheet ${closing ? "is-closing" : ""} fixed inset-x-0 bottom-0 z-[61] max-w-2xl mx-auto max-h-[88dvh] overflow-y-auto rounded-t-3xl border-t border-[var(--rule)] bg-[var(--paper)] shadow-[0_-8px_30px_rgba(0,0,0,0.14)] lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[86vh] lg:w-[480px] lg:max-w-none lg:rounded-3xl lg:border lg:shadow-[0_24px_60px_-20px_rgba(0,0,0,0.35)]`}
         style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
       >
         <div aria-hidden="true" className="lg:hidden mx-auto mt-2.5 h-1 w-10 rounded-full bg-[var(--rule)]" />
@@ -129,7 +131,7 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
           <button
             ref={closeRef}
             type="button"
-            onClick={onClose}
+            onClick={close}
             aria-label="Cerrar ajustes"
             className="grid place-items-center w-11 h-11 rounded-full bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--ink)] transition-colors"
           >

@@ -69,3 +69,34 @@ export function saveSettings(s: Settings): void {
 export function applySettings(s: Settings): void {
   applyFn(s);
 }
+
+/**
+ * Save + apply with a clean whole-screen crossfade when the colour mode
+ * changes. Without this every element transitioned on its own clock (page
+ * 280 ms, pills 150 ms, the rest instantly) and for a moment the screen was
+ * a patchwork — a bright white "Claro" pill on black, muddy grey buttons.
+ * Now all transitions are frozen during the swap and the View Transitions
+ * API fades the old screen into the new one; without it the swap is
+ * instant (still clean). Reduced-motion users always get the instant swap.
+ */
+export function saveSettingsSmooth(next: Settings, prev: Settings): void {
+  const root = document.documentElement;
+  const themeChanged = next.theme !== prev.theme;
+  if (!themeChanged) {
+    saveSettings(next);
+    return;
+  }
+  root.classList.add("theme-switching");
+  const done = () =>
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("theme-switching")));
+  const doc = document as Document & {
+    startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+  };
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (doc.startViewTransition && !reduce) {
+    doc.startViewTransition(() => saveSettings(next)).finished.finally(done);
+  } else {
+    saveSettings(next);
+    done();
+  }
+}

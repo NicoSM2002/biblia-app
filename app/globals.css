@@ -689,6 +689,21 @@ html[data-font="sencilla"] .font-serif {
 
 .anim-fade-rise { animation: fade-rise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .anim-fade-in   { animation: fade-in 800ms ease both; }
+/* A card arriving (the verse of an answer): rises 10px and fades in fast,
+   as one object. A slow 600 ms opacity-only fade left the cream card
+   invisible on the cream page while its text was already half visible —
+   it read as a "ghost" verse with the card appearing afterwards. */
+.card-in {
+  animation: card-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.card-in .versal {
+  animation-delay: 60ms;
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  55%  { opacity: 1; }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
 .streaming-word {
   animation: word-fade-in 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
@@ -770,6 +785,7 @@ html[data-font="sencilla"] .font-serif {
   }
   .anim-fade-rise,
   .anim-fade-in,
+  .card-in,
   .dot-1,
   .dot-2,
   .dot-3 { animation: none !important; }
@@ -1172,4 +1188,52 @@ html[data-font="sencilla"] .font-serif {
   .settings-sheet {
     animation: fade-in 180ms ease both;
   }
+}
+
+/* Theme switch (lib/settings.ts saveSettingsSmooth): freeze every element's
+   own colour transition so the swap is one clean crossfade, not a patchwork. */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+::view-transition-old(root) {
+  animation: vt-fade-out 300ms ease both;
+}
+::view-transition-new(root) {
+  animation: vt-fade-in 300ms ease both;
+}
+
+/* Exit animations (lib/use-closable.ts): overlays leave the way they came. */
+.scrim-in { animation: fade-in 220ms ease both; }
+.scrim-in.is-closing { animation: fade-out 220ms ease both; }
+.settings-sheet.is-closing { animation: sheet-down 220ms cubic-bezier(0.4, 0, 1, 1) both; }
+.reader-in.is-closing { animation: reader-out 220ms cubic-bezier(0.4, 0, 1, 1) both; }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes sheet-down { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@keyframes reader-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(24px); } }
+@media (min-width: 1024px) {
+  .settings-sheet.is-closing { animation: fade-out 180ms ease both; }
+}
+
+/* Parish photos: fade in over a soft shimmer instead of popping in. */
+.photo-fade { opacity: 0; transition: opacity 320ms ease; }
+.photo-fade.is-loaded { opacity: 1; }
+.photo-slot::before,
+a:has(> .photo-fade)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--surface) 70%, transparent) 50%, transparent 70%);
+  background-size: 220% 100%;
+  animation: photo-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes photo-shimmer {
+  from { background-position: 120% 0; }
+  to   { background-position: -120% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .photo-fade { transition: none; }
+  .photo-slot::before, a:has(> .photo-fade)::before { animation: none; }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useClosable } from "@/lib/use-closable";
 import type { DailyGospel } from "@/lib/daily-gospel";
 import { cleanVerse, gospelBook, gospelSpeech } from "@/lib/gospel-text";
 import { toggle, useTts } from "@/lib/tts";
@@ -26,6 +27,7 @@ export function GospelReader({
   onClose: () => void;
   onAsk: () => void;
 }) {
+  const { closing, close } = useClosable(onClose);
   const closeRef = useRef<HTMLButtonElement>(null);
   const tts = useTts();
   const ttsId = `gospel:${gospel.reference}`;
@@ -35,28 +37,28 @@ export function GospelReader({
     const previous = document.activeElement as HTMLElement | null;
     closeRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") close();
     };
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
       previous?.focus();
     };
-  }, [onClose]);
+  }, [close]);
 
   return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="reader-title"
-      className="reader-in fixed inset-0 z-[70] flex flex-col bg-[var(--paper)] text-[var(--ink)]"
+      className={`reader-in ${closing ? "is-closing" : ""} fixed inset-0 z-[70] flex flex-col bg-[var(--paper)] text-[var(--ink)]`}
     >
       <header className="px-5 pt-4 pb-3 border-b border-[var(--rule)]">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
         <button
           ref={closeRef}
           type="button"
-          onClick={onClose}
+          onClick={close}
           aria-label="Cerrar el Evangelio"
           className="grid place-items-center w-11 h-11 shrink-0 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] transition-colors"
         >

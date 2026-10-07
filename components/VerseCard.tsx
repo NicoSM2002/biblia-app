@@ -32,7 +32,7 @@ export const VerseCard = memo(function VerseCard({
   const { initial, rest } = splitVersal(display);
 
   return (
-    <figure className="anim-fade-rise mb-5 mt-1">
+    <figure className="card-in mb-5 mt-1">
       <div className="arch-panel arch-panel-sm">
         <div className="arch-body">
           {initial && (

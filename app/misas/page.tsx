@@ -469,7 +469,14 @@ function ChurchCard({
               decoding="async"
               width={124}
               height={124}
-              className="absolute inset-0 w-full h-full object-cover"
+              // Fades in over the shimmer instead of popping into an empty
+              // slot. The ref covers images already cached before hydration
+              // (their load event has fired, so onLoad would never run).
+              ref={(el) => {
+                if (el?.complete) el.classList.add("is-loaded");
+              }}
+              onLoad={(e) => e.currentTarget.classList.add("is-loaded")}
+              className="photo-fade absolute inset-0 w-full h-full object-cover"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[var(--gold-text)] opacity-50">

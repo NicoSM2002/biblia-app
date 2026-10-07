@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -71,6 +71,28 @@ export function BottomNav() {
 
   const activeIndex = items.findIndex((item) => isActive(pathname, item.href));
 
+  // Phone keyboard open (a text field has focus): hide the tab bar. iOS
+  // keeps fixed-bottom bars above the keyboard, where it covered half of
+  // the conversation while typing. Hiding it also drops --nav-h to 0, so
+  // the input sits right on the keyboard. Desktop keeps the sidebar.
+  const [typing, setTyping] = useState(false);
+  useEffect(() => {
+    const isField = (el: Element | null) =>
+      !!el &&
+      (el.tagName === "TEXTAREA" ||
+        (el.tagName === "INPUT" &&
+          !["button", "checkbox", "radio", "range", "submit"].includes((el as HTMLInputElement).type)));
+    const sync = () =>
+      setTyping(window.innerWidth < 1024 && isField(document.activeElement));
+    const onOut = () => window.setTimeout(sync, 0);
+    document.addEventListener("focusin", sync);
+    document.addEventListener("focusout", onOut);
+    return () => {
+      document.removeEventListener("focusin", sync);
+      document.removeEventListener("focusout", onOut);
+    };
+  }, []);
+
   // Centre the capsule on the active tab by measuring it, not by assuming
   // equal 1/5 cells: with large text (Ajustes) "Conversación" can't shrink
   // to a fifth, the cells become unequal and a %-based position drifted
@@ -103,7 +125,10 @@ export function BottomNav() {
         reserving bottom space on desktop automatically. */}
     <div
       ref={navRef}
-      className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print"
+      className={cn(
+        "lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--paper)] border-t border-[var(--rule)] no-print",
+        typing && "hidden",
+      )}
     >
       <nav aria-label="Navegación principal">
       <div className="max-w-2xl mx-auto px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">

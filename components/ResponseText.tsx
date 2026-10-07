@@ -37,7 +37,9 @@ export const ResponseText = memo(function ResponseText({
   streaming?: boolean;
 }) {
   return (
-    <div className="anim-fade-in mb-1 px-0.5" style={{ animationDelay: "120ms" }}>
+    // No block-level fade: each word already fades in as it streams. The
+    // old 800 ms container fade on top made the first words nearly invisible.
+    <div className="mb-1 px-0.5">
       <p
         className="font-serif text-[1.02rem] sm:text-[1.06rem] leading-[1.62] text-[var(--ink)]"
         style={{ textWrap: "pretty" as React.CSSProperties["textWrap"] }}

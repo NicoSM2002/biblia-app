@@ -7,6 +7,7 @@ import { formatReference } from "@/components/VerseCard";
 import { PauseIcon, ReadAloudPlayer, SpeakerIcon } from "@/components/ReadAloudPlayer";
 import { apiUrl } from "@/lib/api-url";
 import { authFetch } from "@/lib/auth-fetch";
+import { hasLocalSession } from "@/lib/supabase/client";
 import { speakable, toggle, useTts } from "@/lib/tts";
 
 /**
@@ -37,7 +38,13 @@ export default function FavoritasPage() {
   const [items, setItems] = useState<Favorite[]>([]);
 
   useEffect(() => {
-    // No session → authFetch sends no token → 401 → "anon".
+    // No stored session: say so at once instead of showing loading cards
+    // for the second the server takes to answer 401.
+    if (!hasLocalSession()) {
+      void Promise.resolve().then(() => setStatus("anon"));
+      return;
+    }
+    // Session expired server-side → 401 → "anon".
     authFetch(apiUrl("/api/favorites"))
       .then(async (res) => {
         if (res.status === 401) return setStatus("anon");

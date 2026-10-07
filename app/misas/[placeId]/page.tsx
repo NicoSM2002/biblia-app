@@ -299,6 +299,17 @@ function PhotoCarousel({
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartXRef = useRef<number | null>(null);
 
+  // Warm the cache for the next and previous photos so swiping shows a
+  // picture, not an empty cream panel while an 800px JPEG downloads.
+  useEffect(() => {
+    if (photos.length < 2) return;
+    for (const d of [1, -1]) {
+      const name = photos[(index + d + photos.length) % photos.length];
+      const img = new Image();
+      img.src = `/api/places-photo?name=${encodeURIComponent(name)}&w=800`;
+    }
+  }, [photos, index]);
+
   function go(delta: number) {
     if (photos.length === 0) return;
     const next = (index + delta + photos.length) % photos.length;
@@ -320,7 +331,7 @@ function PhotoCarousel({
 
   if (photos.length === 0) {
     return (
-      <div className="relative bg-[var(--vellum)] aspect-[16/10] sm:aspect-[2/1] overflow-hidden">
+      <div className="photo-slot relative bg-[var(--vellum)] aspect-[16/10] sm:aspect-[2/1] overflow-hidden">
         <div className="absolute inset-0 grid place-items-center text-[var(--gold-text)] opacity-50">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="2" x2="12" y2="5" />
@@ -337,7 +348,7 @@ function PhotoCarousel({
   return (
     <div
       ref={containerRef}
-      className="relative bg-[var(--vellum)] aspect-[16/10] sm:aspect-[2/1] overflow-hidden select-none"
+      className="photo-slot relative bg-[var(--vellum)] aspect-[16/10] sm:aspect-[2/1] overflow-hidden select-none"
       style={{ touchAction: "pan-x" }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}

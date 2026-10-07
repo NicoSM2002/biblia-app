@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { BottomNav, NAV_H } from "@/components/BottomNav";
 import { ReadAloudPlayer } from "@/components/ReadAloudPlayer";
@@ -27,11 +27,17 @@ const ACROSTIC =
  */
 export default function OracionPage() {
   const [phase, setPhase] = useState<Phase>("select");
-  const [durationMin, setDurationMin] = useState<number>(1);
+  // Wall-clock timer: while running we know WHEN it ends (endsAt); while
+  // paused we keep what was left (remainingMs). The old version decremented
+  // a counter once a second and animated the ring with 1 s CSS transitions:
+  // it moved in jumps, iOS Safari didn't animate the head dot at all, and a
+  // queued transition kept the ring growing after "Pausar".
+  const [totalMs, setTotalMs] = useState(60_000);
+  const [endsAt, setEndsAt] = useState<number | null>(null);
+  const [remainingMs, setRemainingMs] = useState(60_000);
   const [secondsLeft, setSecondsLeft] = useState<number>(60);
   const [paused, setPaused] = useState(false);
   const [verse, setVerse] = useState<Verse | null>(null);
-  const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     fetch(apiUrl(`/api/daily-verse?date=${localDateKey()}&tipo=oracion`))
@@ -44,22 +50,23 @@ export default function OracionPage() {
       });
   }, []);
 
+  // Countdown text + end detection. Polled (not counted) so a throttled tab
+  // or a backgrounded phone never drifts: it always reads the real clock.
   useEffect(() => {
-    if (phase !== "praying" || paused) return;
-    intervalRef.current = window.setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          setPhase("ended");
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+    if (phase !== "praying" || paused || endsAt == null) return;
+    const tick = () => {
+      const left = endsAt - Date.now();
+      if (left <= 0) {
+        setSecondsLeft(0);
+        setPhase("ended");
+      } else {
+        setSecondsLeft(Math.ceil(left / 1000));
+      }
     };
-  }, [phase, paused]);
+    tick();
+    const id = window.setInterval(tick, 200);
+    return () => window.clearInterval(id);
+  }, [phase, paused, endsAt]);
 
   // Keep the screen on while the timer runs — the moment it dims is exactly
   // when someone praying with their eyes closed would lose the countdown.
@@ -93,17 +100,32 @@ export default function OracionPage() {
     };
   }, [phase, paused]);
 
-  function start(min: number) {
-    setDurationMin(min);
-    setSecondsLeft(min * 60);
+  function run(ms: number) {
+    setTotalMs(ms);
+    setRemainingMs(ms);
+    setSecondsLeft(Math.ceil(ms / 1000));
+    setEndsAt(Date.now() + ms);
     setPaused(false);
     setPhase("praying");
   }
 
+  function start(min: number) {
+    run(min * 60_000);
+  }
+
   function extend() {
-    setSecondsLeft((s) => s + 60);
-    setPhase("praying");
-    setPaused(false);
+    run(60_000);
+  }
+
+  function togglePause() {
+    if (paused) {
+      setEndsAt(Date.now() + remainingMs);
+      setPaused(false);
+    } else {
+      setRemainingMs(Math.max(0, (endsAt ?? Date.now()) - Date.now()));
+      setEndsAt(null);
+      setPaused(true);
+    }
   }
 
   // Straubinger text often carries its own opening/closing quote marks;
@@ -162,9 +184,11 @@ export default function OracionPage() {
           {phase === "praying" && (
             <PrayingPhase
               secondsLeft={secondsLeft}
-              durationMin={durationMin}
+              totalMs={totalMs}
+              endsAt={endsAt}
+              remainingMs={remainingMs}
               paused={paused}
-              onTogglePause={() => setPaused((p) => !p)}
+              onTogglePause={togglePause}
               onEnd={() => setPhase("ended")}
               verse={verse}
               verseDisplay={display}
@@ -227,7 +251,9 @@ function SelectPhase({ onStart }: { onStart: (min: number) => void }) {
 
 function PrayingPhase({
   secondsLeft,
-  durationMin,
+  totalMs,
+  endsAt,
+  remainingMs,
   paused,
   onTogglePause,
   onEnd,
@@ -235,19 +261,28 @@ function PrayingPhase({
   verseDisplay,
 }: {
   secondsLeft: number;
-  durationMin: number;
+  totalMs: number;
+  endsAt: number | null;
+  remainingMs: number;
   paused: boolean;
   onTogglePause: () => void;
   onEnd: () => void;
   verse: Verse | null;
   verseDisplay: string;
 }) {
-  const totalSeconds = durationMin * 60;
-  const progress = 1 - secondsLeft / totalSeconds;
-
   const min = Math.floor(secondsLeft / 60);
   const sec = secondsLeft % 60;
   const timeText = `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  // Bigger ring on a computer screen, where 190px looked lost.
+  const ringSize = useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia("(min-width: 1024px)");
+      mq.addEventListener("change", cb);
+      return () => mq.removeEventListener("change", cb);
+    },
+    () => (window.matchMedia("(min-width: 1024px)").matches ? 260 : 190),
+    () => 190,
+  );
 
   return (
     <div className="w-full max-w-md flex flex-col items-center">
@@ -255,9 +290,9 @@ function PrayingPhase({
         Respira. Dios está contigo.
       </p>
 
-      <ProgressRing progress={progress} size={190}>
+      <ProgressRing totalMs={totalMs} endsAt={endsAt} remainingMs={remainingMs} size={ringSize}>
         <div className="text-center">
-          <p className="font-display-num text-display leading-none text-[var(--ink)]">
+          <p className="font-display-num text-display lg:text-[56px] leading-none text-[var(--ink)]">
             {timeText}
           </p>
           <p className="font-sans font-semibold text-[0.7rem] tracking-[0.2em] uppercase text-[var(--gold-text)] mt-1.5">
@@ -372,25 +407,51 @@ function EndedPhase({
  * The head dot is placed with plain trigonometry rather than a rotated group
  * so it stays put when the SVG is scaled.
  */
+/**
+ * The prayer ring. Redrawn every frame from the real clock (endsAt), so it
+ * moves continuously and stops dead on pause. Attributes are written straight
+ * to the SVG via refs — no React re-render per frame. The head dot rotates
+ * around the centre (it used to tween its x/y in a straight line, which iOS
+ * Safari doesn't animate), and the SVG is padded so the dot's glow isn't
+ * clipped flat at the top of the circle.
+ */
 function ProgressRing({
-  progress,
+  totalMs,
+  endsAt,
+  remainingMs,
   size,
   children,
 }: {
-  progress: number;
+  totalMs: number;
+  endsAt: number | null;
+  remainingMs: number;
   size: number;
   children: React.ReactNode;
 }) {
   const stroke = 3;
+  const pad = 14;
+  const box = size + pad * 2;
+  const c0 = box / 2;
   const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const p = Math.max(0, Math.min(1, progress));
-  const offset = c * (1 - p);
+  const circ = 2 * Math.PI * r;
+  const arcRef = useRef<SVGCircleElement>(null);
+  const headRef = useRef<SVGGElement>(null);
 
-  // Head of the arc, measured from 12 o'clock going clockwise.
-  const angle = (p * 360 - 90) * (Math.PI / 180);
-  const headX = size / 2 + r * Math.cos(angle);
-  const headY = size / 2 + r * Math.sin(angle);
+  useEffect(() => {
+    let raf = 0;
+    const draw = () => {
+      const left = endsAt != null ? endsAt - Date.now() : remainingMs;
+      const p = Math.max(0, Math.min(1, 1 - left / totalMs));
+      arcRef.current?.setAttribute("stroke-dashoffset", String(circ * (1 - p)));
+      if (headRef.current) {
+        headRef.current.setAttribute("transform", `rotate(${p * 360} ${c0} ${c0})`);
+        headRef.current.style.opacity = p > 0.002 ? "1" : "0";
+      }
+      if (endsAt != null && left > 0) raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, [endsAt, remainingMs, totalMs, circ, c0]);
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -404,44 +465,35 @@ function ProgressRing({
         }}
       />
       <svg
-        width={size}
-        height={size}
-        className="absolute inset-0"
+        width={box}
+        height={box}
+        className="absolute pointer-events-none"
+        style={{ left: -pad, top: -pad, overflow: "visible" }}
         aria-hidden="true"
       >
+        <circle cx={c0} cy={c0} r={r} fill="none" stroke="var(--rule)" strokeWidth={stroke} />
         <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="var(--rule)"
-          strokeWidth={stroke}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
+          ref={arcRef}
+          cx={c0}
+          cy={c0}
           r={r}
           fill="none"
           stroke="var(--gold)"
           strokeWidth={stroke}
           strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={offset}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          style={{ transition: "stroke-dashoffset 1000ms linear" }}
+          strokeDasharray={circ}
+          strokeDashoffset={circ}
+          transform={`rotate(-90 ${c0} ${c0})`}
         />
-        {p > 0.005 && (
+        <g ref={headRef} style={{ opacity: 0 }}>
           <circle
-            cx={headX}
-            cy={headY}
+            cx={c0}
+            cy={c0 - r}
             r={stroke * 1.6}
             fill="var(--gold)"
-            style={{
-              filter: "drop-shadow(0 0 7px var(--gold))",
-              transition: "cx 1000ms linear, cy 1000ms linear",
-            }}
+            style={{ filter: "drop-shadow(0 0 6px var(--gold))" }}
           />
-        )}
+        </g>
       </svg>
       <div className="absolute inset-0 grid place-items-center">{children}</div>
     </div>
