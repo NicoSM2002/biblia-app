@@ -1260,61 +1260,7 @@ html[data-nav-dir="left"] .page-content-fade {
 }
 
 /* ---------------------------------------------------------------------------
-   Page transitions (lib/nav-transition.ts). Everything is scoped to
-   html[data-vt], which exists only while a navigation transition runs — the
-   theme crossfade and the rest of the app are unaffected.
+   Page transitions (lib/nav-transition.ts): the current page leaves first
+   (Web Animations, 150 ms, held hidden until the new route mounts), then
+   the new page enters via .page-content-fade + html[data-nav-dir].
    ------------------------------------------------------------------------- */
-html[data-vt] .vt-page { view-transition-name: page; }
-html[data-vt] .vt-tabbar { view-transition-name: tabbar; }
-html[data-vt] .desktop-nav { view-transition-name: sidenav; }
-
-/* The new page's own entrance fades would play inside the transition. */
-html[data-vt] .page-content-fade,
-html[data-vt] .page-head-fade { animation: none !important; }
-
-/* Root is just the page background; tab bar and sidebar stay put (their
-   live "new" image shows the active capsule gliding). */
-html[data-vt]::view-transition-old(root),
-html[data-vt]::view-transition-new(root),
-html[data-vt]::view-transition-group(tabbar),
-html[data-vt]::view-transition-new(tabbar),
-html[data-vt]::view-transition-group(sidenav),
-html[data-vt]::view-transition-new(sidenav) { animation: none; }
-html[data-vt]::view-transition-old(tabbar),
-html[data-vt]::view-transition-old(sidenav) { display: none; }
-
-html[data-vt]::view-transition-group(page) { animation-duration: 0s; }
-html[data-vt]::view-transition-old(page),
-html[data-vt]::view-transition-new(page) {
-  mix-blend-mode: normal;
-  animation-fill-mode: both;
-}
-
-/* Between tabs: the old screen leaves fast, the new one arrives right
-   behind it — sequenced, not a long crossfade (two screens of text on top
-   of each other read as a double exposure). */
-html[data-vt="tab-right"]::view-transition-old(page) { animation: vt-out-left 170ms cubic-bezier(0.4, 0, 1, 1); }
-html[data-vt="tab-right"]::view-transition-new(page) { animation: vt-in-right 400ms cubic-bezier(0.22, 1, 0.36, 1) 110ms; }
-html[data-vt="tab-left"]::view-transition-old(page)  { animation: vt-out-right 170ms cubic-bezier(0.4, 0, 1, 1); }
-html[data-vt="tab-left"]::view-transition-new(page)  { animation: vt-in-left 400ms cubic-bezier(0.22, 1, 0.36, 1) 110ms; }
-@keyframes vt-out-left  { to   { opacity: 0; transform: translateX(-20px); } }
-@keyframes vt-out-right { to   { opacity: 0; transform: translateX(20px); } }
-@keyframes vt-in-right  { from { opacity: 0; transform: translateX(32px); } }
-@keyframes vt-in-left   { from { opacity: 0; transform: translateX(-32px); } }
-
-/* Into / out of a detail: the iOS navigation slide. */
-html[data-vt="push"]::view-transition-old(page) { animation: vt-recede 480ms cubic-bezier(0.32, 0.72, 0, 1); }
-html[data-vt="push"]::view-transition-new(page) {
-  animation: vt-slide-in 480ms cubic-bezier(0.32, 0.72, 0, 1);
-  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.12);
-}
-html[data-vt="pop"]::view-transition-old(page) {
-  z-index: 2;
-  animation: vt-slide-out 420ms cubic-bezier(0.32, 0.72, 0, 1);
-  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.12);
-}
-html[data-vt="pop"]::view-transition-new(page) { animation: vt-return 420ms cubic-bezier(0.32, 0.72, 0, 1); }
-@keyframes vt-slide-in  { from { transform: translateX(100%); } }
-@keyframes vt-slide-out { to   { transform: translateX(100%); } }
-@keyframes vt-recede    { to   { transform: translateX(-28%); filter: brightness(0.92); } }
-@keyframes vt-return    { from { transform: translateX(-28%); filter: brightness(0.92); } }

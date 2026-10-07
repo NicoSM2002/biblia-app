@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { navigate, plainClick, routeSettled } from "@/lib/nav-transition";
@@ -77,9 +77,19 @@ export function BottomNav() {
   // change, after the new page has rendered: release the page transition
   // that is waiting for it. The fallback slide direction is for this one
   // change only — cleared once the new page has animated.
-  useEffect(() => {
+  // Layout effect: release the leaving page before the browser paints the
+  // new one, so its entrance animation is visible from its first frame.
+  useLayoutEffect(() => {
     routeSettled();
+  }, [pathname]);
+  useEffect(() => {
     const t = window.setTimeout(() => {
+      // Pin the finished entrance first: removing data-nav-dir swaps the
+      // element's animation (slide → plain fade), which restarted it from
+      // opacity 0 — a second flash ~0.6 s after every navigation.
+      document
+        .querySelectorAll<HTMLElement>(".page-content-fade")
+        .forEach((el) => (el.style.animation = "none"));
       delete document.documentElement.dataset.navDir;
     }, 600);
     return () => window.clearTimeout(t);
