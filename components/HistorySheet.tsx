@@ -201,7 +201,7 @@ export function HistorySheet({
                           <p className="font-serif font-medium text-[1rem] text-[var(--ink)] leading-snug line-clamp-2">
                             {c.title || "(sin título)"}
                           </p>
-                          <p className="font-sans text-[0.76rem] text-[var(--ink-faint)] mt-1">
+                          <p className="font-sans text-[0.82rem] text-[var(--ink-faint)] mt-1">
                             {new Date(c.updated_at).toLocaleDateString("es-ES", {
                               day: "numeric",
                               month: "long",
@@ -233,7 +233,7 @@ export function HistorySheet({
                           <button
                             onClick={() => setConfirmingId(c.id)}
                             aria-label={`Eliminar ${c.title || "conversación"}`}
-                            className="px-3.5 grid place-items-center text-[var(--ink-faint)] hover:text-[var(--vino)] hover:bg-[var(--vellum)] transition-colors min-h-[44px] border-l border-[var(--rule)]"
+                            className="self-center mx-2 grid place-items-center w-11 h-11 shrink-0 rounded-full border border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-faint)] hover:border-[var(--vino)]/40 hover:text-[var(--vino)] transition-colors"
                           >
                             <TrashIcon />
                           </button>

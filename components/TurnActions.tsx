@@ -94,7 +94,7 @@ export function TurnActions({
   // Labelled pills, not bare icons: a speaker, a heart and a share glyph
   // in circles didn't say what they did to the people this app is for.
   const base =
-    "inline-flex items-center gap-1.5 min-h-[38px] px-3.5 rounded-full border font-sans text-[min(0.84rem,14px)] font-medium transition-colors";
+    "inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full border font-sans text-[min(0.84rem,14px)] font-medium transition-colors";
   const neutral =
     "border-[var(--rule)] bg-[var(--surface)] text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)]";
 
@@ -140,7 +140,7 @@ export function TurnActions({
       {canLike && liked && justLiked && (
         <Link
           href="/favoritas"
-          className="anim-fade-in inline-flex items-center gap-1 min-h-[38px] px-3.5 rounded-full border border-[var(--vino)]/30 bg-[var(--surface)] font-sans text-[min(0.84rem,14px)] font-medium text-[var(--vino)] hover:bg-[var(--vino)]/[0.06] transition-colors"
+          className="anim-fade-in inline-flex items-center gap-1 min-h-[44px] px-3.5 rounded-full border border-[var(--vino)]/30 bg-[var(--surface)] font-sans text-[min(0.84rem,14px)] font-medium text-[var(--vino)] hover:bg-[var(--vino)]/[0.06] transition-colors"
         >
           Ver favoritas
         </Link>

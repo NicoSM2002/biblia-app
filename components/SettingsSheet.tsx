@@ -235,7 +235,7 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
             </p>
           </section>
 
-          <p className="pb-1 text-center font-sans text-[0.76rem] text-[var(--ink-faint)]">
+          <p className="pb-1 text-center font-sans text-[0.82rem] text-[var(--ink-faint)]">
             Los ajustes se guardan en este dispositivo.
           </p>
         </div>

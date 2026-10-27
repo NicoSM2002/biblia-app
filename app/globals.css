@@ -1070,7 +1070,6 @@ html[data-font="sencilla"] .font-serif {
 :focus-visible:not(.outline-none) {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
-  border-radius: 2px;
 }
 
 /* Custom scrollbar — minimal but easy to grab on desktop */
@@ -1257,6 +1256,23 @@ html[data-nav-dir="left"] .page-content-fade {
 }
 @media (prefers-reduced-motion: reduce) {
   html[data-nav-dir] .page-content-fade { animation: none !important; }
+}
+
+/* Back (browser button, iPhone swipe): the screen returns as it was. Safari
+   already slides it in; replaying the entrance on top read as a stutter.
+   Set by BottomNav on popstate, after the nav-dir rules so it wins. */
+html[data-nav-back] .page-content-fade,
+html[data-nav-back] .page-head-fade {
+  animation: none;
+}
+
+/* The home's drop cap and the light across its arch are a welcome for the
+   first load. Once you've moved between screens (navigate() sets
+   data-nav-seen) they don't replay on every return to Inicio. Scoped to the
+   home's panels (.arch-home): an answer's drop cap in the chat keeps it. */
+html[data-nav-seen] .arch-home .versal,
+html[data-nav-seen] .arch-home::after {
+  animation: none;
 }
 
 /* ---------------------------------------------------------------------------

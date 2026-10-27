@@ -41,6 +41,9 @@ export function Splash() {
     alreadyShown ? "gone" : "visible",
   );
 
+  // Both timers in one run, on mount only. With [phase] as deps, switching
+  // to "fading" re-ran the effect and its cleanup cancelled the "gone"
+  // timer: the invisible full-screen layer stayed mounted for good.
   useEffect(() => {
     if (phase !== "visible") return;
     alreadyShown = true;
@@ -50,7 +53,8 @@ export function Splash() {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [phase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (phase === "gone") return null;
 

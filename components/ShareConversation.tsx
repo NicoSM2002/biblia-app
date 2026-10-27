@@ -49,7 +49,7 @@ export function ShareConversation({ turns }: { turns: Turn[] }) {
     <button
       type="button"
       onClick={onShare}
-      className="inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors"
+      className="inline-flex items-center gap-2 min-h-[44px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors"
       style={{ touchAction: "manipulation" }}
     >
       {state === "copied" ? <CheckIcon /> : <ShareIcon />}

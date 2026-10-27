@@ -31,7 +31,7 @@ type Favorite = {
 type Status = "loading" | "anon" | "ready" | "error";
 
 const PILL =
-  "inline-flex items-center gap-1.5 min-h-[38px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.82rem] font-medium text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] transition-colors";
+  "inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.82rem] font-medium text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] transition-colors";
 
 export default function FavoritasPage() {
   const [status, setStatus] = useState<Status>("loading");
@@ -180,7 +180,7 @@ function FavoriteCard({ f, onUnlike }: { f: Favorite; onUnlike: () => void }) {
           onClick={onUnlike}
           aria-label="Quitar de favoritas"
           title="Quitar de favoritas"
-          className="grid place-items-center w-9 h-9 shrink-0 rounded-full border border-[var(--vino)]/40 bg-[var(--vino)]/8 text-[var(--vino)] hover:bg-[var(--vino)]/15 transition-colors"
+          className="grid place-items-center w-11 h-11 shrink-0 rounded-full border border-[var(--vino)]/40 bg-[var(--vino)]/8 text-[var(--vino)] hover:bg-[var(--vino)]/15 transition-colors"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />

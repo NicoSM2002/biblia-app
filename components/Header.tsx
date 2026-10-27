@@ -36,7 +36,7 @@ export function Header({
           <Link
             href="/"
             aria-label="Inicio"
-            className="flex flex-col min-w-0 group ml-1"
+            className="flex flex-col justify-center min-w-[44px] min-h-[44px] group ml-1"
           >
             <span className="flex items-center gap-2 sm:gap-2.5 min-w-0">
               <LatinCross
@@ -71,7 +71,7 @@ export function Header({
 }
 
 const PILL =
-  "inline-flex items-center gap-1.5 min-h-[40px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[min(0.86rem,14px)] font-medium text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors shrink-0";
+  "inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[min(0.86rem,14px)] font-medium text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] hover:bg-[var(--vellum)] transition-colors shrink-0";
 
 function HistoryButton({ onClick }: { onClick: () => void }) {
   return (

@@ -118,7 +118,7 @@ function ChurchDetail({ placeId }: { placeId: string }) {
             <p className="font-sans text-[0.9rem] text-[var(--ink-soft)]">{error}</p>
             <Link
               href="/misas"
-              className="group mt-4 inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--marian)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
+              className="group mt-4 inline-flex items-center gap-2 min-h-[44px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--marian)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
             >
               {/* Was the bare "←" glyph, which renders as a hairline in every
                   font and looked broken next to the app's 2px stroke icons. */}
@@ -606,7 +606,7 @@ function useMassTimes(placeId: string): { masses: MassTimes | null; failed: bool
 }
 
 const SMALL_PILL =
-  "inline-flex items-center gap-1.5 min-h-[38px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[min(0.84rem,14px)] font-medium transition-colors";
+  "inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[min(0.84rem,14px)] font-medium transition-colors";
 
 /**
  * Mass times + one compact row of links under them. There used to be three
@@ -760,7 +760,7 @@ function MassTimesSection({ masses, failed }: { masses: MassTimes | null; failed
               </ul>
             </div>
           )}
-          <p className="mt-3 font-sans text-[0.72rem] text-[var(--ink-faint)] italic">
+          <p className="mt-3 font-sans text-[0.82rem] text-[var(--ink-faint)] italic">
             Tomados de la web de la parroquia. Pueden cambiar en fiestas o
             vacaciones: confirma antes de ir.
           </p>

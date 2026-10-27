@@ -180,17 +180,19 @@ export function HomeAvatar() {
                 {name}
               </p>
             )}
-            <p className="font-sans text-[0.78rem] text-[var(--ink-soft)] truncate">
+            <p className="font-sans text-[0.82rem] text-[var(--ink-soft)] truncate">
               {email}
             </p>
           </div>
-          <button
-            role="menuitem"
-            onClick={logout}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[0.88rem] text-[var(--ink-soft)] hover:bg-[var(--vellum)] hover:text-[var(--ink)] transition-colors"
-          >
-            <ExitIcon /> Cerrar sesión
-          </button>
+          <div className="p-2">
+            <button
+              role="menuitem"
+              onClick={logout}
+              className="w-full flex items-center justify-center gap-2 min-h-[44px] px-3.5 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--gold)] hover:text-[var(--gold-text)] transition-colors"
+            >
+              <ExitIcon /> Cerrar sesión
+            </button>
+          </div>
         </div>
       )}
     </div>

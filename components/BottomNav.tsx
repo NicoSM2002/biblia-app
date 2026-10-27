@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { navigate, plainClick, routeSettled } from "@/lib/nav-transition";
+import { leaving, navigate, pinEntrances, plainClick, routeSettled } from "@/lib/nav-transition";
 import { cn } from "@/lib/utils";
 import { LatinCross } from "@/components/Cross";
 
@@ -87,13 +87,35 @@ export function BottomNav() {
       // Pin the finished entrance first: removing data-nav-dir swaps the
       // element's animation (slide → plain fade), which restarted it from
       // opacity 0 — a second flash ~0.6 s after every navigation.
-      document
-        .querySelectorAll<HTMLElement>(".page-content-fade")
-        .forEach((el) => (el.style.animation = "none"));
+      pinEntrances();
       delete document.documentElement.dataset.navDir;
+      delete document.documentElement.dataset.navBack;
     }, 600);
     return () => window.clearTimeout(t);
   }, [pathname]);
+
+  // Browser back / iPhone swipe: the screen comes back as it was, without
+  // its entrance — Safari already slides it in, and the two stacked
+  // (html[data-nav-back] in globals.css). Cleared with the pin above, or
+  // here when the URL changed but the page didn't (?c= in the chat).
+  useEffect(() => {
+    let t = 0;
+    const onPop = () => {
+      const root = document.documentElement;
+      root.dataset.navBack = "";
+      root.dataset.navSeen = "";
+      window.clearTimeout(t);
+      t = window.setTimeout(() => {
+        pinEntrances();
+        delete root.dataset.navBack;
+      }, 600);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      window.clearTimeout(t);
+    };
+  }, []);
 
   // Phone keyboard open (a text field has focus): hide the tab bar. iOS
   // keeps fixed-bottom bars above the keyboard, where it covered half of
@@ -193,7 +215,7 @@ export function BottomNav() {
                   <Link
                     href={item.href}
                     onClick={(e) => {
-                      if (!plainClick(e) || pathname === item.href) return;
+                      if (!plainClick(e) || (pathname === item.href && !leaving())) return;
                       e.preventDefault();
                       // Same tab from a detail (a parish → Parroquias) is "back".
                       navigate(router, item.href, i === activeIndex ? "pop" : i > activeIndex ? "tab-right" : "tab-left");
@@ -256,7 +278,7 @@ function DesktopNav({ activeIndex }: { activeIndex: number }) {
                 <Link
                   href={item.href}
                   onClick={(e) => {
-                      if (!plainClick(e) || pathname === item.href) return;
+                      if (!plainClick(e) || (pathname === item.href && !leaving())) return;
                       e.preventDefault();
                       // Same tab from a detail (a parish → Parroquias) is "back".
                       navigate(router, item.href, i === activeIndex ? "pop" : i > activeIndex ? "tab-right" : "tab-left");

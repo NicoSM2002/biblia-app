@@ -22,6 +22,28 @@ type Router = { push: (href: string) => void };
 const LEAVE_MS = 150;
 let pendingCleanup: (() => void) | null = null;
 let busy = false;
+// Where the scheduled push goes. A second tap during the leave only updates
+// it: navigating at once let the first tap's push land afterwards and win,
+// so two quick taps ended on the FIRST tab.
+let target: string | null = null;
+let abortLeave: (() => void) | null = null;
+
+/** A leave is under way and its push hasn't happened yet. */
+export function leaving() {
+  return target !== null;
+}
+
+/**
+ * Freeze the entrances of the screen that is on now. Setting data-nav-dir
+ * swaps the animation of every .page-content-fade that BottomNav hasn't
+ * pinned yet (Oración mounts a new one per phase), which restarted it from
+ * opacity 0 while the screen was leaving.
+ */
+export function pinEntrances() {
+  document
+    .querySelectorAll<HTMLElement>(".page-content-fade, .page-head-fade")
+    .forEach((el) => (el.style.animation = "none"));
+}
 
 /** Called by the persistent nav (layout effect) once the new route rendered. */
 export function routeSettled() {
@@ -34,8 +56,20 @@ export function navigate(router: Router, href: string, kind: NavKind) {
   const root = document.documentElement;
   const page = document.querySelector<HTMLElement>(".vt-page");
   const dir = kind === "tab-right" || kind === "push" ? "right" : "left";
+  pinEntrances();
+  delete root.dataset.navBack;
+  // Once you've moved around, the home's first-load flourishes (drop cap,
+  // light across the arch) don't replay on every return (globals.css).
+  root.dataset.navSeen = "";
   root.dataset.navDir = dir;
 
+  // Still leaving: just retarget the push that is already scheduled.
+  // Back to the screen that is leaving: stay on it.
+  if (target !== null) {
+    if (href === location.pathname) abortLeave?.();
+    else target = href;
+    return;
+  }
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!page || reduce || busy) {
     router.push(href);
@@ -43,6 +77,7 @@ export function navigate(router: Router, href: string, kind: NavKind) {
   }
 
   busy = true;
+  target = href;
   // Web Animations API, not a CSS class: Safari started class-triggered
   // animations late and kept painting them after the class was removed;
   // .animate()/.cancel() start and stop exactly when told.
@@ -63,7 +98,8 @@ export function navigate(router: Router, href: string, kind: NavKind) {
     leave.cancel();
     busy = false;
   };
-  window.setTimeout(() => {
+  const timer = window.setTimeout(() => {
+    abortLeave = null;
     pendingCleanup = cleanup;
     // Reveal the moment the new page's content is inserted: a
     // MutationObserver callback runs before the browser paints, so the new
@@ -81,8 +117,17 @@ export function navigate(router: Router, href: string, kind: NavKind) {
     observer.observe(page, { childList: true, subtree: true });
     // If nothing new mounts (same URL, error…), don't stay hidden.
     failsafe = window.setTimeout(cleanup, 2500);
-    router.push(href);
+    const to = target ?? href;
+    target = null;
+    router.push(to);
   }, LEAVE_MS);
+  abortLeave = () => {
+    window.clearTimeout(timer);
+    abortLeave = null;
+    target = null;
+    delete root.dataset.navDir;
+    cleanup();
+  };
 }
 
 /** For <Link onClick>: keep cmd/ctrl-click (new tab) working normally. */

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type FormEvent, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import { navigate } from "@/lib/nav-transition";
 import { LatinCross } from "@/components/Cross";
@@ -263,7 +263,7 @@ export default function HomePage() {
 function DailyVerseSkeleton() {
   return (
     <section aria-label="Cargando el versículo del día">
-      <div className="arch-panel">
+      <div className="arch-panel arch-home">
         <div className="arch-body space-y-2.5">
           <div className="h-5 skeleton-shimmer w-full" />
           <div className="h-5 skeleton-shimmer w-[92%]" />
@@ -309,7 +309,7 @@ function clearFit(bq: HTMLElement) {
 // grow too pushed the question box off-screen at 130% even with the Gospel
 // cut to two lines. The verse itself and the input still scale fully.
 const PILL =
-  "flex items-center gap-[6px] min-h-[40px] px-[12px] whitespace-nowrap rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] font-sans text-[min(0.84rem,14px)] font-medium text-[var(--gold-text)] shadow-[0_1px_0_var(--emboss)_inset,0_1px_3px_rgba(0,0,0,0.06)] hover:border-[var(--gold)] active:scale-95 transition-all";
+  "flex items-center gap-[6px] min-h-[44px] px-[12px] whitespace-nowrap rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--surface)] font-sans text-[min(0.84rem,14px)] font-medium text-[var(--gold-text)] shadow-[0_1px_0_var(--emboss)_inset,0_1px_3px_rgba(0,0,0,0.06)] hover:border-[var(--gold)] active:scale-95 transition-all";
 
 /**
  * The Gospel of the day on the home. Shows the pericope itself, clipped to
@@ -330,7 +330,9 @@ function DailyGospelSection({
   const [readerOpen, setReaderOpen] = useState(false);
   const quoteRef = useRef<HTMLQuoteElement>(null);
 
-  useEffect(() => {
+  // Layout effect: clip before the first paint. As an effect the full
+  // pericope painted for a frame and then snapped to the clipped height.
+  useLayoutEffect(() => {
     const bq = quoteRef.current;
     const main = scroller.current;
     const column = main?.firstElementChild as HTMLElement | null;
@@ -338,10 +340,18 @@ function DailyGospelSection({
     const fit = () => fitQuote(bq, main, column);
     fit();
     void document.fonts?.ready.then(fit);
-    const ro = new ResizeObserver(fit);
+    // Refit on the next frame, not inside the observer: fitting resizes the
+    // column it watches, which threw "ResizeObserver loop completed with
+    // undelivered notifications".
+    let raf = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(fit);
+    });
     ro.observe(main);
     ro.observe(column);
     return () => {
+      cancelAnimationFrame(raf);
       ro.disconnect();
       clearFit(bq);
     };
@@ -355,7 +365,7 @@ function DailyGospelSection({
 
   return (
     <section aria-label="Evangelio del día">
-      <div className="arch-panel">
+      <div className="arch-panel arch-home">
         <div className="arch-body">
           <p className="text-center font-sans text-[min(0.68rem,11px)] font-semibold tracking-[0.2em] uppercase text-[var(--gold-text)]">
             Evangelio del día
@@ -415,7 +425,7 @@ function DailyGospelSection({
         <button
           type="button"
           onClick={onAsk}
-          className="inline-flex items-center gap-1.5 min-h-[40px] px-[14px] rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[var(--surface)] font-sans text-[min(0.86rem,14px)] font-medium text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] active:scale-95 transition-all"
+          className="inline-flex items-center gap-1.5 min-h-[44px] px-[14px] rounded-full border border-[color-mix(in_srgb,var(--marian)_35%,transparent)] bg-[var(--surface)] font-sans text-[min(0.86rem,14px)] font-medium text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] active:scale-95 transition-all"
         >
           Reflexión del Evangelio de hoy
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -437,7 +447,7 @@ function DailyVerseSection({ verse }: { verse: Verse }) {
 
   return (
     <section aria-label="Versículo del día">
-      <div className="arch-panel">
+      <div className="arch-panel arch-home">
         <div className="arch-body">
           {initial && (
             <span aria-hidden="true" className="versal">

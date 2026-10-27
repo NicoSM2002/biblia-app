@@ -278,7 +278,7 @@ function AuthForm() {
                 <button
                   type="button"
                   onClick={() => switchMode("reset")}
-                  className="mt-3 inline-flex items-center min-h-[40px] px-4 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] font-sans text-[0.88rem] font-semibold text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
+                  className="mt-3 inline-flex items-center min-h-[44px] px-4 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] font-sans text-[0.88rem] font-semibold text-[var(--marian)] hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
                 >
                   Pedir un enlace nuevo
                 </button>
@@ -348,7 +348,7 @@ function AuthForm() {
                     <button
                       type="button"
                       onClick={() => switchMode("reset")}
-                      className="inline-flex items-center min-h-[34px] px-3 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.8rem] font-medium text-[var(--ink-soft)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
+                      className="inline-flex items-center min-h-[44px] px-3 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.8rem] font-medium text-[var(--ink-soft)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
                     >
                       ¿Olvidaste tu contraseña?
                     </button>
@@ -413,7 +413,7 @@ function AuthForm() {
                 <button
                   type="button"
                   onClick={() => switchMode("signup")}
-                  className="ml-1 inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
+                  className="ml-1 inline-flex items-center min-h-[44px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
                 >
                   Créala aquí
                 </button>
@@ -424,7 +424,7 @@ function AuthForm() {
                 <button
                   type="button"
                   onClick={() => switchMode("login")}
-                  className="ml-1 inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
+                  className="ml-1 inline-flex items-center min-h-[44px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
                 >
                   Inicia sesión
                 </button>
@@ -433,7 +433,7 @@ function AuthForm() {
               <button
                 type="button"
                 onClick={() => switchMode("login")}
-                className="inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
+                className="inline-flex items-center min-h-[44px] px-3.5 rounded-full border border-[color-mix(in_srgb,var(--marian)_40%,transparent)] bg-[var(--surface)] text-[var(--marian)] font-semibold hover:bg-[color-mix(in_srgb,var(--marian)_8%,transparent)] transition-colors"
               >
                 Volver a iniciar sesión
               </button>
@@ -443,7 +443,7 @@ function AuthForm() {
           <div className="mt-4 flex justify-center">
             <Link
               href="/"
-              className="group inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
+              className="group inline-flex items-center gap-2 min-h-[44px] px-4 rounded-full border border-[var(--rule)] bg-[var(--surface)] font-sans text-[0.88rem] font-medium text-[var(--ink-soft)] hover:border-[var(--marian)] hover:text-[var(--marian)] transition-colors"
             >
               <BackArrow />
               Volver al inicio
@@ -504,7 +504,7 @@ const Field = function FieldImpl({
         {suffix}
       </div>
       {hint && (
-        <span className="mt-1 block font-sans text-[0.74rem] text-[var(--ink-faint)]">
+        <span className="mt-1 block font-sans text-[0.82rem] text-[var(--ink-faint)]">
           {hint}
         </span>
       )}
@@ -584,9 +584,12 @@ function EyeToggle({ shown, onToggle }: { shown: boolean; onToggle: () => void }
       type="button"
       onClick={onToggle}
       aria-label={shown ? "Ocultar contraseña" : "Mostrar contraseña"}
-      className="grid place-items-center w-8 h-8 mr-1.5 shrink-0 rounded-lg bg-[var(--vellum)] text-[var(--ink-soft)] hover:text-[var(--gold-text)] hover:bg-[var(--rule)] transition-colors"
+      className="group/eye grid place-items-center w-11 h-11 -my-[2px] mr-0.5 shrink-0 rounded-lg text-[var(--ink-soft)] hover:text-[var(--gold-text)] transition-colors"
     >
-      {shown ? <EyeOffIcon /> : <EyeIcon />}
+      {/* 44px to touch, the same 32px chip to see. */}
+      <span className="grid place-items-center w-8 h-8 rounded-lg bg-[var(--vellum)] group-hover/eye:bg-[var(--rule)] transition-colors">
+        {shown ? <EyeOffIcon /> : <EyeIcon />}
+      </span>
     </button>
   );
 }
